@@ -10,6 +10,12 @@
 
 **Requirements:** None (foundation)
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — 初始化 monorepo 工作区，搭建前端 uni-app 和后端 Fastify 脚手架
+- [ ] 01-02-PLAN.md — 配置 Prisma 数据库 schema、Redis 连接、共享类型、Docker 服务、项目文档
+
 **Success Criteria:**
 1. 前端 uni-app + Vue 3 + TypeScript 项目可正常启动
 2. 后端 Node.js + TypeScript + Fastify 项目可正常启动
@@ -168,4 +174,4 @@
 
 ---
 
-*Last updated: 2026-04-16 after initialization*
+*Last updated: 2026-04-16 after Phase 1 planning*

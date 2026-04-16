@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String   @id @default(uuid())
+  openId               String   @unique @map("open_id")
+  nickname             String?
+  avatar               String?
+  subscriptionTier     String   @default("free") @map("subscription_tier")
+  subscriptionEndsAt   DateTime? @map("subscription_ends_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  contacts             Contact[]
+  interactions         Interaction[]
+  relationshipScores   RelationshipScore[]
+  reminders            Reminder[]
+  businessCards        BusinessCard[]
+
+  @@map("users")
+}
+
+model Contact {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  name          String
+  company       String?
+  title         String?
+  phone         String?
+  wechatId      String?  @map("wechat_id")
+  email         String?
+  avatar        String?
+  source        String?
+  tags          String[] @default([])
+  customFields  Json?    @map("custom_fields")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interactions  Interaction[]
+  relationshipScores RelationshipScore[]
+  reminders     Reminder[]
+  businessCards BusinessCard[]
+
+  @@index([userId])
+  @@index([name])
+  @@index([company])
+  @@map("contacts")
+}
+
+model Interaction {
+  id          String   @id @default(uuid())
+  contactId   String   @map("contact_id")
+  userId      String   @map("user_id")
+  type        String   // voice_note | chat_export | manual_note | call | meeting
+  content     String
+  duration    Int?     // in seconds
+  occurredAt  DateTime @map("occurred_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([userId])
+  @@index([occurredAt])
+  @@map("interactions")
+}
+
+model RelationshipScore {
+  id                    String   @id @default(uuid())
+  contactId             String   @map("contact_id")
+  userId                String   @map("user_id")
+  score                 Float
+  lastContactDays       Int      @map("last_contact_days")
+  interactionFrequency  Float    @map("interaction_frequency")
+  emotionalTone         Float?   @map("emotional_tone")
+  calculatedAt          DateTime @map("calculated_at")
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([userId])
+  @@map("relationship_scores")
+}
+
+model Reminder {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  contactId       String?  @map("contact_id")
+  type            String   // relationship | birthday | custom
+  message         String
+  scheduledAt     DateTime @map("scheduled_at")
+  sentAt          DateTime? @map("sent_at")
+  recurrenceRule  String?  @map("recurrence_rule")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([scheduledAt])
+  @@map("reminders")
+}
+
+model BusinessCard {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  contactId   String?  @map("contact_id")
+  imageUrl    String   @map("image_url")
+  ocrData     Json?    @map("ocr_data")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("business_cards")
+}
