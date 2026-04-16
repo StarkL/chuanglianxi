@@ -184,3 +184,26 @@ Plans:
 ---
 
 *Last updated: 2026-04-16 after Phase 2 planning*
+
+---
+
+## Backlog
+
+### Phase 999.1: Follow-up — Phase 01 incomplete plans (BACKLOG)
+
+**Goal:** Resolve plans that ran without producing summaries during Phase 01 execution
+**Source phase:** 01-infrastructure
+**Deferred at:** 2026-04-16 during /gsd-next advancement to Phase 03
+**Plans:**
+- [ ] 01-02: infrastructure (ran, no SUMMARY.md)
+
+### Phase 999.2: Follow-up — Phase 02 incomplete plans (BACKLOG)
+
+**Goal:** Resolve plans that ran without producing summaries during Phase 02 execution
+**Source phase:** 02-weixin-auth
+**Deferred at:** 2026-04-16 during /gsd-next advancement to Phase 03
+**Plans:**
+- [ ] 02-02: auth-api (ran, no SUMMARY.md)
+- [ ] 02-03: frontend-auth (ran, no SUMMARY.md)
+- [ ] 02-04: login-ui (ran, no SUMMARY.md)
+- [ ] 02-05: auth-guard (ran, no SUMMARY.md)
