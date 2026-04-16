@@ -94,6 +94,13 @@ Plans:
 
 **Requirements:** OCR-01, OCR-02, OCR-03, CARD-WALL-01
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Backend OCR integration: Baidu OCR + Qwen AI + route wiring + tests (OCR-01, OCR-02, OCR-03)
+- [ ] 04-02-PLAN.md — Frontend scan flow: image upload, scan page, editable result form (OCR-01)
+- [ ] 04-03-PLAN.md — Card wall page: 2-column waterfall layout + home page nav (CARD-WALL-01)
+
 **Success Criteria:**
 1. 用户拍照后自动识别名片信息
 2. AI 自动补全缺失信息（公司官网、职位推断）
@@ -189,7 +196,7 @@ Plans:
 
 ---
 
-*Last updated: 2026-04-16 after Phase 3 gap planning*
+*Last updated: 2026-04-16 after Phase 4 planning*
 
 ---
 
