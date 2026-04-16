@@ -53,6 +53,12 @@
       "style": {
         "navigationBarTitleText": "名片墙"
       }
+    },
+    {
+      "path": "pages/interactions/add/add",
+      "style": {
+        "navigationBarTitleText": "添加交互记录"
+      }
     }
   ],
   "globalStyle": {

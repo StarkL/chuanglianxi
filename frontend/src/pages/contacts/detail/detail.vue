@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getContact, type ContactDetail } from '../../../api/contacts.js'
+import { deleteInteraction, updateInteraction } from '../../../api/interactions.js'
 
 const contact = ref<ContactDetail | null>(null)
 const loading = ref(false)
@@ -32,6 +33,12 @@ function goEdit() {
   }
 }
 
+function addInteraction() {
+  if (contact.value) {
+    uni.navigateTo({ url: `/pages/interactions/add/add?contactId=${contact.value.id}` })
+  }
+}
+
 function deleteContact() {
   uni.showModal({
     title: '确认删除？',
@@ -52,29 +59,47 @@ function deleteContact() {
   })
 }
 
-function addInteraction() {
-  uni.showModal({
-    title: '添加交互记录',
-    editable: true,
-    placeholderText: '输入交互内容',
+function handleInteractionLongPress(item: NonNullable<typeof contact.value>['interactions'][number]) {
+  uni.showActionSheet({
+    itemList: ['编辑', '删除'],
     success: async (res) => {
-      if (res.confirm && res.content && contact.value) {
-        try {
-          const { request } = await import('../../../utils/request.js')
-          await request({
-            url: '/interactions',
-            method: 'POST',
-            data: {
-              contactId: contact.value.id,
-              type: 'manual_note',
-              content: res.content,
-            },
-          })
-          await loadContact(contact.value.id)
-          uni.showToast({ title: '已添加', icon: 'success' })
-        } catch {
-          uni.showToast({ title: '添加失败', icon: 'none' })
-        }
+      if (res.tapIndex === 0) {
+        // Edit
+        uni.showModal({
+          title: '编辑交互记录',
+          editable: true,
+          placeholderText: '输入交互内容',
+          content: item.content,
+          success: async (editRes) => {
+            if (editRes.confirm && editRes.content && contact.value) {
+              try {
+                await updateInteraction(item.id, { content: editRes.content })
+                await loadContact(contact.value.id)
+                uni.showToast({ title: '已更新', icon: 'success' })
+              } catch {
+                uni.showToast({ title: '更新失败', icon: 'none' })
+              }
+            }
+          },
+        })
+      } else if (res.tapIndex === 1) {
+        // Delete
+        uni.showModal({
+          title: '确认删除？',
+          content: '删除后无法恢复该交互记录',
+          confirmColor: '#e64340',
+          success: async (delRes) => {
+            if (delRes.confirm && contact.value) {
+              try {
+                await deleteInteraction(item.id)
+                await loadContact(contact.value.id)
+                uni.showToast({ title: '已删除', icon: 'success' })
+              } catch {
+                uni.showToast({ title: '删除失败', icon: 'none' })
+              }
+            }
+          },
+        })
       }
     },
   })
@@ -136,7 +161,7 @@ function formatDate(dateStr: string): string {
           <text class="add-btn" @click="addInteraction">+ 添加</text>
         </view>
         <view v-if="contact.interactions.length > 0" class="timeline">
-          <view v-for="item in contact.interactions" :key="item.id" class="timeline-item">
+          <view v-for="item in contact.interactions" :key="item.id" class="timeline-item" @longpress="handleInteractionLongPress(item)">
             <view class="timeline-dot" />
             <view class="timeline-content">
               <view class="timeline-header-row">
