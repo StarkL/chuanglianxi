@@ -1,6 +1,6 @@
 # 常联系 (ChangLianXi) — Roadmap
 
-**Phases:** 8 | **Requirements mapped:** 23 | All V1 requirements covered ✓
+**Phases:** 8 | **Requirements mapped:** 23 | All V1 requirements covered
 
 ---
 
@@ -65,6 +65,12 @@ Plans:
 **Goal:** 实现联系人增删改查、搜索、标签分组和通讯录导入
 
 **Requirements:** CONTACT-01, CONTACT-02, CONTACT-03, CONTACT-04, SEARCH-01, SEARCH-02, SEARCH-03
+
+**Plans:** 2 plans (gap closure for remaining features)
+
+Plans:
+- [ ] 03-01-PLAN.md — Phone contacts import: wx.chooseContact + backend AES decryption + deduplication + import page (CONTACT-04)
+- [ ] 03-02-PLAN.md — Custom tag input component (preset + free-text) integrated into edit page (CONTACT-03)
 
 **Success Criteria:**
 1. 用户可以创建、编辑、删除联系人
@@ -183,7 +189,7 @@ Plans:
 
 ---
 
-*Last updated: 2026-04-16 after Phase 2 planning*
+*Last updated: 2026-04-16 after Phase 3 gap planning*
 
 ---
 
