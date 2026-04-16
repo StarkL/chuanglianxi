@@ -4,7 +4,7 @@
 
 - **Milestone:** V1 MVP
 - **Current Phase:** 项目基础设施
-- **Status:** Plans created, ready for execution
+- **Status:** Phase 1 complete, Phase 2 execution in progress (Wave 1 done)
 
 ## Project Reference
 

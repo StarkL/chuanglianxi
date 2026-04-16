@@ -6,6 +6,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   CORS_ORIGIN: z.string().default('*'),
+  WECHAT_APP_ID: z.string().min(1),
+  WECHAT_APP_SECRET: z.string().min(1),
+  JWT_SECRET: z.string().min(32),
 })
 
 export const env = envSchema.parse(process.env)
