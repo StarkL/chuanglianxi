@@ -60,3 +60,17 @@ export function deleteContact(id: string) {
     method: 'DELETE'
   })
 }
+
+export interface ImportContactResult {
+  success: boolean
+  data: Contact
+  duplicate: boolean
+}
+
+export function importContactFromPhone(code: string, encryptedData: string, iv: string) {
+  return request<ImportContactResult>({
+    url: '/contacts/import-from-phone',
+    method: 'POST',
+    data: { code, encryptedData, iv } as Record<string, unknown>
+  })
+}

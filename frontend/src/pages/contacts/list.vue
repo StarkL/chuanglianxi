@@ -39,6 +39,10 @@ function goCreate() {
   uni.navigateTo({ url: '/pages/contacts/edit/edit' })
 }
 
+function goImport() {
+  uni.navigateTo({ url: '/pages/contacts/import-phone' })
+}
+
 onMounted(() => {
   loadContacts()
 })
@@ -93,6 +97,7 @@ onMounted(() => {
       <text class="empty-hint">点击下方按钮添加第一个联系人</text>
     </view>
 
+    <button class="import-btn" @click="goImport">从通讯录导入</button>
     <button class="add-btn" @click="goCreate">+ 添加联系人</button>
   </view>
 </template>
@@ -219,6 +224,22 @@ onMounted(() => {
   font-size: 24rpx;
   color: #ccc;
   display: block;
+}
+
+.import-btn {
+  position: fixed;
+  bottom: 176rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 64rpx);
+  height: 88rpx;
+  line-height: 88rpx;
+  background-color: #007aff;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 16rpx;
+  border: none;
 }
 
 .add-btn {

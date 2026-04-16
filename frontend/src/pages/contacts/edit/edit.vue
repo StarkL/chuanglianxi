@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { createContact, updateContact, getContact } from '../../../api/contacts.js'
+import TagInput from '../../../components/tag-input.vue'
 
 const contactId = ref('')
 const name = ref('')
@@ -11,7 +12,6 @@ const email = ref('')
 const wechatId = ref('')
 const saving = ref(false)
 
-const tagOptions = ['工作', '朋友', '家人', '同事', '客户']
 const selectedTags = ref<string[]>([])
 
 function toggleTag(tag: string) {
@@ -120,16 +120,7 @@ async function handleSave() {
 
       <view class="form-group">
         <text class="label">标签</text>
-        <view class="tag-picker">
-          <view
-            v-for="tag in tagOptions"
-            :key="tag"
-            :class="['tag-option', selectedTags.includes(tag) ? 'selected' : '']"
-            @click="toggleTag(tag)"
-          >
-            {{ tag }}
-          </view>
-        </view>
+        <tag-input v-model="selectedTags" />
       </view>
     </view>
 
@@ -179,25 +170,6 @@ async function handleSave() {
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-}
-
-.tag-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-}
-
-.tag-option {
-  padding: 8rpx 24rpx;
-  background-color: #f6f6f6;
-  border-radius: 32rpx;
-  font-size: 24rpx;
-  color: #666;
-}
-
-.tag-option.selected {
-  background-color: #07c160;
-  color: #fff;
 }
 
 .save-btn {

@@ -1,6 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
+import { code2Session } from '../lib/wechat.js'
+import { decryptWeChatContact } from '../lib/wechat-crypto.js'
 
 interface CreateContactBody {
   name: string
@@ -24,6 +26,12 @@ interface UpdateContactBody {
   avatar?: string
   source?: string
   tags?: string[]
+}
+
+interface ImportPhoneBody {
+  code: string
+  encryptedData: string
+  iv: string
 }
 
 export async function contactRoutes(fastify: FastifyInstance) {
@@ -185,6 +193,56 @@ export async function contactRoutes(fastify: FastifyInstance) {
       await prisma.contact.delete({ where: { id } })
 
       return { success: true }
+    }
+  )
+
+  // POST /contacts/import-from-phone — import contact from wx.chooseContact
+  fastify.post<{ Body: ImportPhoneBody }>(
+    '/contacts/import-from-phone',
+    {
+      preHandler: [requireAuth],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['code', 'encryptedData', 'iv'],
+          properties: {
+            code: { type: 'string' },
+            encryptedData: { type: 'string' },
+            iv: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Body: ImportPhoneBody }>, reply: FastifyReply) => {
+      const { userId } = request as AuthenticatedRequest
+      const { code, encryptedData, iv } = request.body
+
+      try {
+        const { sessionKey } = await code2Session(code)
+        const { name, phoneNumber } = decryptWeChatContact(sessionKey, iv, encryptedData)
+
+        const existing = await prisma.contact.findFirst({
+          where: { userId, phone: phoneNumber },
+        })
+
+        if (existing) {
+          return { success: true, data: existing, duplicate: true }
+        }
+
+        const contact = await prisma.contact.create({
+          data: {
+            userId,
+            name,
+            phone: phoneNumber,
+            source: 'phone-import',
+            tags: [],
+          },
+        })
+
+        return { success: true, data: contact, duplicate: false }
+      } catch {
+        return reply.code(400).send({ success: false, error: '解密失败，请重新登录' })
+      }
     }
   )
 }
