@@ -25,6 +25,10 @@ async function handleLogout() {
 function confirmLogout() {
   showLogoutConfirm.value = true
 }
+
+function goContacts() {
+  uni.navigateTo({ url: '/pages/contacts/list' })
+}
 </script>
 
 <template>
@@ -44,6 +48,13 @@ function confirmLogout() {
     <view class="welcome">
       <text class="title">欢迎使用常联系</text>
       <text class="subtitle">你的人脉管理助手</text>
+    </view>
+
+    <view class="nav-section">
+      <view class="nav-card" @click="goContacts">
+        <text class="nav-icon">📇</text>
+        <text class="nav-label">联系人</text>
+      </view>
     </view>
 
     <view class="action-section">
@@ -118,6 +129,33 @@ function confirmLogout() {
 .subtitle {
   font-size: 28rpx;
   color: #999;
+}
+
+.nav-section {
+  width: 100%;
+  margin-bottom: 32rpx;
+}
+
+.nav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  border: 1px solid #eee;
+}
+
+.nav-icon {
+  font-size: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.nav-label {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
 }
 
 .action-section {
