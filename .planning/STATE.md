@@ -3,8 +3,8 @@
 ## Current State
 
 - **Milestone:** V1 MVP
-- **Current Phase:** 项目基础设施
-- **Status:** Phase 1 complete, Phase 2 execution in progress (Wave 1 done)
+- **Current Phase:** 联系人管理
+- **Status:** Phase 1-2 complete, ready for Phase 3
 
 ## Project Reference
 
@@ -17,8 +17,8 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | 项目基础设施 | Planned (2 plans, 2 waves) |
-| 2 | 微信认证系统 | UI-SPEC ✓ |
+| 1 | 项目基础设施 | ✓ Complete |
+| 2 | 微信认证系统 | ✓ Complete |
 | 3 | 联系人管理 | Not Started |
 | 4 | 名片 OCR | Not Started |
 | 5 | 交互记录 | Not Started |
