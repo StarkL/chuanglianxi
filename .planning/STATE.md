@@ -20,8 +20,8 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 | 1 | 项目基础设施 | ✓ Complete |
 | 2 | 微信认证系统 | ✓ Complete |
 | 3 | 联系人管理 | ✓ Complete |
-| 4 | 名片 OCR | Not Started |
-| 5 | 交互记录 | Not Started |
+| 4 | 名片 OCR | ✓ Complete |
+| 5 | 交互记录 | ✓ Complete |
 | 6 | 提醒系统 | Not Started |
 | 7 | 付费系统 | Not Started |
 | 8 | 前端完善与测试 | Not Started |
