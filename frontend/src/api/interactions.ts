@@ -24,7 +24,10 @@ export function createInteraction(data: {
   })
 }
 
-export function updateInteraction(id: string, data: Partial<Omit<Interaction, 'id' | 'contactId' | 'createdAt'>>) {
+export function updateInteraction(
+  id: string,
+  data: Partial<Omit<Interaction, 'id' | 'contactId' | 'createdAt'>>
+) {
   return request<Interaction>({
     url: `/interactions/${id}`,
     method: 'PUT',

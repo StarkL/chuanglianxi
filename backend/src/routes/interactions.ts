@@ -87,7 +87,10 @@ export async function interactionRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string }; Body: UpdateInteractionBody }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string }; Body: UpdateInteractionBody }>,
+      reply: FastifyReply
+    ) => {
       const { userId } = request as AuthenticatedRequest
       const { id: interactionId } = request.params
       const data = request.body
