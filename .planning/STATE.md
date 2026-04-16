@@ -19,7 +19,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 |-------|------|--------|
 | 1 | 项目基础设施 | ✓ Complete |
 | 2 | 微信认证系统 | ✓ Complete |
-| 3 | 联系人管理 | 大部分完成（缺 CONTACT-04 + 自定义标签） |
+| 3 | 联系人管理 | ✓ Complete |
 | 4 | 名片 OCR | Not Started |
 | 5 | 交互记录 | Not Started |
 | 6 | 提醒系统 | Not Started |
