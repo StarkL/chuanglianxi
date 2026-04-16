@@ -3,8 +3,8 @@
 ## Current State
 
 - **Milestone:** V1 MVP
-- **Current Phase:** 名片 OCR
-- **Status:** Phase 1-3 complete, ready for Phase 4
+- **Current Phase:** 提醒系统
+- **Status:** Phase 1-5 complete, Phase 06 CONTEXT captured, ready for planning
 
 ## Project Reference
 
@@ -26,13 +26,22 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 | 7 | 付费系统 | Not Started |
 | 8 | 前端完善与测试 | Not Started |
 
-## Phase 3 Context
+## Phase Progress Summary
 
-Phase 3 CONTEXT.md captured decisions for remaining gaps (phone contacts import, custom tags, pagination, interaction records). Core CRUD, search, tag filtering, and detail page already implemented. Remaining work: CONTACT-04 phone contacts import + custom tag UI.
+| Phase | Name | Status |
+|-------|------|--------|
+| 1 | 项目基础设施 | ✓ Complete |
+| 2 | 微信认证系统 | ✓ Complete |
+| 3 | 联系人管理 | ✓ Complete |
+| 4 | 名片 OCR | ✓ Complete |
+| 5 | 交互记录 | ✓ Complete |
+| 6 | 提醒系统 | CONTEXT captured, ready for planning |
+| 7 | 付费系统 | Not Started |
+| 8 | 前端完善与测试 | Not Started |
 
 ## Active Todos
 
 (None yet)
 
 ---
-*Last updated: 2026-04-16 after Phase 3 context gathered*
+*Last updated: 2026-04-16 after Phase 5 completion*
