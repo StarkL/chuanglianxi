@@ -122,6 +122,12 @@ Plans:
 
 **Requirements:** INTERACTION-01, INTERACTION-02, INTERACTION-03
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Backend interaction CRUD: PUT + DELETE endpoints with ownership verification
+- [ ] 05-02-PLAN.md — Frontend add page with type selector, timeline long-press edit/delete, navigation integration
+
 **Success Criteria:**
 1. 用户可以为联系人添加交互记录（时间、方式、内容摘要）
 2. 交互记录支持类型分类（手动笔记、通话、会议等）
@@ -196,7 +202,7 @@ Plans:
 
 ---
 
-*Last updated: 2026-04-16 after Phase 4 planning*
+*Last updated: 2026-04-16 after Phase 5 planning*
 
 ---
 
