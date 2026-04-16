@@ -26,9 +26,13 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 | 7 | 付费系统 | Not Started |
 | 8 | 前端完善与测试 | Not Started |
 
+## Phase 3 Context
+
+Phase 3 CONTEXT.md captured decisions for remaining gaps (phone contacts import, custom tags, pagination, interaction records). Core CRUD, search, tag filtering, and detail page already implemented. Remaining work: CONTACT-04 phone contacts import + custom tag UI.
+
 ## Active Todos
 
 (None yet)
 
 ---
-*Last updated: 2026-04-16 after Phase 1 planning*
+*Last updated: 2026-04-16 after Phase 3 context gathered*
