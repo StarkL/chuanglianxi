@@ -9,6 +9,10 @@ const envSchema = z.object({
   WECHAT_APP_ID: z.string().min(1),
   WECHAT_APP_SECRET: z.string().min(1),
   JWT_SECRET: z.string().min(32),
+  BAIDU_OCR_APP_ID: z.string().min(1),
+  BAIDU_OCR_API_KEY: z.string().min(1),
+  BAIDU_OCR_SECRET_KEY: z.string().min(1),
+  QWEN_API_KEY: z.string().min(1),
 })
 
 export const env = envSchema.parse(process.env)

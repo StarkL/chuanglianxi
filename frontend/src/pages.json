@@ -35,6 +35,24 @@
       "style": {
         "navigationBarTitleText": "从通讯录导入"
       }
+    },
+    {
+      "path": "pages/ocr/scan/scan",
+      "style": {
+        "navigationBarTitleText": "扫描名片"
+      }
+    },
+    {
+      "path": "pages/ocr/result/result",
+      "style": {
+        "navigationBarTitleText": "确认名片信息"
+      }
+    },
+    {
+      "path": "pages/ocr/cards/cards",
+      "style": {
+        "navigationBarTitleText": "名片墙"
+      }
     }
   ],
   "globalStyle": {

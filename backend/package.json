@@ -15,11 +15,13 @@
     "@fastify/cors": "^10.0.0",
     "@fastify/swagger": "^9.4.0",
     "@fastify/swagger-ui": "^5.2.0",
+    "baidu-aip-sdk": "^4.16.16",
     "bullmq": "^5.34.0",
     "env-schema": "^6.0.0",
     "fastify": "^5.2.0",
     "ioredis": "^5.4.0",
     "jose": "^6.2.2",
+    "openai": "^6.34.0",
     "pg": "^8.13.0",
     "prisma": "^6.3.0",
     "zod": "^3.24.0"

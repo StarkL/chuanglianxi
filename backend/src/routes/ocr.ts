@@ -1,6 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
+import { recognizeBusinessCard } from '../lib/ocr.js'
+import { enrichBusinessCardData } from '../lib/ai-enrich.js'
 
 interface OcrRequestBody {
   imageData: string
@@ -43,24 +45,27 @@ export async function ocrRoutes(fastify: FastifyInstance) {
         }
       }
 
-      // OCR processing placeholder
-      // In production: call Baidu OCR or WeChat OCR API with imageData
-      // For now: return mock data for development
-      const ocrResult = {
-        name: '',
-        company: '',
-        title: '',
-        phone: '',
-        email: '',
-        wechatId: '',
+      // OCR processing: call Baidu OCR, then enrich with Qwen AI
+      let ocrResult
+      try {
+        ocrResult = await recognizeBusinessCard(imageData)
+      } catch {
+        return reply.code(400).send({
+          success: false,
+          error: 'OCR识别失败，请重试',
+        })
       }
+
+      // AI enrichment (non-blocking)
+      const enriched = await enrichBusinessCardData(ocrResult)
+      const mergedOcrData = { ...ocrResult, ...enriched }
 
       // Save the business card record
       const card = await prisma.businessCard.create({
         data: {
           userId,
           imageUrl: '',
-          ocrData: ocrResult as unknown as Record<string, unknown>,
+          ocrData: mergedOcrData as unknown as Record<string, unknown>,
         },
       })
 
@@ -68,7 +73,7 @@ export async function ocrRoutes(fastify: FastifyInstance) {
         success: true,
         data: {
           cardId: card.id,
-          ocr: ocrResult,
+          ocr: mergedOcrData,
         },
       }
     }
