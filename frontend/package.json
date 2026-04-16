@@ -15,8 +15,8 @@
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.0",
-    "@dcloudio/uni-cli-shared": "^3.0.0",
-    "@dcloudio/vite-plugin-uni": "^3.0.0",
+    "@dcloudio/uni-cli-shared": "3.0.0-5000720260410001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-5000720260410001",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.57.0",

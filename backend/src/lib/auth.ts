@@ -19,7 +19,9 @@ export async function generateToken(payload: TokenPayload): Promise<string> {
     .sign(secret)
 }
 
-export async function verifyToken(token: string): Promise<TokenPayload & { iat: number; exp: number }> {
+export async function verifyToken(
+  token: string
+): Promise<TokenPayload & { iat: number; exp: number }> {
   const { payload } = await jwtVerify(token, secret)
   return {
     sub: payload.sub as string,

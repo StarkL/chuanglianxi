@@ -24,7 +24,7 @@ export function request<T>(options: RequestOptions): Promise<ApiResponse<T>> {
       data: options.data,
       header: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
       success: (res) => {
         const data = res.data as ApiResponse<T>
@@ -37,7 +37,7 @@ export function request<T>(options: RequestOptions): Promise<ApiResponse<T>> {
       },
       fail: (err) => {
         reject(err)
-      },
+      }
     })
   })
 }

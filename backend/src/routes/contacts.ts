@@ -27,53 +27,49 @@ interface UpdateContactBody {
 }
 
 export async function contactRoutes(fastify: FastifyInstance) {
-  fastify.get(
-    '/contacts',
-    { preHandler: [requireAuth] },
-    async (request: FastifyRequest) => {
-      const { userId } = request as AuthenticatedRequest
-      const query = request.query as Record<string, string | undefined>
+  fastify.get('/contacts', { preHandler: [requireAuth] }, async (request: FastifyRequest) => {
+    const { userId } = request as AuthenticatedRequest
+    const query = request.query as Record<string, string | undefined>
 
-      const where: Record<string, unknown> = { userId }
+    const where: Record<string, unknown> = { userId }
 
-      if (query.search) {
-        where.OR = [
-          { name: { contains: query.search, mode: 'insensitive' } },
-          { company: { contains: query.search, mode: 'insensitive' } },
-        ]
-      }
+    if (query.search) {
+      where.OR = [
+        { name: { contains: query.search, mode: 'insensitive' } },
+        { company: { contains: query.search, mode: 'insensitive' } },
+      ]
+    }
 
-      if (query.tag) {
-        where.tags = { has: query.tag }
-      }
+    if (query.tag) {
+      where.tags = { has: query.tag }
+    }
 
-      const contacts = await prisma.contact.findMany({
-        where,
-        orderBy: { updatedAt: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          company: true,
-          title: true,
-          phone: true,
-          email: true,
-          avatar: true,
-          tags: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      })
+    const contacts = await prisma.contact.findMany({
+      where,
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        company: true,
+        title: true,
+        phone: true,
+        email: true,
+        avatar: true,
+        tags: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
 
-      return { success: true, data: contacts }
-    },
-  )
+    return { success: true, data: contacts }
+  })
 
   fastify.get(
     '/contacts/:id',
     { preHandler: [requireAuth] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { userId } = request as AuthenticatedRequest
-      const { id } = (request.params as { id: string })
+      const { id } = request.params as { id: string }
 
       const contact = await prisma.contact.findFirst({
         where: { id, userId },
@@ -96,7 +92,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
       }
 
       return { success: true, data: contact }
-    },
+    }
   )
 
   fastify.post<{ Body: CreateContactBody }>(
@@ -123,8 +119,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Body: CreateContactBody }>) => {
       const { userId } = request as AuthenticatedRequest
-      const { name, company, title, phone, wechatId, email, avatar, source, tags } =
-        request.body
+      const { name, company, title, phone, wechatId, email, avatar, source, tags } = request.body
 
       const contact = await prisma.contact.create({
         data: {
@@ -142,7 +137,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
       })
 
       return { success: true, data: contact }
-    },
+    }
   )
 
   fastify.put<{ Params: { id: string }; Body: UpdateContactBody }>(
@@ -168,7 +163,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
       })
 
       return { success: true, data: contact }
-    },
+    }
   )
 
   fastify.delete(
@@ -190,6 +185,6 @@ export async function contactRoutes(fastify: FastifyInstance) {
       await prisma.contact.delete({ where: { id } })
 
       return { success: true }
-    },
+    }
   )
 }

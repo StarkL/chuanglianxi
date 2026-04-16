@@ -71,55 +71,47 @@ export async function ocrRoutes(fastify: FastifyInstance) {
           ocr: ocrResult,
         },
       }
-    },
+    }
   )
 
-  fastify.get(
-    '/ocr/usage',
-    { preHandler: [requireAuth] },
-    async (request: FastifyRequest) => {
-      const { userId } = request as AuthenticatedRequest
+  fastify.get('/ocr/usage', { preHandler: [requireAuth] }, async (request: FastifyRequest) => {
+    const { userId } = request as AuthenticatedRequest
 
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
 
-      const todayCount = await prisma.businessCard.count({
-        where: {
-          userId,
-          createdAt: { gte: today, lt: tomorrow },
-        },
-      })
+    const todayCount = await prisma.businessCard.count({
+      where: {
+        userId,
+        createdAt: { gte: today, lt: tomorrow },
+      },
+    })
 
-      return {
-        success: true,
-        data: {
-          used: todayCount,
-          limit: 10,
-          remaining: Math.max(0, 10 - todayCount),
-        },
-      }
-    },
-  )
+    return {
+      success: true,
+      data: {
+        used: todayCount,
+        limit: 10,
+        remaining: Math.max(0, 10 - todayCount),
+      },
+    }
+  })
 
-  fastify.get(
-    '/business-cards',
-    { preHandler: [requireAuth] },
-    async (request: FastifyRequest) => {
-      const { userId } = request as AuthenticatedRequest
+  fastify.get('/business-cards', { preHandler: [requireAuth] }, async (request: FastifyRequest) => {
+    const { userId } = request as AuthenticatedRequest
 
-      const cards = await prisma.businessCard.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          imageUrl: true,
-          createdAt: true,
-        },
-      })
+    const cards = await prisma.businessCard.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        imageUrl: true,
+        createdAt: true,
+      },
+    })
 
-      return { success: true, data: cards }
-    },
-  )
+    return { success: true, data: cards }
+  })
 }

@@ -102,7 +102,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           error: message.includes('code2Session') ? '微信授权失败' : '登录失败，请重试',
         })
       }
-    },
+    }
   )
 
   fastify.get('/auth/verify', async (request: FastifyRequest, reply: FastifyReply) => {

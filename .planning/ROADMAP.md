@@ -37,6 +37,15 @@ Plans:
 
 **Requirements:** AUTH-01, AUTH-02
 
+**Plans:** 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — 后端认证基础：Prisma 客户端、微信 code2Session、JWT 生成/验证 (jose)
+- [ ] 02-02-PLAN.md — 认证 API 端点：wechat-login、verify、logout + 认证中间件
+- [ ] 02-03-PLAN.md — 前端认证基础：Token 工具、API 请求包装、类型定义
+- [ ] 02-04-PLAN.md — 登录页面 UI：微信绿色主题、登录流程、错误状态
+- [ ] 02-05-PLAN.md — 前端认证守卫：App onLaunch 校验、登出流程、页面守卫
+
 **Success Criteria:**
 1. 用户可以点击"微信登录"按钮完成授权
 2. 登录后自动创建用户记录（open_id、昵称、头像）
@@ -160,7 +169,7 @@ Plans:
 
 **Success Criteria:**
 1. 所有页面 UI 完整、一致、美观
-2. 单元测试覆盖率 ≥ 80%
+2. 单元测试覆盖率 >= 80%
 3. E2E 测试覆盖核心用户流程
 4. 小程序通过微信审核
 5. 用户隐私政策、用户协议等合规文档齐全
@@ -174,4 +183,4 @@ Plans:
 
 ---
 
-*Last updated: 2026-04-16 after Phase 1 planning*
+*Last updated: 2026-04-16 after Phase 2 planning*

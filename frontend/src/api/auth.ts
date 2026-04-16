@@ -20,20 +20,20 @@ export function login(params: LoginParams) {
   return request<LoginResult>({
     url: '/auth/wechat-login',
     method: 'POST',
-    data: params,
+    data: params
   })
 }
 
 export function verifyToken() {
   return request({
     url: '/auth/verify',
-    method: 'GET',
+    method: 'GET'
   })
 }
 
 export function logout() {
   return request({
     url: '/auth/logout',
-    method: 'POST',
+    method: 'POST'
   })
 }

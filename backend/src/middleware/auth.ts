@@ -6,10 +6,7 @@ export interface AuthenticatedRequest extends FastifyRequest {
   openId: string
 }
 
-export async function requireAuth(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<void> {
+export async function requireAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const authHeader = request.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) {
     return reply.code(401).send({ success: false, error: '未登录' })
@@ -27,23 +24,19 @@ export async function requireAuth(
 
 export async function registerProtectedRoutes(fastify: FastifyInstance) {
   // Example: protected route template
-  fastify.get(
-    '/auth/me',
-    { preHandler: [requireAuth] },
-    async (request: AuthenticatedRequest) => {
-      const { prisma } = await import('../lib/prisma.js')
-      const user = await prisma.user.findUnique({
-        where: { id: request.userId },
-        select: {
-          id: true,
-          nickname: true,
-          avatar: true,
-          subscriptionTier: true,
-          createdAt: true,
-        },
-      })
+  fastify.get('/auth/me', { preHandler: [requireAuth] }, async (request: AuthenticatedRequest) => {
+    const { prisma } = await import('../lib/prisma.js')
+    const user = await prisma.user.findUnique({
+      where: { id: request.userId },
+      select: {
+        id: true,
+        nickname: true,
+        avatar: true,
+        subscriptionTier: true,
+        createdAt: true,
+      },
+    })
 
-      return { success: true, data: user }
-    },
-  )
+    return { success: true, data: user }
+  })
 }

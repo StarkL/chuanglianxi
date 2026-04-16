@@ -21,7 +21,10 @@ export async function interactionRoutes(fastify: FastifyInstance) {
           required: ['contactId', 'type', 'content'],
           properties: {
             contactId: { type: 'string' },
-            type: { type: 'string', enum: ['voice_note', 'chat_export', 'manual_note', 'call', 'meeting'] },
+            type: {
+              type: 'string',
+              enum: ['voice_note', 'chat_export', 'manual_note', 'call', 'meeting'],
+            },
             content: { type: 'string' },
             duration: { type: 'number' },
             occurredAt: { type: 'string' },
@@ -54,6 +57,6 @@ export async function interactionRoutes(fastify: FastifyInstance) {
       })
 
       return { success: true, data: interaction }
-    },
+    }
   )
 }
