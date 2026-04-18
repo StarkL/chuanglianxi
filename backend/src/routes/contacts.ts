@@ -100,6 +100,16 @@ export async function contactRoutes(fastify: FastifyInstance) {
               occurredAt: true,
             },
           },
+          reminders: {
+            where: { sentAt: null },
+            orderBy: { scheduledAt: 'asc' },
+            select: {
+              id: true,
+              type: true,
+              message: true,
+              scheduledAt: true,
+            },
+          },
         },
       })
 
