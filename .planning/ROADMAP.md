@@ -214,7 +214,7 @@ Plans:
 **Source phase:** 01-infrastructure
 **Deferred at:** 2026-04-16 during /gsd-next advancement to Phase 03
 **Plans:**
-- [ ] 01-02: infrastructure (ran, no SUMMARY.md)
+6/6 plans complete
 
 ### Phase 999.2: Follow-up — Phase 02 incomplete plans (BACKLOG)
 
@@ -226,3 +226,12 @@ Plans:
 - [ ] 02-03: frontend-auth (ran, no SUMMARY.md)
 - [ ] 02-04: login-ui (ran, no SUMMARY.md)
 - [ ] 02-05: auth-guard (ran, no SUMMARY.md)
+
+### Phase 999.3: Follow-up — Phase 05 incomplete plans (BACKLOG)
+
+**Goal:** Resolve plans that ran without producing summaries during Phase 05 execution
+**Source phase:** 05-interactions
+**Deferred at:** 2026-04-18 during /gsd-next advancement to Phase 06
+**Plans:**
+- [ ] 05-01: backend-interaction-crud (ran, no SUMMARY.md)
+- [ ] 05-02: frontend-interaction-ui (ran, no SUMMARY.md)
