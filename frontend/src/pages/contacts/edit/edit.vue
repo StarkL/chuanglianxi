@@ -12,6 +12,11 @@ const email = ref('')
 const wechatId = ref('')
 const saving = ref(false)
 
+const birthdayType = ref<'solar' | 'lunar' | ''>('')
+const birthday = ref('')
+const lunarMonth = ref<number | null>(null)
+const lunarDay = ref<number | null>(null)
+
 const selectedTags = ref<string[]>([])
 
 function toggleTag(tag: string) {
@@ -21,6 +26,23 @@ function toggleTag(tag: string) {
   } else {
     selectedTags.value.push(tag)
   }
+}
+
+const monthOptions = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
+const dayOptions = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
+
+function onBirthdayChange(e: any) {
+  birthday.value = e.detail.value
+}
+
+function onLunarMonthChange(e: any) {
+  const idx = e.detail.value as number
+  lunarMonth.value = idx + 1
+}
+
+function onLunarDayChange(e: any) {
+  const idx = e.detail.value as number
+  lunarDay.value = idx + 1
 }
 
 onMounted(async () => {
@@ -39,6 +61,17 @@ onMounted(async () => {
       email.value = res.data.email || ''
       wechatId.value = res.data.wechatId || ''
       selectedTags.value = res.data.tags || []
+
+      // Load birthday fields
+      if (res.data.birthdayType) {
+        birthdayType.value = res.data.birthdayType
+      }
+      if (res.data.birthday) {
+        const d = new Date(res.data.birthday)
+        birthday.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      }
+      if (res.data.lunarMonth) lunarMonth.value = res.data.lunarMonth
+      if (res.data.lunarDay) lunarDay.value = res.data.lunarDay
     }
   } else {
     uni.setNavigationBarTitle({ title: '添加联系人' })
@@ -61,6 +94,10 @@ async function handleSave() {
       email: email.value.trim() || undefined,
       wechatId: wechatId.value.trim() || undefined,
       tags: selectedTags.value,
+      birthdayType: birthdayType.value || undefined,
+      birthday: birthday.value || undefined,
+      lunarMonth: lunarMonth.value || undefined,
+      lunarDay: lunarDay.value || undefined,
     }
 
     if (contactId.value) {
@@ -121,6 +158,49 @@ async function handleSave() {
       <view class="form-group">
         <text class="label">标签</text>
         <tag-input v-model="selectedTags" />
+      </view>
+
+      <view class="form-group">
+        <text class="label">生日</text>
+        <view class="birthday-type">
+          <view
+            class="birthday-option"
+            :class="{ active: birthdayType === 'solar' }"
+            @click="birthdayType = 'solar'"
+          >
+            公历
+          </view>
+          <view
+            class="birthday-option"
+            :class="{ active: birthdayType === 'lunar' }"
+            @click="birthdayType = 'lunar'"
+          >
+            农历
+          </view>
+        </view>
+
+        <view v-if="birthdayType === 'solar'" class="birthday-solar">
+          <picker mode="date" :value="birthday" @change="onBirthdayChange">
+            <view class="input picker-input">
+              {{ birthday || '请选择日期' }}
+            </view>
+          </picker>
+        </view>
+
+        <view v-if="birthdayType === 'lunar'" class="birthday-lunar">
+          <view class="lunar-row">
+            <picker mode="selector" :range="monthOptions" @change="onLunarMonthChange">
+              <view class="input picker-input">
+                {{ lunarMonth ? `${lunarMonth}月` : '月份' }}
+              </view>
+            </picker>
+            <picker mode="selector" :range="dayOptions" @change="onLunarDayChange">
+              <view class="input picker-input">
+                {{ lunarDay ? `${lunarDay}日` : '日期' }}
+              </view>
+            </picker>
+          </view>
+        </view>
       </view>
     </view>
 
@@ -186,5 +266,43 @@ async function handleSave() {
   font-weight: 600;
   border-radius: 16rpx;
   border: none;
+}
+
+.birthday-type {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.birthday-option {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  background-color: #f6f6f6;
+  border-radius: 12rpx;
+}
+
+.birthday-option.active {
+  background-color: #07c160;
+  color: #fff;
+}
+
+.birthday-solar {
+  margin-top: 12rpx;
+}
+
+.birthday-lunar {
+  margin-top: 12rpx;
+}
+
+.lunar-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.lunar-row .picker-input {
+  flex: 1;
 }
 </style>

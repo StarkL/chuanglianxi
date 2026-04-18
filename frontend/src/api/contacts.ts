@@ -9,6 +9,10 @@ export interface Contact {
   email: string | null
   avatar: string | null
   tags: string[]
+  birthdayType: string | null
+  birthday: string | null
+  lunarMonth: number | null
+  lunarDay: number | null
   createdAt: string
   updatedAt: string
 }

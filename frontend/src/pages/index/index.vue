@@ -29,6 +29,18 @@ function confirmLogout() {
 function goContacts() {
   uni.navigateTo({ url: '/pages/contacts/list' })
 }
+
+function goReminders() {
+  uni.navigateTo({ url: '/pages/reminders/list/list' })
+}
+
+function goScan() {
+  uni.navigateTo({ url: '/pages/ocr/scan/scan' })
+}
+
+function goCards() {
+  uni.navigateTo({ url: '/pages/ocr/cards/cards' })
+}
 </script>
 
 <template>
@@ -51,9 +63,23 @@ function goContacts() {
     </view>
 
     <view class="nav-section">
-      <view class="nav-card" @click="goContacts">
-        <text class="nav-icon">📇</text>
-        <text class="nav-label">联系人</text>
+      <view class="nav-grid">
+        <view class="nav-card" @click="goContacts">
+          <text class="nav-icon">📇</text>
+          <text class="nav-label">联系人</text>
+        </view>
+        <view class="nav-card" @click="goReminders">
+          <text class="nav-icon">🔔</text>
+          <text class="nav-label">提醒</text>
+        </view>
+        <view class="nav-card" @click="goScan">
+          <text class="nav-icon">📷</text>
+          <text class="nav-label">扫描名片</text>
+        </view>
+        <view class="nav-card" @click="goCards">
+          <text class="nav-icon">📋</text>
+          <text class="nav-label">名片墙</text>
+        </view>
       </view>
     </view>
 
@@ -134,6 +160,12 @@ function goContacts() {
 .nav-section {
   width: 100%;
   margin-bottom: 32rpx;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
 }
 
 .nav-card {

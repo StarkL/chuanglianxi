@@ -59,6 +59,18 @@
       "style": {
         "navigationBarTitleText": "添加交互记录"
       }
+    },
+    {
+      "path": "pages/reminders/list/list",
+      "style": {
+        "navigationBarTitleText": "提醒"
+      }
+    },
+    {
+      "path": "pages/reminders/add/add",
+      "style": {
+        "navigationBarTitleText": "添加提醒"
+      }
     }
   ],
   "globalStyle": {
