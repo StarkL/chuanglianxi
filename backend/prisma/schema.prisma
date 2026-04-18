@@ -38,6 +38,10 @@ model Contact {
   source        String?
   tags          String[] @default([])
   customFields  Json?    @map("custom_fields")
+  birthdayType  String?  @map("birthday_type") // 'solar' | 'lunar'
+  birthday      DateTime? @map("birthday")
+  lunarMonth    Int?     @map("lunar_month")
+  lunarDay      Int?     @map("lunar_day")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -63,6 +67,7 @@ model Interaction {
   occurredAt  DateTime @map("occurred_at")
   createdAt   DateTime @default(now()) @map("created_at")
 
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([contactId])
@@ -81,6 +86,7 @@ model RelationshipScore {
   emotionalTone         Float?   @map("emotional_tone")
   calculatedAt          DateTime @map("calculated_at")
 
+  contact               Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([contactId])
@@ -98,6 +104,7 @@ model Reminder {
   sentAt          DateTime? @map("sent_at")
   recurrenceRule  String?  @map("recurrence_rule")
 
+  contact         Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -113,6 +120,7 @@ model BusinessCard {
   ocrData     Json?    @map("ocr_data")
   createdAt   DateTime @default(now()) @map("created_at")
 
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])

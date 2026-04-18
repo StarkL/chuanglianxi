@@ -14,6 +14,10 @@ interface CreateContactBody {
   avatar?: string
   source?: string
   tags?: string[]
+  birthdayType?: 'solar' | 'lunar'
+  birthday?: string
+  lunarMonth?: number
+  lunarDay?: number
 }
 
 interface UpdateContactBody {
@@ -26,6 +30,10 @@ interface UpdateContactBody {
   avatar?: string
   source?: string
   tags?: string[]
+  birthdayType?: 'solar' | 'lunar'
+  birthday?: string
+  lunarMonth?: number
+  lunarDay?: number
 }
 
 interface ImportPhoneBody {
@@ -127,7 +135,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Body: CreateContactBody }>) => {
       const { userId } = request as AuthenticatedRequest
-      const { name, company, title, phone, wechatId, email, avatar, source, tags } = request.body
+      const { name, company, title, phone, wechatId, email, avatar, source, tags, birthdayType, birthday, lunarMonth, lunarDay } = request.body
 
       const contact = await prisma.contact.create({
         data: {
@@ -141,6 +149,10 @@ export async function contactRoutes(fastify: FastifyInstance) {
           avatar,
           source,
           tags: tags ?? [],
+          birthdayType,
+          birthday: birthday ? new Date(birthday) : undefined,
+          lunarMonth,
+          lunarDay,
         },
       })
 
@@ -167,7 +179,10 @@ export async function contactRoutes(fastify: FastifyInstance) {
 
       const contact = await prisma.contact.update({
         where: { id },
-        data,
+        data: {
+          ...data,
+          birthday: data.birthday ? new Date(data.birthday) : undefined,
+        },
       })
 
       return { success: true, data: contact }
