@@ -135,6 +135,7 @@ async function processBirthdayReminders(fastify: FastifyInstance): Promise<void>
         userId: true,
         lunarMonth: true,
         lunarDay: true,
+        birthday: true,
       },
     })
 
@@ -193,7 +194,7 @@ async function processBirthdayReminders(fastify: FastifyInstance): Promise<void>
 }
 
 async function createNextRecurringReminder(
-  reminder: { id: string; recurrenceRule: string | null; scheduledAt: Date },
+  reminder: { id: string; recurrenceRule: string | null; scheduledAt: Date; type: string },
   fastify: FastifyInstance
 ): Promise<void> {
   if (!reminder.recurrenceRule) return

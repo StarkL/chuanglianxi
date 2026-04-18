@@ -1,3 +1,4 @@
+import { env } from '../config/env.js'
 import { prisma } from './prisma.js'
 import { getAccessToken } from './wechat-access-token.js'
 
