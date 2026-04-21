@@ -84,68 +84,63 @@ onMounted(() => {
 
 <template>
   <view class="reminder-page">
-    <view v-if="pendingCount > 0" class="summary">
-      <text class="summary-text">你有 {{ pendingCount }} 条待提醒</text>
-    </view>
+    <wd-notice-bar v-if="pendingCount > 0" :text="`你有 ${pendingCount} 条待提醒`" />
 
     <view v-if="groupedReminders.today.length > 0" class="section">
-      <text class="section-title">今天</text>
-      <view
-        v-for="reminder in groupedReminders.today"
-        :key="reminder.id"
-        class="reminder-card"
-      >
-        <view class="reminder-icon">{{ getTypeIcon(reminder.type) }}</view>
-        <view class="reminder-content">
-          <text class="reminder-message">{{ reminder.message }}</text>
-          <view class="reminder-meta">
-            <text class="reminder-type">{{ getTypeLabel(reminder.type) }}</text>
-            <text v-if="reminder.contact" class="reminder-contact">{{ reminder.contact.name }}</text>
-          </view>
-        </view>
-      </view>
+      <wd-cell-group title="今天">
+        <wd-cell
+          v-for="reminder in groupedReminders.today"
+          :key="reminder.id"
+          :title="reminder.message"
+          :label="getTypeLabel(reminder.type) + ' · ' + formatTime(reminder.scheduledAt)"
+        >
+          <template #icon>
+            <text>{{ getTypeIcon(reminder.type) }}</text>
+          </template>
+          <template v-if="reminder.contact" #right-icon>
+            <text class="contact-label">{{ reminder.contact.name }}</text>
+          </template>
+        </wd-cell>
+      </wd-cell-group>
     </view>
 
     <view v-if="groupedReminders.week.length > 0" class="section">
-      <text class="section-title">本周</text>
-      <view
-        v-for="reminder in groupedReminders.week"
-        :key="reminder.id"
-        class="reminder-card"
-      >
-        <view class="reminder-icon">{{ getTypeIcon(reminder.type) }}</view>
-        <view class="reminder-content">
-          <text class="reminder-message">{{ reminder.message }}</text>
-          <view class="reminder-meta">
-            <text class="reminder-type">{{ getTypeLabel(reminder.type) }}</text>
-            <text v-if="reminder.contact" class="reminder-contact">{{ reminder.contact.name }}</text>
-          </view>
-        </view>
-      </view>
+      <wd-cell-group title="本周">
+        <wd-cell
+          v-for="reminder in groupedReminders.week"
+          :key="reminder.id"
+          :title="reminder.message"
+          :label="getTypeLabel(reminder.type) + ' · ' + formatTime(reminder.scheduledAt)"
+        >
+          <template #icon>
+            <text>{{ getTypeIcon(reminder.type) }}</text>
+          </template>
+          <template v-if="reminder.contact" #right-icon>
+            <text class="contact-label">{{ reminder.contact.name }}</text>
+          </template>
+        </wd-cell>
+      </wd-cell-group>
     </view>
 
     <view v-if="groupedReminders.upcoming.length > 0" class="section">
-      <text class="section-title"> upcoming</text>
-      <view
-        v-for="reminder in groupedReminders.upcoming"
-        :key="reminder.id"
-        class="reminder-card"
-      >
-        <view class="reminder-icon">{{ getTypeIcon(reminder.type) }}</view>
-        <view class="reminder-content">
-          <text class="reminder-message">{{ reminder.message }}</text>
-          <view class="reminder-meta">
-            <text class="reminder-type">{{ getTypeLabel(reminder.type) }}</text>
-            <text v-if="reminder.contact" class="reminder-contact">{{ reminder.contact.name }}</text>
-          </view>
-        </view>
-      </view>
+      <wd-cell-group title="后续">
+        <wd-cell
+          v-for="reminder in groupedReminders.upcoming"
+          :key="reminder.id"
+          :title="reminder.message"
+          :label="getTypeLabel(reminder.type) + ' · ' + formatTime(reminder.scheduledAt)"
+        >
+          <template #icon>
+            <text>{{ getTypeIcon(reminder.type) }}</text>
+          </template>
+          <template v-if="reminder.contact" #right-icon>
+            <text class="contact-label">{{ reminder.contact.name }}</text>
+          </template>
+        </wd-cell>
+      </wd-cell-group>
     </view>
 
-    <view v-if="reminders.length === 0 && !loading" class="empty">
-      <text class="empty-text">暂无提醒</text>
-      <text class="empty-hint">系统会在适当时候自动推送关系提醒和生日提醒</text>
-    </view>
+    <wd-empty v-if="reminders.length === 0 && !loading" description="暂无提醒" />
   </view>
 </template>
 
@@ -156,89 +151,12 @@ onMounted(() => {
   padding: 24rpx;
 }
 
-.summary {
-  background-color: #07c160;
-  border-radius: 16rpx;
-  padding: 24rpx 32rpx;
+.section {
   margin-bottom: 24rpx;
 }
 
-.summary-text {
-  color: #fff;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.section {
-  margin-bottom: 32rpx;
-}
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  display: block;
-  margin-bottom: 16rpx;
-  padding-left: 8rpx;
-}
-
-.reminder-card {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-  display: flex;
-  align-items: flex-start;
-  gap: 20rpx;
-}
-
-.reminder-icon {
-  font-size: 40rpx;
-  flex-shrink: 0;
-}
-
-.reminder-content {
-  flex: 1;
-}
-
-.reminder-message {
-  font-size: 28rpx;
-  color: #333;
-  display: block;
-  margin-bottom: 8rpx;
-}
-
-.reminder-meta {
-  display: flex;
-  gap: 16rpx;
-  align-items: center;
-}
-
-.reminder-type {
+.contact-label {
   font-size: 24rpx;
   color: #999;
-}
-
-.reminder-contact {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 200rpx;
-}
-
-.empty-text {
-  font-size: 32rpx;
-  color: #999;
-  margin-bottom: 16rpx;
-}
-
-.empty-hint {
-  font-size: 26rpx;
-  color: #ccc;
 }
 </style>

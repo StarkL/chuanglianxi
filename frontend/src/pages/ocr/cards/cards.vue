@@ -62,13 +62,9 @@ function formatDate(dateStr: string): string {
       </view>
     </view>
 
-    <view v-else class="empty">
-      <text class="empty-icon">📇</text>
-      <text class="empty-text">暂无名片</text>
-      <text class="empty-hint">点击下方按钮扫描第一张名片</text>
-    </view>
+    <wd-empty v-else description="暂无名片" icon="scan" />
 
-    <button class="scan-btn" @click="goScan">+ 扫描名片</button>
+    <wd-button type="primary" block @click="goScan">+ 扫描名片</wd-button>
   </view>
 </template>
 
@@ -119,45 +115,5 @@ function formatDate(dateStr: string): string {
   font-size: 20rpx;
   color: #ccc;
   display: block;
-}
-
-.empty {
-  text-align: center;
-  padding: 128rpx 0;
-}
-
-.empty-icon {
-  font-size: 80rpx;
-  display: block;
-  margin-bottom: 32rpx;
-}
-
-.empty-text {
-  font-size: 32rpx;
-  color: #999;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.empty-hint {
-  font-size: 24rpx;
-  color: #ccc;
-  display: block;
-}
-
-.scan-btn {
-  position: fixed;
-  bottom: 64rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 64rpx);
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #07c160;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
-  border: none;
 }
 </style>

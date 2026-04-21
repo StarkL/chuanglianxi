@@ -64,45 +64,44 @@ async function handleSave() {
     saving.value = false
   }
 }
+
+function handleRetake() {
+  uni.navigateBack({ delta: 2 })
+}
 </script>
 
 <template>
   <view class="result-page">
-    <view class="form">
-      <view class="form-group">
-        <text class="label">姓名 <text class="required">*</text></text>
-        <input class="input" v-model="name" placeholder="姓名" />
-      </view>
+    <wd-form>
+      <wd-form-item label="姓名" prop="name">
+        <wd-input v-model="name" placeholder="姓名" />
+      </wd-form-item>
 
-      <view class="form-group">
-        <text class="label">公司</text>
-        <input class="input" v-model="company" placeholder="公司" />
-      </view>
+      <wd-form-item label="公司" prop="company">
+        <wd-input v-model="company" placeholder="公司" />
+      </wd-form-item>
 
-      <view class="form-group">
-        <text class="label">职位</text>
-        <input class="input" v-model="title" placeholder="职位" />
-      </view>
+      <wd-form-item label="职位" prop="title">
+        <wd-input v-model="title" placeholder="职位" />
+      </wd-form-item>
 
-      <view class="form-group">
-        <text class="label">电话</text>
-        <input class="input" v-model="phone" placeholder="电话" type="number" />
-      </view>
+      <wd-form-item label="电话" prop="phone">
+        <wd-input v-model="phone" placeholder="电话" type="number" />
+      </wd-form-item>
 
-      <view class="form-group">
-        <text class="label">邮箱</text>
-        <input class="input" v-model="email" placeholder="邮箱" type="text" />
-      </view>
+      <wd-form-item label="邮箱" prop="email">
+        <wd-input v-model="email" placeholder="邮箱" type="email" />
+      </wd-form-item>
 
-      <view class="form-group">
-        <text class="label">微信号</text>
-        <input class="input" v-model="wechatId" placeholder="微信号" />
-      </view>
+      <wd-form-item label="微信号" prop="wechatId">
+        <wd-input v-model="wechatId" placeholder="微信号" />
+      </wd-form-item>
+    </wd-form>
+
+    <view class="button-group">
+      <wd-button type="primary" block :loading="saving" @click="handleSave">确认保存</wd-button>
+      <wd-button block @click="handleRetake">重新扫描</wd-button>
     </view>
-
-    <button class="save-btn" :loading="saving" :disabled="saving" @click="handleSave">
-      保存为联系人
-    </button>
   </view>
 </template>
 
@@ -110,57 +109,11 @@ async function handleSave() {
 .result-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 32rpx;
+  padding: 24rpx;
   padding-bottom: 160rpx;
 }
 
-.form {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 32rpx;
-}
-
-.form-group {
-  margin-bottom: 32rpx;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.label {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 12rpx;
-}
-
-.required {
-  color: #e64340;
-}
-
-.input {
-  height: 80rpx;
-  background-color: #f6f6f6;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
-  font-size: 28rpx;
-}
-
-.save-btn {
-  position: fixed;
-  bottom: 64rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 64rpx);
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #07c160;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
-  border: none;
+.button-group {
+  margin-top: 32rpx;
 }
 </style>
