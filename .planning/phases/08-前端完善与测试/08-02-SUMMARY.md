@@ -103,3 +103,9 @@ None. All migrated components are fully wired and functional.
 ## Threat Flags
 
 No new threat surface beyond what the plan's threat model already covers.
+
+## Self-Check: PASSED
+
+- [x] All 9 commits exist in git history
+- [x] All 12 modified files exist on disk
+- [x] SUMMARY.md created with substantive content
