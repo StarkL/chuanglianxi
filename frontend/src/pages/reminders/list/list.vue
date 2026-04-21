@@ -33,11 +33,11 @@ const groupedReminders = computed(() => {
 
 function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
-    relationship: 'bell',
-    birthday: 'cake',
-    custom: 'edit',
+    relationship: '🔔',
+    birthday: '🎂',
+    custom: '📝',
   }
-  return icons[type] || 'bell'
+  return icons[type] || '🔔'
 }
 
 function getTypeLabel(type: string): string {
@@ -84,78 +84,63 @@ onMounted(() => {
 
 <template>
   <view class="reminder-page">
-    <view v-if="pendingCount > 0" class="summary">
-      <text class="summary-text">你有 {{ pendingCount }} 条待提醒</text>
-    </view>
+    <wd-notice-bar v-if="pendingCount > 0" :text="`你有 ${pendingCount} 条待提醒`" />
 
-    <template v-if="groupedReminders.today.length > 0">
-      <view class="section-header">
-        <text class="section-title">今天</text>
-      </view>
-      <wd-cell-group border inset>
+    <view v-if="groupedReminders.today.length > 0" class="section">
+      <wd-cell-group title="今天">
         <wd-cell
           v-for="reminder in groupedReminders.today"
           :key="reminder.id"
           :title="reminder.message"
-          :label="getTypeLabel(reminder.type)"
+          :label="getTypeLabel(reminder.type) + ' · ' + formatTime(reminder.scheduledAt)"
         >
           <template #icon>
-            <wd-icon :name="getTypeIcon(reminder.type)" size="20px" />
+            <text>{{ getTypeIcon(reminder.type) }}</text>
           </template>
-          <template #value>
-            <text class="time-badge">{{ formatTime(reminder.scheduledAt) }}</text>
+          <template v-if="reminder.contact" #right-icon>
+            <text class="contact-label">{{ reminder.contact.name }}</text>
           </template>
         </wd-cell>
       </wd-cell-group>
-    </template>
+    </view>
 
-    <template v-if="groupedReminders.week.length > 0">
-      <view class="section-header">
-        <text class="section-title">本周</text>
-      </view>
-      <wd-cell-group border inset>
+    <view v-if="groupedReminders.week.length > 0" class="section">
+      <wd-cell-group title="本周">
         <wd-cell
           v-for="reminder in groupedReminders.week"
           :key="reminder.id"
           :title="reminder.message"
-          :label="getTypeLabel(reminder.type)"
+          :label="getTypeLabel(reminder.type) + ' · ' + formatTime(reminder.scheduledAt)"
         >
           <template #icon>
-            <wd-icon :name="getTypeIcon(reminder.type)" size="20px" />
+            <text>{{ getTypeIcon(reminder.type) }}</text>
           </template>
-          <template #value>
-            <text class="time-badge">{{ formatTime(reminder.scheduledAt) }}</text>
+          <template v-if="reminder.contact" #right-icon>
+            <text class="contact-label">{{ reminder.contact.name }}</text>
           </template>
         </wd-cell>
       </wd-cell-group>
-    </template>
+    </view>
 
-    <template v-if="groupedReminders.upcoming.length > 0">
-      <view class="section-header">
-        <text class="section-title"> upcoming</text>
-      </view>
-      <wd-cell-group border inset>
+    <view v-if="groupedReminders.upcoming.length > 0" class="section">
+      <wd-cell-group title="后续">
         <wd-cell
           v-for="reminder in groupedReminders.upcoming"
           :key="reminder.id"
           :title="reminder.message"
-          :label="getTypeLabel(reminder.type)"
+          :label="getTypeLabel(reminder.type) + ' · ' + formatTime(reminder.scheduledAt)"
         >
           <template #icon>
-            <wd-icon :name="getTypeIcon(reminder.type)" size="20px" />
+            <text>{{ getTypeIcon(reminder.type) }}</text>
           </template>
-          <template #value>
-            <text class="time-badge">{{ formatTime(reminder.scheduledAt) }}</text>
+          <template v-if="reminder.contact" #right-icon>
+            <text class="contact-label">{{ reminder.contact.name }}</text>
           </template>
         </wd-cell>
       </wd-cell-group>
-    </template>
+    </view>
 
-    <wd-empty
-      v-if="reminders.length === 0 && !loading"
-      image="notification"
-      description="暂无提醒"
-    />
+    <wd-empty v-if="reminders.length === 0 && !loading" description="暂无提醒" />
   </view>
 </template>
 
@@ -166,31 +151,12 @@ onMounted(() => {
   padding: 24rpx;
 }
 
-.summary {
-  background-color: #07c160;
-  border-radius: 16rpx;
-  padding: 24rpx 32rpx;
+.section {
   margin-bottom: 24rpx;
 }
 
-.summary-text {
-  color: #fff;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.section-header {
-  padding: 24rpx 32rpx 8rpx;
-}
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.time-badge {
-  font-size: 22rpx;
+.contact-label {
+  font-size: 24rpx;
   color: #999;
 }
 </style>

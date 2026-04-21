@@ -39,7 +39,6 @@ onMounted(async () => {
     uni.showToast({ title: '加载联系人失败', icon: 'none' })
   }
 
-  // Set default date to tomorrow
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   scheduledDate.value = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
@@ -77,45 +76,41 @@ async function handleSubmit() {
 
 <template>
   <view class="add-page">
-    <wd-cell-group border inset>
+    <view class="form-section">
       <wd-form-item label="关联联系人">
         <picker mode="selector" :range="contacts.map(c => c.name)" @change="onContactChange">
-          <view class="picker-display">
+          <view class="input picker-input">
             {{ selectedContactId ? contacts.find(c => c.id === selectedContactId)?.name : '选择联系人（可选）' }}
           </view>
         </picker>
       </wd-form-item>
+
       <wd-form-item label="提醒内容">
-        <wd-textarea
-          v-model="message"
-          placeholder="输入提醒内容..."
-          :maxlength="200"
-        />
+        <wd-textarea v-model="message" placeholder="输入提醒内容..." :maxlength="200" />
       </wd-form-item>
+
       <wd-form-item label="日期">
         <picker mode="date" :value="scheduledDate" @change="e => scheduledDate = e.detail.value">
-          <view class="picker-display">{{ scheduledDate || '选择日期' }}</view>
+          <view class="input picker-input">{{ scheduledDate || '选择日期' }}</view>
         </picker>
       </wd-form-item>
+
       <wd-form-item label="时间">
         <picker mode="time" :value="scheduledTime" @change="e => scheduledTime = e.detail.value">
-          <view class="picker-display">{{ scheduledTime }}</view>
+          <view class="input picker-input">{{ scheduledTime }}</view>
         </picker>
       </wd-form-item>
+
       <wd-form-item label="重复">
         <picker mode="selector" :range="recurrenceOptions" @change="onRecurrenceChange">
-          <view class="picker-display">
+          <view class="input picker-input">
             {{ recurrenceRule ? recurrenceOptions[recurrenceValues.indexOf(recurrenceRule)] : '不重复' }}
           </view>
         </picker>
       </wd-form-item>
-    </wd-cell-group>
-
-    <view class="submit-section">
-      <wd-button block type="primary" @click="handleSubmit">
-        创建提醒
-      </wd-button>
     </view>
+
+    <wd-button type="primary" block @click="handleSubmit">创建提醒</wd-button>
   </view>
 </template>
 
@@ -123,18 +118,28 @@ async function handleSubmit() {
 .add-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 32rpx;
+  padding: 24rpx;
   padding-bottom: 160rpx;
 }
 
-.picker-display {
-  height: 60rpx;
-  line-height: 60rpx;
-  font-size: 28rpx;
-  color: #333;
+.form-section {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
 }
 
-.submit-section {
-  margin-top: 32rpx;
+.input {
+  height: 80rpx;
+  background-color: #f6f6f6;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+}
+
+.picker-input {
+  width: 100%;
+  box-sizing: border-box;
 }
 </style>

@@ -64,35 +64,43 @@ async function handleSave() {
     saving.value = false
   }
 }
+
+function handleRetake() {
+  uni.navigateBack({ delta: 2 })
+}
 </script>
 
 <template>
   <view class="result-page">
-    <wd-cell-group border inset>
-      <wd-form-item label="姓名" required>
-        <wd-input v-model="name" placeholder="姓名" :clearable="true" />
+    <wd-form>
+      <wd-form-item label="姓名" prop="name">
+        <wd-input v-model="name" placeholder="姓名" />
       </wd-form-item>
-      <wd-form-item label="公司">
-        <wd-input v-model="company" placeholder="公司" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="职位">
-        <wd-input v-model="title" placeholder="职位" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="电话">
-        <wd-input v-model="phone" placeholder="电话" type="number" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="邮箱">
-        <wd-input v-model="email" placeholder="邮箱" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="微信号">
-        <wd-input v-model="wechatId" placeholder="微信号" :clearable="true" />
-      </wd-form-item>
-    </wd-cell-group>
 
-    <view class="save-section">
-      <wd-button block type="primary" :loading="saving" :disabled="saving" @click="handleSave">
-        保存为联系人
-      </wd-button>
+      <wd-form-item label="公司" prop="company">
+        <wd-input v-model="company" placeholder="公司" />
+      </wd-form-item>
+
+      <wd-form-item label="职位" prop="title">
+        <wd-input v-model="title" placeholder="职位" />
+      </wd-form-item>
+
+      <wd-form-item label="电话" prop="phone">
+        <wd-input v-model="phone" placeholder="电话" type="number" />
+      </wd-form-item>
+
+      <wd-form-item label="邮箱" prop="email">
+        <wd-input v-model="email" placeholder="邮箱" type="email" />
+      </wd-form-item>
+
+      <wd-form-item label="微信号" prop="wechatId">
+        <wd-input v-model="wechatId" placeholder="微信号" />
+      </wd-form-item>
+    </wd-form>
+
+    <view class="button-group">
+      <wd-button type="primary" block :loading="saving" @click="handleSave">确认保存</wd-button>
+      <wd-button block @click="handleRetake">重新扫描</wd-button>
     </view>
   </view>
 </template>
@@ -101,11 +109,11 @@ async function handleSave() {
 .result-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 32rpx;
+  padding: 24rpx;
   padding-bottom: 160rpx;
 }
 
-.save-section {
+.button-group {
   margin-top: 32rpx;
 }
 </style>

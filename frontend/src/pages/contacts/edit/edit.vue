@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { createContact, updateContact, getContact } from '../../../api/contacts.js'
+import TagInput from '../../../components/tag-input.vue'
 
 const contactId = ref('')
 const name = ref('')
@@ -61,7 +62,6 @@ onMounted(async () => {
       wechatId.value = res.data.wechatId || ''
       selectedTags.value = res.data.tags || []
 
-      // Load birthday fields
       if (res.data.birthdayType) {
         birthdayType.value = res.data.birthdayType
       }
@@ -123,94 +123,77 @@ async function handleSave() {
 
 <template>
   <view class="edit-page">
-    <wd-cell-group border inset>
-      <wd-form-item label="姓名" required>
-        <wd-input v-model="name" placeholder="请输入姓名" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="公司">
-        <wd-input v-model="company" placeholder="请输入公司名称" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="职位">
-        <wd-input v-model="title" placeholder="请输入职位" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="电话">
-        <wd-input v-model="phone" placeholder="请输入电话号码" type="number" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="邮箱">
-        <wd-input v-model="email" placeholder="请输入邮箱" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="微信号">
-        <wd-input v-model="wechatId" placeholder="请输入微信号" :clearable="true" />
-      </wd-form-item>
-      <wd-form-item label="标签">
-        <view class="tag-input">
-          <wd-tag
-            v-for="tag in ['工作', '朋友', '家人']"
-            :key="tag"
-            size="small"
-            :plain="!selectedTags.includes(tag)"
-            :custom-style="{
-              marginRight: '8px',
-              marginBottom: '8px',
-              ...(selectedTags.includes(tag) ? { backgroundColor: '#07c160', color: '#fff', borderColor: '#07c160' } : {})
-            }"
-            @click="toggleTag(tag)"
-          >
-            {{ tag }}
-          </wd-tag>
-        </view>
+    <wd-form ref="formRef">
+      <wd-form-item label="姓名" prop="name" required>
+        <wd-input v-model="name" placeholder="请输入姓名" />
       </wd-form-item>
 
-      <wd-form-item label="生日">
+      <wd-form-item label="公司" prop="company">
+        <wd-input v-model="company" placeholder="请输入公司名称" />
+      </wd-form-item>
+
+      <wd-form-item label="职位" prop="title">
+        <wd-input v-model="title" placeholder="请输入职位" />
+      </wd-form-item>
+
+      <wd-form-item label="电话" prop="phone">
+        <wd-input v-model="phone" placeholder="请输入电话号码" type="number" />
+      </wd-form-item>
+
+      <wd-form-item label="邮箱" prop="email">
+        <wd-input v-model="email" placeholder="请输入邮箱" type="email" />
+      </wd-form-item>
+
+      <wd-form-item label="微信号" prop="wechatId">
+        <wd-input v-model="wechatId" placeholder="请输入微信号" />
+      </wd-form-item>
+
+      <wd-form-item label="标签" prop="tags">
+        <tag-input v-model="selectedTags" />
+      </wd-form-item>
+
+      <wd-form-item label="生日" prop="birthday">
         <view class="birthday-section">
           <view class="birthday-type">
-            <wd-tag
+            <wd-button
               size="small"
-              :custom-style="{ flex: 1, textAlign: 'center' }"
-              :plain="birthdayType !== 'solar'"
+              :type="birthdayType === 'solar' ? 'primary' : 'default'"
               @click="birthdayType = 'solar'"
-            >
-              公历
-            </wd-tag>
-            <wd-tag
+            >公历</wd-button>
+            <wd-button
               size="small"
-              :custom-style="{ flex: 1, textAlign: 'center' }"
-              :plain="birthdayType !== 'lunar'"
+              :type="birthdayType === 'lunar' ? 'primary' : 'default'"
               @click="birthdayType = 'lunar'"
-            >
-              农历
-            </wd-tag>
+            >农历</wd-button>
           </view>
 
-          <view v-if="birthdayType === 'solar'" class="birthday-picker">
+          <view v-if="birthdayType === 'solar'" class="birthday-solar">
             <picker mode="date" :value="birthday" @change="onBirthdayChange">
-              <view class="picker-display">
+              <view class="input picker-input">
                 {{ birthday || '请选择日期' }}
               </view>
             </picker>
           </view>
 
-          <view v-if="birthdayType === 'lunar'" class="birthday-picker lunar-row">
-            <picker mode="selector" :range="monthOptions" @change="onLunarMonthChange">
-              <view class="picker-display">
-                {{ lunarMonth ? `${lunarMonth}月` : '月份' }}
-              </view>
-            </picker>
-            <picker mode="selector" :range="dayOptions" @change="onLunarDayChange">
-              <view class="picker-display">
-                {{ lunarDay ? `${lunarDay}日` : '日期' }}
-              </view>
-            </picker>
+          <view v-if="birthdayType === 'lunar'" class="birthday-lunar">
+            <view class="lunar-row">
+              <picker mode="selector" :range="monthOptions" @change="onLunarMonthChange">
+                <view class="input picker-input">
+                  {{ lunarMonth ? `${lunarMonth}月` : '月份' }}
+                </view>
+              </picker>
+              <picker mode="selector" :range="dayOptions" @change="onLunarDayChange">
+                <view class="input picker-input">
+                  {{ lunarDay ? `${lunarDay}日` : '日期' }}
+                </view>
+              </picker>
+            </view>
           </view>
         </view>
       </wd-form-item>
-    </wd-cell-group>
+    </wd-form>
 
-    <view class="save-section">
-      <wd-button block type="primary" :loading="saving" :disabled="saving" @click="handleSave">
-        保存
-      </wd-button>
-    </view>
+    <wd-button type="primary" block :loading="saving" @click="handleSave">保存</wd-button>
   </view>
 </template>
 
@@ -218,13 +201,8 @@ async function handleSave() {
 .edit-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 32rpx;
+  padding: 24rpx;
   padding-bottom: 160rpx;
-}
-
-.tag-input {
-  display: flex;
-  flex-wrap: wrap;
 }
 
 .birthday-section {
@@ -237,7 +215,11 @@ async function handleSave() {
   margin-bottom: 16rpx;
 }
 
-.birthday-picker {
+.birthday-solar {
+  margin-top: 12rpx;
+}
+
+.birthday-lunar {
   margin-top: 12rpx;
 }
 
@@ -246,14 +228,17 @@ async function handleSave() {
   gap: 16rpx;
 }
 
-.picker-display {
-  height: 60rpx;
-  line-height: 60rpx;
+.input {
+  height: 80rpx;
+  background-color: #f6f6f6;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  display: flex;
+  align-items: center;
 }
 
-.save-section {
-  margin-top: 32rpx;
+.picker-input {
+  width: 100%;
 }
 </style>

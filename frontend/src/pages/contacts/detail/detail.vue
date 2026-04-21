@@ -121,67 +121,53 @@ function formatDate(dateStr: string): string {
 </script>
 
 <template>
-  <view v-if="loading" class="detail-page">
-    <view class="loading-center">
-      <wd-loading size="48px" />
-      <text class="loading-text">加载中...</text>
+  <view class="detail-page">
+    <view v-if="loading">
+      <wd-loading />
     </view>
-  </view>
 
-  <view v-else-if="contact" class="detail-page">
-    <!-- Basic info -->
-    <wd-cell-group border inset>
-      <wd-cell center>
-        <template #icon>
-          <view class="avatar">
-            <text class="avatar-text">{{ contact.name.charAt(0) }}</text>
-          </view>
-        </template>
-        <template #title>
+    <template v-else-if="contact">
+      <!-- Basic info -->
+      <wd-cell-group>
+        <view class="info-header">
+          <view class="avatar-circle">{{ contact.name.charAt(0) }}</view>
           <text class="name">{{ contact.name }}</text>
-        </template>
-      </wd-cell>
-      <wd-cell v-if="contact.company" title="公司" :value="`${contact.company} · ${contact.title || ''}`" />
-      <wd-cell v-if="contact.phone" title="电话" :value="contact.phone" is-link @click="uni.makePhoneCall({ phoneNumber: contact.phone! })" />
-      <wd-cell v-if="contact.email" title="邮箱" :value="contact.email" />
-      <wd-cell v-if="contact.wechatId" title="微信" :value="contact.wechatId" />
-      <wd-cell v-if="contact.tags.length > 0" title="标签">
-        <template #value>
-          <view class="tags">
-            <wd-tag v-for="tag in contact.tags" :key="tag" size="small" plain>{{ tag }}</wd-tag>
-          </view>
-        </template>
-      </wd-cell>
-    </wd-cell-group>
-
-    <!-- Interaction timeline -->
-    <wd-cell-group border inset>
-      <wd-cell title="交互记录">
-        <template #right-icon>
-          <text class="add-btn" @click="addInteraction">+ 添加</text>
-        </template>
-      </wd-cell>
-      <view v-if="contact.interactions.length > 0" class="timeline">
-        <view v-for="item in contact.interactions" :key="item.id" class="timeline-item" @longpress="handleInteractionLongPress(item)">
-          <view class="timeline-dot" />
-          <view class="timeline-content">
-            <view class="timeline-header-row">
-              <text class="timeline-type">{{ getTypeLabel(item.type) }}</text>
-              <text class="timeline-time">{{ formatDate(item.occurredAt) }}</text>
-            </view>
-            <text class="timeline-text">{{ item.content }}</text>
+          <text v-if="contact.company" class="company">{{ contact.company }} · {{ contact.title || '' }}</text>
+          <view v-if="contact.tags.length > 0" class="tags">
+            <text v-for="tag in contact.tags" :key="tag" class="tag">{{ tag }}</text>
           </view>
         </view>
-      </view>
-      <wd-empty v-else description="暂无交互记录" image="search" />
-    </wd-cell-group>
+      </wd-cell-group>
 
-    <!-- Actions -->
-    <view class="actions">
-      <wd-button block type="primary" @click="goEdit">编辑联系人</wd-button>
-      <wd-gap :height="8" :bg-color="'transparent'" />
-      <wd-button block plain custom-style="{ '--wot-button-color': '#e64340' }" @click="deleteContact">删除联系人</wd-button>
-    </view>
+      <!-- Contact info -->
+      <wd-cell-group title="联系方式">
+        <wd-cell v-if="contact.phone" title="电话" :value="contact.phone" is-link @click="uni.makePhoneCall({ phoneNumber: contact.phone! })" />
+        <wd-cell v-if="contact.email" title="邮箱" :value="contact.email" />
+        <wd-cell v-if="contact.wechatId" title="微信" :value="contact.wechatId" />
+      </wd-cell-group>
+
+      <!-- Interaction timeline -->
+      <wd-cell-group title="交互记录">
+        <template #extra>
+          <wd-button size="small" type="primary" @click="addInteraction">+ 添加</wd-button>
+        </template>
+        <wd-cell
+          v-for="item in contact.interactions"
+          :key="item.id"
+          :title="getTypeLabel(item.type)"
+          :label="item.content"
+          :value="formatDate(item.occurredAt)"
+          @longpress="handleInteractionLongPress(item)"
+        />
+        <wd-empty v-if="contact.interactions.length === 0" description="暂无交互记录" />
+      </wd-cell-group>
+
+      <!-- Actions -->
+      <view class="actions">
+        <wd-button type="primary" block @click="goEdit">编辑联系人</wd-button>
+        <wd-button type="error" block plain @click="deleteContact">删除联系人</wd-button>
+      </view>
+    </template>
   </view>
 </template>
 
@@ -189,97 +175,54 @@ function formatDate(dateStr: string): string {
 .detail-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 32rpx;
+  padding: 24rpx;
 }
 
-.loading-center {
+.info-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 200rpx 0;
+  padding: 24rpx 0;
 }
 
-.loading-text {
-  font-size: 28rpx;
-  color: #999;
-  margin-top: 16rpx;
-}
-
-.avatar {
-  width: 96rpx;
-  height: 96rpx;
+.avatar-circle {
+  width: 128rpx;
+  height: 128rpx;
   border-radius: 50%;
-  background-color: #e8f8ef;
+  background: #e8f8ef;
+  color: #07c160;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.avatar-text {
-  font-size: 40rpx;
+  font-size: 48rpx;
   font-weight: 600;
-  color: #07c160;
+  margin-bottom: 16rpx;
 }
 
 .name {
   font-size: 36rpx;
   font-weight: 600;
   color: #333;
+  margin-bottom: 8rpx;
+}
+
+.company {
+  font-size: 28rpx;
+  color: #999;
 }
 
 .tags {
   display: flex;
   gap: 8rpx;
-  flex-wrap: wrap;
+  margin-top: 16rpx;
 }
 
-.add-btn {
-  font-size: 28rpx;
+.tag {
+  padding: 4rpx 12rpx;
+  background: #e8f8ef;
   color: #07c160;
-}
-
-.timeline {
-  padding: 0 24rpx;
-}
-
-.timeline-item {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
-  padding-bottom: 24rpx;
-  border-bottom: 1rpx solid #f6f6f6;
-}
-
-.timeline-dot {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
-  background-color: #07c160;
-  margin-top: 12rpx;
-  flex-shrink: 0;
-}
-
-.timeline-header-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8rpx;
-}
-
-.timeline-type {
-  font-size: 24rpx;
-  color: #07c160;
-  font-weight: 600;
-}
-
-.timeline-time {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.timeline-text {
-  font-size: 28rpx;
-  color: #333;
+  border-radius: 8rpx;
+  font-size: 20rpx;
 }
 
 .actions {

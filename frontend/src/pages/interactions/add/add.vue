@@ -23,10 +23,6 @@ onMounted(() => {
   contactId.value = currentPage.$page.options?.contactId || ''
 })
 
-function selectType(type: string) {
-  selectedType.value = type
-}
-
 async function handleSave() {
   if (!content.value.trim()) {
     uni.showToast({ title: '请输入交互内容', icon: 'none' })
@@ -56,44 +52,29 @@ async function handleSave() {
 
 <template>
   <view class="add-page">
-    <wd-cell-group border inset>
+    <view class="form-section">
       <wd-form-item label="交互类型">
-        <view class="type-selector">
-          <wd-tag
-            v-for="type in typeOptions"
-            :key="type.value"
-            size="small"
-            :custom-style="{
-              marginRight: '8px',
-              marginBottom: '8px',
-              ...(selectedType === type.value ? { backgroundColor: '#07c160', color: '#fff', borderColor: '#07c160' } : {})
-            }"
-            @click="selectType(type.value)"
-          >
+        <wd-radio-group v-model="selectedType" shape="button" @update:model-value="">
+          <wd-radio v-for="type in typeOptions" :key="type.value" :value="type.value">
             {{ type.label }}
-          </wd-tag>
-        </view>
+          </wd-radio>
+        </wd-radio-group>
       </wd-form-item>
-      <wd-form-item label="内容" required>
-        <wd-textarea
-          v-model="content"
-          placeholder="输入交互内容"
-          :maxlength="500"
-        />
+
+      <wd-form-item label="内容">
+        <wd-textarea v-model="content" placeholder="记录交互内容" :maxlength="500" show-word-limit />
       </wd-form-item>
+
       <wd-form-item label="时长（分钟，可选）">
         <wd-input v-model="duration" placeholder="输入时长" type="number" />
       </wd-form-item>
+
       <wd-form-item label="时间（可选）">
         <wd-input v-model="occurredAt" placeholder="例如: 2026-04-16 14:00" />
       </wd-form-item>
-    </wd-cell-group>
-
-    <view class="save-section">
-      <wd-button block type="primary" :loading="saving" :disabled="saving" @click="handleSave">
-        保存
-      </wd-button>
     </view>
+
+    <wd-button type="primary" block :loading="saving" @click="handleSave">保存</wd-button>
   </view>
 </template>
 
@@ -101,16 +82,13 @@ async function handleSave() {
 .add-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 32rpx;
+  padding: 24rpx;
   padding-bottom: 160rpx;
 }
 
-.type-selector {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.save-section {
-  margin-top: 32rpx;
+.form-section {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
 }
 </style>
