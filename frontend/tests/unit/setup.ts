@@ -1,11 +1,22 @@
 import { vi } from 'vitest'
 
-const storage = new Map<string, string>()
+export const storage = new Map<string, string>()
 
-globalThis.uni = {
+const mockUni = {
   request: vi.fn(),
   getStorageSync: vi.fn((key: string) => storage.get(key) ?? ''),
-  setStorageSync: vi.fn((key: string, value: string) => { storage.set(key, value) }),
+  setStorageSync: vi.fn((key: string, value: unknown) => {
+    storage.set(key, typeof value === 'string' ? value : JSON.stringify(value))
+  }),
   removeStorageSync: vi.fn((key: string) => { storage.delete(key) }),
   reLaunch: vi.fn(),
-} as any
+}
+
+globalThis.uni = mockUni as any
+
+// Also expose as 'uni' for direct test usage
+;(globalThis as any).uni = mockUni
+
+beforeEach(() => {
+  storage.clear()
+})

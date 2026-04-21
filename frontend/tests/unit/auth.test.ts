@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { setToken, getToken, removeToken, setUserInfo, getUserInfo, clearSession } from '../../src/utils/auth.js'
+import { storage } from './setup.js'
 
 beforeEach(() => {
-  vi.clearAllMocks()
   ;(globalThis.uni as any).setStorageSync.mockClear()
   ;(globalThis.uni as any).getStorageSync.mockClear()
   ;(globalThis.uni as any).removeStorageSync.mockClear()
@@ -16,7 +16,7 @@ describe('setToken / getToken', () => {
   })
 
   it('returns null when no token exists', () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('')
+    // storage is empty after beforeEach
     expect(getToken()).toBeNull()
   })
 })
@@ -38,12 +38,12 @@ describe('setUserInfo / getUserInfo', () => {
   })
 
   it('returns null when no user info exists', () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('')
+    // storage is empty after beforeEach
     expect(getUserInfo()).toBeNull()
   })
 
   it('returns null when stored data is invalid JSON', () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('not-json')
+    storage.set('userInfo', 'not-json')
     expect(getUserInfo()).toBeNull()
   })
 })

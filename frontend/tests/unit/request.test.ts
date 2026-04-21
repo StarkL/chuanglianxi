@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { request } from '../../src/utils/request.js'
+import { storage } from './setup.js'
 
 beforeEach(() => {
-  vi.clearAllMocks()
   ;(globalThis.uni as any).setStorageSync.mockClear()
   ;(globalThis.uni as any).getStorageSync.mockClear()
   ;(globalThis.uni as any).removeStorageSync.mockClear()
@@ -12,7 +12,8 @@ beforeEach(() => {
 
 describe('request', () => {
   it('attaches Authorization header when token exists', async () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('test-token')
+    storage.set('token', 'test-token')
+
     ;(globalThis.uni as any).request.mockImplementation(({ success }) => {
       success({ statusCode: 200, data: { success: true, data: 'ok' } })
     })
@@ -29,7 +30,8 @@ describe('request', () => {
   })
 
   it('does not attach Authorization header when no token', async () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('')
+    // No token in storage
+
     ;(globalThis.uni as any).request.mockImplementation(({ success }) => {
       success({ statusCode: 200, data: { success: true } })
     })
@@ -41,7 +43,8 @@ describe('request', () => {
   })
 
   it('calls clearSessionAndRedirect on 401 response', async () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('expired-token')
+    storage.set('token', 'expired-token')
+
     ;(globalThis.uni as any).request.mockImplementation(({ success }) => {
       success({ statusCode: 401, data: { success: false, error: 'Unauthorized' } })
     })
@@ -54,7 +57,6 @@ describe('request', () => {
   })
 
   it('rejects on network failure', async () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('')
     ;(globalThis.uni as any).request.mockImplementation(({ fail }) => {
       fail(new Error('Network Error'))
     })
@@ -63,7 +65,6 @@ describe('request', () => {
   })
 
   it('uses default method GET when not specified', async () => {
-    ;(globalThis.uni as any).getStorageSync.mockReturnValue('')
     ;(globalThis.uni as any).request.mockImplementation(({ success }) => {
       success({ statusCode: 200, data: { success: true } })
     })
