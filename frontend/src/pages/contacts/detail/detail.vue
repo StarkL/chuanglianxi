@@ -64,7 +64,6 @@ function handleInteractionLongPress(item: NonNullable<typeof contact.value>['int
     itemList: ['编辑', '删除'],
     success: async (res) => {
       if (res.tapIndex === 0) {
-        // Edit
         uni.showModal({
           title: '编辑交互记录',
           editable: true,
@@ -83,7 +82,6 @@ function handleInteractionLongPress(item: NonNullable<typeof contact.value>['int
           },
         })
       } else if (res.tapIndex === 1) {
-        // Delete
         uni.showModal({
           title: '确认删除？',
           content: '删除后无法恢复该交互记录',
@@ -123,65 +121,66 @@ function formatDate(dateStr: string): string {
 </script>
 
 <template>
-  <view class="detail-page">
-    <view v-if="contact" class="detail-content">
-      <!-- Basic info -->
-      <view class="info-card">
-        <view class="avatar">
-          <text class="avatar-text">{{ contact.name.charAt(0) }}</text>
-        </view>
-        <text class="name">{{ contact.name }}</text>
-        <text v-if="contact.company" class="company">{{ contact.company }} · {{ contact.title || '' }}</text>
-        <view v-if="contact.tags.length > 0" class="tags">
-          <text v-for="tag in contact.tags" :key="tag" class="tag">{{ tag }}</text>
-        </view>
-      </view>
+  <view v-if="loading" class="detail-page">
+    <view class="loading-center">
+      <wd-loading size="48px" />
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
 
-      <!-- Contact info -->
-      <view class="detail-card">
-        <text class="card-title">联系方式</text>
-        <view v-if="contact.phone" class="detail-item">
-          <text class="label">电话</text>
-          <text class="value" @click="uni.makePhoneCall({ phoneNumber: contact.phone! })">{{ contact.phone }}</text>
-        </view>
-        <view v-if="contact.email" class="detail-item">
-          <text class="label">邮箱</text>
-          <text class="value">{{ contact.email }}</text>
-        </view>
-        <view v-if="contact.wechatId" class="detail-item">
-          <text class="label">微信</text>
-          <text class="value">{{ contact.wechatId }}</text>
-        </view>
-      </view>
+  <view v-else-if="contact" class="detail-page">
+    <!-- Basic info -->
+    <wd-cell-group border inset>
+      <wd-cell center>
+        <template #icon>
+          <view class="avatar">
+            <text class="avatar-text">{{ contact.name.charAt(0) }}</text>
+          </view>
+        </template>
+        <template #title>
+          <text class="name">{{ contact.name }}</text>
+        </template>
+      </wd-cell>
+      <wd-cell v-if="contact.company" title="公司" :value="`${contact.company} · ${contact.title || ''}`" />
+      <wd-cell v-if="contact.phone" title="电话" :value="contact.phone" is-link @click="uni.makePhoneCall({ phoneNumber: contact.phone! })" />
+      <wd-cell v-if="contact.email" title="邮箱" :value="contact.email" />
+      <wd-cell v-if="contact.wechatId" title="微信" :value="contact.wechatId" />
+      <wd-cell v-if="contact.tags.length > 0" title="标签">
+        <template #value>
+          <view class="tags">
+            <wd-tag v-for="tag in contact.tags" :key="tag" size="small" plain>{{ tag }}</wd-tag>
+          </view>
+        </template>
+      </wd-cell>
+    </wd-cell-group>
 
-      <!-- Interaction timeline -->
-      <view class="timeline-card">
-        <view class="timeline-header">
-          <text class="card-title">交互记录</text>
+    <!-- Interaction timeline -->
+    <wd-cell-group border inset>
+      <wd-cell title="交互记录">
+        <template #right-icon>
           <text class="add-btn" @click="addInteraction">+ 添加</text>
-        </view>
-        <view v-if="contact.interactions.length > 0" class="timeline">
-          <view v-for="item in contact.interactions" :key="item.id" class="timeline-item" @longpress="handleInteractionLongPress(item)">
-            <view class="timeline-dot" />
-            <view class="timeline-content">
-              <view class="timeline-header-row">
-                <text class="timeline-type">{{ getTypeLabel(item.type) }}</text>
-                <text class="timeline-time">{{ formatDate(item.occurredAt) }}</text>
-              </view>
-              <text class="timeline-text">{{ item.content }}</text>
+        </template>
+      </wd-cell>
+      <view v-if="contact.interactions.length > 0" class="timeline">
+        <view v-for="item in contact.interactions" :key="item.id" class="timeline-item" @longpress="handleInteractionLongPress(item)">
+          <view class="timeline-dot" />
+          <view class="timeline-content">
+            <view class="timeline-header-row">
+              <text class="timeline-type">{{ getTypeLabel(item.type) }}</text>
+              <text class="timeline-time">{{ formatDate(item.occurredAt) }}</text>
             </view>
+            <text class="timeline-text">{{ item.content }}</text>
           </view>
         </view>
-        <view v-else class="empty-timeline">
-          <text>暂无交互记录</text>
-        </view>
       </view>
-    </view>
+      <wd-empty v-else description="暂无交互记录" image="search" />
+    </wd-cell-group>
 
     <!-- Actions -->
     <view class="actions">
-      <button class="action-btn edit" @click="goEdit">编辑联系人</button>
-      <button class="action-btn delete" @click="deleteContact">删除联系人</button>
+      <wd-button block type="primary" @click="goEdit">编辑联系人</wd-button>
+      <wd-gap :height="8" :bg-color="'transparent'" />
+      <wd-button block plain custom-style="{ '--wot-button-color': '#e64340' }" @click="deleteContact">删除联系人</wd-button>
     </view>
   </view>
 </template>
@@ -193,29 +192,32 @@ function formatDate(dateStr: string): string {
   padding: 32rpx;
 }
 
-.info-card {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 48rpx;
+.loading-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 32rpx;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-top: 16rpx;
 }
 
 .avatar {
-  width: 128rpx;
-  height: 128rpx;
+  width: 96rpx;
+  height: 96rpx;
   border-radius: 50%;
   background-color: #e8f8ef;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16rpx;
 }
 
 .avatar-text {
-  font-size: 48rpx;
+  font-size: 40rpx;
   font-weight: 600;
   color: #07c160;
 }
@@ -224,70 +226,12 @@ function formatDate(dateStr: string): string {
   font-size: 36rpx;
   font-weight: 600;
   color: #333;
-  margin-bottom: 8rpx;
-}
-
-.company {
-  font-size: 28rpx;
-  color: #999;
 }
 
 .tags {
   display: flex;
   gap: 8rpx;
-  margin-top: 16rpx;
-}
-
-.tag {
-  padding: 4rpx 12rpx;
-  background-color: #e8f8ef;
-  color: #07c160;
-  border-radius: 8rpx;
-  font-size: 20rpx;
-}
-
-.detail-card,
-.timeline-card {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 32rpx;
-  margin-bottom: 32rpx;
-}
-
-.card-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 24rpx;
-  display: block;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 16rpx 0;
-  border-bottom: 1px solid #f6f6f6;
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.label {
-  font-size: 28rpx;
-  color: #999;
-}
-
-.value {
-  font-size: 28rpx;
-  color: #333;
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24rpx;
+  flex-wrap: wrap;
 }
 
 .add-btn {
@@ -295,10 +239,16 @@ function formatDate(dateStr: string): string {
   color: #07c160;
 }
 
+.timeline {
+  padding: 0 24rpx;
+}
+
 .timeline-item {
   display: flex;
   gap: 16rpx;
   margin-bottom: 24rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid #f6f6f6;
 }
 
 .timeline-dot {
@@ -330,36 +280,9 @@ function formatDate(dateStr: string): string {
 .timeline-text {
   font-size: 28rpx;
   color: #333;
-  display: block;
-}
-
-.empty-timeline {
-  text-align: center;
-  padding: 32rpx 0;
-  color: #ccc;
-  font-size: 28rpx;
 }
 
 .actions {
   margin-top: 32rpx;
-}
-
-.action-btn {
-  height: 80rpx;
-  line-height: 80rpx;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  border: none;
-  margin-bottom: 16rpx;
-}
-
-.action-btn.edit {
-  background-color: #07c160;
-  color: #fff;
-}
-
-.action-btn.delete {
-  background-color: transparent;
-  color: #e64340;
 }
 </style>
