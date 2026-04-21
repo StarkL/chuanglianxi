@@ -18,35 +18,31 @@ interface UpdateReminderBody {
 
 export async function reminderRoutes(fastify: FastifyInstance) {
   // GET /reminders — list all user reminders
-  fastify.get(
-    '/reminders',
-    { preHandler: [requireAuth] },
-    async (request: FastifyRequest) => {
-      const { userId } = request as AuthenticatedRequest
-      const query = request.query as Record<string, string | undefined>
+  fastify.get('/reminders', { preHandler: [requireAuth] }, async (request: FastifyRequest) => {
+    const { userId } = request as AuthenticatedRequest
+    const query = request.query as Record<string, string | undefined>
 
-      const where: Record<string, unknown> = { userId }
+    const where: Record<string, unknown> = { userId }
 
-      if (query.type) {
-        where.type = query.type
-      }
-      if (query.contactId) {
-        where.contactId = query.contactId
-      }
-
-      const reminders = await prisma.reminder.findMany({
-        where,
-        include: {
-          contact: {
-            select: { id: true, name: true },
-          },
-        },
-        orderBy: { scheduledAt: 'asc' },
-      })
-
-      return { success: true, data: reminders }
+    if (query.type) {
+      where.type = query.type
     }
-  )
+    if (query.contactId) {
+      where.contactId = query.contactId
+    }
+
+    const reminders = await prisma.reminder.findMany({
+      where,
+      include: {
+        contact: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { scheduledAt: 'asc' },
+    })
+
+    return { success: true, data: reminders }
+  })
 
   // GET /reminders/pending — list unsent reminders
   fastify.get(

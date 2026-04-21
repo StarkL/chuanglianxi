@@ -145,7 +145,21 @@ export async function contactRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Body: CreateContactBody }>) => {
       const { userId } = request as AuthenticatedRequest
-      const { name, company, title, phone, wechatId, email, avatar, source, tags, birthdayType, birthday, lunarMonth, lunarDay } = request.body
+      const {
+        name,
+        company,
+        title,
+        phone,
+        wechatId,
+        email,
+        avatar,
+        source,
+        tags,
+        birthdayType,
+        birthday,
+        lunarMonth,
+        lunarDay,
+      } = request.body
 
       const contact = await prisma.contact.create({
         data: {

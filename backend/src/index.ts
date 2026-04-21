@@ -25,13 +25,19 @@ const start = async () => {
 
     // Warn if subscription template IDs are not configured
     if (!env.WECHAT_SUBSCRIPTION_TEMPLATE_ID_RELATIONSHIP) {
-      app.log.warn('WECHAT_SUBSCRIPTION_TEMPLATE_ID_RELATIONSHIP not configured — relationship notifications will be skipped')
+      app.log.warn(
+        'WECHAT_SUBSCRIPTION_TEMPLATE_ID_RELATIONSHIP not configured — relationship notifications will be skipped'
+      )
     }
     if (!env.WECHAT_SUBSCRIPTION_TEMPLATE_ID_BIRTHDAY) {
-      app.log.warn('WECHAT_SUBSCRIPTION_TEMPLATE_ID_BIRTHDAY not configured — birthday notifications will be skipped')
+      app.log.warn(
+        'WECHAT_SUBSCRIPTION_TEMPLATE_ID_BIRTHDAY not configured — birthday notifications will be skipped'
+      )
     }
     if (!env.WECHAT_SUBSCRIPTION_TEMPLATE_ID_CUSTOM) {
-      app.log.warn('WECHAT_SUBSCRIPTION_TEMPLATE_ID_CUSTOM not configured — custom notifications will be skipped')
+      app.log.warn(
+        'WECHAT_SUBSCRIPTION_TEMPLATE_ID_CUSTOM not configured — custom notifications will be skipped'
+      )
     }
   } catch (err) {
     app.log.error(err)

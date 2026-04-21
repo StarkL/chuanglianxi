@@ -154,9 +154,7 @@ async function processBirthdayReminders(fastify: FastifyInstance): Promise<void>
       // Set to current year
       birthdayDate.setFullYear(now.getFullYear())
 
-      const daysUntil = Math.floor(
-        (birthdayDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      )
+      const daysUntil = Math.floor((birthdayDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
       if (daysUntil >= 0 && daysUntil <= daysAhead) {
         // Check if reminder already exists

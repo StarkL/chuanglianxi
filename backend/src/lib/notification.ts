@@ -51,9 +51,7 @@ async function sendWeChatSubscriptionMessage(
   }
 }
 
-export async function sendReminderNotification(
-  args: ReminderNotificationArgs
-): Promise<boolean> {
+export async function sendReminderNotification(args: ReminderNotificationArgs): Promise<boolean> {
   const { userId, reminder } = args
 
   const user = await prisma.user.findUnique({

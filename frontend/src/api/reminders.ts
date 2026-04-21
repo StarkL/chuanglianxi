@@ -44,11 +44,14 @@ export function createReminder(data: {
   })
 }
 
-export function updateReminder(id: string, data: {
-  message?: string
-  scheduledAt?: string
-  recurrenceRule?: string
-}) {
+export function updateReminder(
+  id: string,
+  data: {
+    message?: string
+    scheduledAt?: string
+    recurrenceRule?: string
+  }
+) {
   return request<Reminder>({
     url: `/reminders/${id}`,
     method: 'PUT',

@@ -13,8 +13,8 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — 初始化 monorepo 工作区，搭建前端 uni-app 和后端 Fastify 脚手架
-- [ ] 01-02-PLAN.md — 配置 Prisma 数据库 schema、Redis 连接、共享类型、Docker 服务、项目文档
+- [x] 01-01-PLAN.md — 初始化 monorepo 工作区，搭建前端 uni-app 和后端 Fastify 脚手架
+- [x] 01-02-PLAN.md — 配置 Prisma 数据库 schema、Redis 连接、共享类型、Docker 服务、项目文档
 
 **Success Criteria:**
 1. 前端 uni-app + Vue 3 + TypeScript 项目可正常启动
@@ -40,11 +40,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — 后端认证基础：Prisma 客户端、微信 code2Session、JWT 生成/验证 (jose)
-- [ ] 02-02-PLAN.md — 认证 API 端点：wechat-login、verify、logout + 认证中间件
-- [ ] 02-03-PLAN.md — 前端认证基础：Token 工具、API 请求包装、类型定义
-- [ ] 02-04-PLAN.md — 登录页面 UI：微信绿色主题、登录流程、错误状态
-- [ ] 02-05-PLAN.md — 前端认证守卫：App onLaunch 校验、登出流程、页面守卫
+- [x] 02-01-PLAN.md — 后端认证基础：Prisma 客户端、微信 code2Session、JWT 生成/验证 (jose)
+- [x] 02-02-PLAN.md — 认证 API 端点：wechat-login、verify、logout + 认证中间件
+- [x] 02-03-PLAN.md — 前端认证基础：Token 工具、API 请求包装、类型定义
+- [x] 02-04-PLAN.md — 登录页面 UI：微信绿色主题、登录流程、错误状态
+- [x] 02-05-PLAN.md — 前端认证守卫：App onLaunch 校验、登出流程、页面守卫
 
 **Success Criteria:**
 1. 用户可以点击"微信登录"按钮完成授权
@@ -69,8 +69,8 @@ Plans:
 **Plans:** 2 plans (gap closure for remaining features)
 
 Plans:
-- [ ] 03-01-PLAN.md — Phone contacts import: wx.chooseContact + backend AES decryption + deduplication + import page (CONTACT-04)
-- [ ] 03-02-PLAN.md — Custom tag input component (preset + free-text) integrated into edit page (CONTACT-03)
+- [x] 03-01-PLAN.md — Phone contacts import: wx.chooseContact + backend AES decryption + deduplication + import page (CONTACT-04)
+- [x] 03-02-PLAN.md — Custom tag input component (preset + free-text) integrated into edit page (CONTACT-03)
 
 **Success Criteria:**
 1. 用户可以创建、编辑、删除联系人
@@ -97,9 +97,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Backend OCR integration: Baidu OCR + Qwen AI + route wiring + tests (OCR-01, OCR-02, OCR-03)
-- [ ] 04-02-PLAN.md — Frontend scan flow: image upload, scan page, editable result form (OCR-01)
-- [ ] 04-03-PLAN.md — Card wall page: 2-column waterfall layout + home page nav (CARD-WALL-01)
+- [x] 04-01-PLAN.md — Backend OCR integration: Baidu OCR + Qwen AI + route wiring + tests (OCR-01, OCR-02, OCR-03)
+- [x] 04-02-PLAN.md — Frontend scan flow: image upload, scan page, editable result form (OCR-01)
+- [x] 04-03-PLAN.md — Card wall page: 2-column waterfall layout + home page nav (CARD-WALL-01)
 
 **Success Criteria:**
 1. 用户拍照后自动识别名片信息
@@ -125,8 +125,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Backend interaction CRUD: PUT + DELETE endpoints with ownership verification
-- [ ] 05-02-PLAN.md — Frontend add page with type selector, timeline long-press edit/delete, navigation integration
+- [x] 05-01-PLAN.md — Backend interaction CRUD: PUT + DELETE endpoints with ownership verification
+- [x] 05-02-PLAN.md — Frontend add page with type selector, timeline long-press edit/delete, navigation integration
 
 **Success Criteria:**
 1. 用户可以为联系人添加交互记录（时间、方式、内容摘要）
@@ -146,6 +146,11 @@ Plans:
 
 **Requirements:** REMINDER-01, REMINDER-02, LUNAR-01, LUNAR-02
 
+**Plans:** 6 plans
+
+Plans:
+- [x] 06-01-PLAN.md through 06-06-PLAN.md — Reminder system backend and frontend implementation
+
 **Success Criteria:**
 1. 系统基于最后联系时间和联系频率推送关系提醒
 2. 提醒通过微信服务通知推送给用户
@@ -162,21 +167,23 @@ Plans:
 
 ## Phase 7: 付费系统
 
-**Goal:** 实现微信支付订阅和免费版限制
+**Status:** DEFERRED — 跳过，V1 不做付费功能
 
-**Requirements:** PAYMENT-01, PAYMENT-02, PAYMENT-03
+~~**Goal:** 实现微信支付订阅和免费版限制~~
 
-**Success Criteria:**
+~~**Requirements:** PAYMENT-01, PAYMENT-02, PAYMENT-03~~
+
+~~**Success Criteria:**
 1. 免费版用户最多创建 100 个联系人
 2. 付费版用户解锁无限联系人、无限 OCR 等功能
 3. 用户可以通过微信支付完成订阅（¥15/月或 ¥99/年）
-4. 订阅到期后自动降级为免费版
+4. 订阅到期后自动降级为免费版~~
 
-**Deliverables:**
+~~**Deliverables:**
 - 微信支付集成
 - 订阅管理页面
 - 免费版限制中间件
-- 订阅状态同步
+- 订阅状态同步~~
 
 ---
 
@@ -184,7 +191,16 @@ Plans:
 
 **Goal:** UI 优化、测试编写、小程序审核准备
 
-**Requirements:** 全部 V1 验证需求
+**Requirements:** AUTH-01, AUTH-02, CONTACT-01, CONTACT-02, CONTACT-03, OCR-01, OCR-02, INTERACTION-01, INTERACTION-02, INTERACTION-03, REMINDER-01, SEARCH-01, SEARCH-02, SEARCH-03, CARD-WALL-01
+
+**Plans:** 5 plans
+
+Plans:
+- [x] 08-01-PLAN.md — H5 compilation, wot-design-uni install, Vite proxy, theme config, easycom setup
+- [ ] 08-02-PLAN.md — Missing pages: "我的", card detail, privacy policy, user agreement, login privacy checkbox
+- [ ] 08-03-PLAN.md — UI migration: replace hand-written CSS with wot-design-uni components across all pages
+- [ ] 08-04-PLAN.md — Native tabBar configuration, home page navigation update, emoji removal
+- [ ] 08-05-PLAN.md — Vitest unit tests + Playwright E2E tests for core user flows
 
 **Success Criteria:**
 1. 所有页面 UI 完整、一致、美观
@@ -202,7 +218,7 @@ Plans:
 
 ---
 
-*Last updated: 2026-04-16 after Phase 5 planning*
+*Last updated: 2026-04-21 after Phase 08 planning*
 
 ---
 
@@ -234,4 +250,4 @@ Plans:
 **Deferred at:** 2026-04-18 during /gsd-next advancement to Phase 06
 **Plans:**
 - [ ] 05-01: backend-interaction-crud (ran, no SUMMARY.md)
-- [ ] 05-02: frontend-interaction-ui (ran, no SUMMARY.md)
+- [ ] 02: frontend-interaction-ui (ran, no SUMMARY.md)
