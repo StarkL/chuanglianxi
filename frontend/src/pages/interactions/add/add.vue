@@ -6,11 +6,11 @@ const contactId = ref('')
 const saving = ref(false)
 
 const typeOptions = [
-  { value: 'manual_note', label: '📝 手动笔记' },
-  { value: 'call', label: '📞 通话' },
-  { value: 'meeting', label: '🤝 会议' },
-  { value: 'voice_note', label: '🎙️ 语音笔记' },
-  { value: 'chat_export', label: '💬 聊天记录' },
+  { value: 'manual_note', label: '手动笔记' },
+  { value: 'call', label: '通话' },
+  { value: 'meeting', label: '会议' },
+  { value: 'voice_note', label: '语音笔记' },
+  { value: 'chat_export', label: '聊天记录' },
 ]
 const selectedType = ref('manual_note')
 const content = ref('')
@@ -56,45 +56,44 @@ async function handleSave() {
 
 <template>
   <view class="add-page">
-    <view class="form">
-      <view class="form-group">
-        <text class="label">交互类型</text>
+    <wd-cell-group border inset>
+      <wd-form-item label="交互类型">
         <view class="type-selector">
-          <view
+          <wd-tag
             v-for="type in typeOptions"
             :key="type.value"
-            :class="['type-item', selectedType === type.value ? 'selected' : '']"
+            size="small"
+            :custom-style="{
+              marginRight: '8px',
+              marginBottom: '8px',
+              ...(selectedType === type.value ? { backgroundColor: '#07c160', color: '#fff', borderColor: '#07c160' } : {})
+            }"
             @click="selectType(type.value)"
           >
-            <text class="type-label">{{ type.label }}</text>
-          </view>
+            {{ type.label }}
+          </wd-tag>
         </view>
-      </view>
-
-      <view class="form-group">
-        <text class="label">内容 <text class="required">*</text></text>
-        <textarea
-          class="textarea"
+      </wd-form-item>
+      <wd-form-item label="内容" required>
+        <wd-textarea
           v-model="content"
           placeholder="输入交互内容"
-          maxlength="500"
+          :maxlength="500"
         />
-      </view>
+      </wd-form-item>
+      <wd-form-item label="时长（分钟，可选）">
+        <wd-input v-model="duration" placeholder="输入时长" type="number" />
+      </wd-form-item>
+      <wd-form-item label="时间（可选）">
+        <wd-input v-model="occurredAt" placeholder="例如: 2026-04-16 14:00" />
+      </wd-form-item>
+    </wd-cell-group>
 
-      <view class="form-group">
-        <text class="label">时长（分钟，可选）</text>
-        <input class="input" v-model="duration" placeholder="输入时长" type="number" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">时间（可选）</text>
-        <input class="input" v-model="occurredAt" placeholder="例如: 2026-04-16 14:00" />
-      </view>
+    <view class="save-section">
+      <wd-button block type="primary" :loading="saving" :disabled="saving" @click="handleSave">
+        保存
+      </wd-button>
     </view>
-
-    <button class="save-btn" :loading="saving" :disabled="saving" @click="handleSave">
-      保存
-    </button>
   </view>
 </template>
 
@@ -106,86 +105,12 @@ async function handleSave() {
   padding-bottom: 160rpx;
 }
 
-.form {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 32rpx;
-}
-
-.form-group {
-  margin-bottom: 32rpx;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.label {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 12rpx;
-}
-
-.required {
-  color: #e64340;
-}
-
 .type-selector {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
 }
 
-.type-item {
-  padding: 12rpx 24rpx;
-  background-color: #f6f6f6;
-  border-radius: 32rpx;
-  font-size: 24rpx;
-  color: #666;
-}
-
-.type-item.selected {
-  background-color: #07c160;
-  color: #fff;
-}
-
-.type-label {
-  font-size: 24rpx;
-}
-
-.textarea {
-  width: 100%;
-  min-height: 200rpx;
-  background-color: #f6f6f6;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  font-size: 28rpx;
-  box-sizing: border-box;
-}
-
-.input {
-  height: 80rpx;
-  background-color: #f6f6f6;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
-  font-size: 28rpx;
-}
-
-.save-btn {
-  position: fixed;
-  bottom: 64rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 64rpx);
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #07c160;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
-  border: none;
+.save-section {
+  margin-top: 32rpx;
 }
 </style>

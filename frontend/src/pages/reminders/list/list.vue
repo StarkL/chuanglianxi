@@ -33,11 +33,11 @@ const groupedReminders = computed(() => {
 
 function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
-    relationship: '🔔',
-    birthday: '🎂',
-    custom: '📝',
+    relationship: 'bell',
+    birthday: 'cake',
+    custom: 'edit',
   }
-  return icons[type] || '🔔'
+  return icons[type] || 'bell'
 }
 
 function getTypeLabel(type: string): string {
@@ -88,64 +88,74 @@ onMounted(() => {
       <text class="summary-text">你有 {{ pendingCount }} 条待提醒</text>
     </view>
 
-    <view v-if="groupedReminders.today.length > 0" class="section">
-      <text class="section-title">今天</text>
-      <view
-        v-for="reminder in groupedReminders.today"
-        :key="reminder.id"
-        class="reminder-card"
-      >
-        <view class="reminder-icon">{{ getTypeIcon(reminder.type) }}</view>
-        <view class="reminder-content">
-          <text class="reminder-message">{{ reminder.message }}</text>
-          <view class="reminder-meta">
-            <text class="reminder-type">{{ getTypeLabel(reminder.type) }}</text>
-            <text v-if="reminder.contact" class="reminder-contact">{{ reminder.contact.name }}</text>
-          </view>
-        </view>
+    <template v-if="groupedReminders.today.length > 0">
+      <view class="section-header">
+        <text class="section-title">今天</text>
       </view>
-    </view>
+      <wd-cell-group border inset>
+        <wd-cell
+          v-for="reminder in groupedReminders.today"
+          :key="reminder.id"
+          :title="reminder.message"
+          :label="getTypeLabel(reminder.type)"
+        >
+          <template #icon>
+            <wd-icon :name="getTypeIcon(reminder.type)" size="20px" />
+          </template>
+          <template #value>
+            <text class="time-badge">{{ formatTime(reminder.scheduledAt) }}</text>
+          </template>
+        </wd-cell>
+      </wd-cell-group>
+    </template>
 
-    <view v-if="groupedReminders.week.length > 0" class="section">
-      <text class="section-title">本周</text>
-      <view
-        v-for="reminder in groupedReminders.week"
-        :key="reminder.id"
-        class="reminder-card"
-      >
-        <view class="reminder-icon">{{ getTypeIcon(reminder.type) }}</view>
-        <view class="reminder-content">
-          <text class="reminder-message">{{ reminder.message }}</text>
-          <view class="reminder-meta">
-            <text class="reminder-type">{{ getTypeLabel(reminder.type) }}</text>
-            <text v-if="reminder.contact" class="reminder-contact">{{ reminder.contact.name }}</text>
-          </view>
-        </view>
+    <template v-if="groupedReminders.week.length > 0">
+      <view class="section-header">
+        <text class="section-title">本周</text>
       </view>
-    </view>
+      <wd-cell-group border inset>
+        <wd-cell
+          v-for="reminder in groupedReminders.week"
+          :key="reminder.id"
+          :title="reminder.message"
+          :label="getTypeLabel(reminder.type)"
+        >
+          <template #icon>
+            <wd-icon :name="getTypeIcon(reminder.type)" size="20px" />
+          </template>
+          <template #value>
+            <text class="time-badge">{{ formatTime(reminder.scheduledAt) }}</text>
+          </template>
+        </wd-cell>
+      </wd-cell-group>
+    </template>
 
-    <view v-if="groupedReminders.upcoming.length > 0" class="section">
-      <text class="section-title"> upcoming</text>
-      <view
-        v-for="reminder in groupedReminders.upcoming"
-        :key="reminder.id"
-        class="reminder-card"
-      >
-        <view class="reminder-icon">{{ getTypeIcon(reminder.type) }}</view>
-        <view class="reminder-content">
-          <text class="reminder-message">{{ reminder.message }}</text>
-          <view class="reminder-meta">
-            <text class="reminder-type">{{ getTypeLabel(reminder.type) }}</text>
-            <text v-if="reminder.contact" class="reminder-contact">{{ reminder.contact.name }}</text>
-          </view>
-        </view>
+    <template v-if="groupedReminders.upcoming.length > 0">
+      <view class="section-header">
+        <text class="section-title"> upcoming</text>
       </view>
-    </view>
+      <wd-cell-group border inset>
+        <wd-cell
+          v-for="reminder in groupedReminders.upcoming"
+          :key="reminder.id"
+          :title="reminder.message"
+          :label="getTypeLabel(reminder.type)"
+        >
+          <template #icon>
+            <wd-icon :name="getTypeIcon(reminder.type)" size="20px" />
+          </template>
+          <template #value>
+            <text class="time-badge">{{ formatTime(reminder.scheduledAt) }}</text>
+          </template>
+        </wd-cell>
+      </wd-cell-group>
+    </template>
 
-    <view v-if="reminders.length === 0 && !loading" class="empty">
-      <text class="empty-text">暂无提醒</text>
-      <text class="empty-hint">系统会在适当时候自动推送关系提醒和生日提醒</text>
-    </view>
+    <wd-empty
+      v-if="reminders.length === 0 && !loading"
+      image="notification"
+      description="暂无提醒"
+    />
   </view>
 </template>
 
@@ -169,76 +179,18 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.section {
-  margin-bottom: 32rpx;
+.section-header {
+  padding: 24rpx 32rpx 8rpx;
 }
 
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
   color: #333;
-  display: block;
-  margin-bottom: 16rpx;
-  padding-left: 8rpx;
 }
 
-.reminder-card {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-  display: flex;
-  align-items: flex-start;
-  gap: 20rpx;
-}
-
-.reminder-icon {
-  font-size: 40rpx;
-  flex-shrink: 0;
-}
-
-.reminder-content {
-  flex: 1;
-}
-
-.reminder-message {
-  font-size: 28rpx;
-  color: #333;
-  display: block;
-  margin-bottom: 8rpx;
-}
-
-.reminder-meta {
-  display: flex;
-  gap: 16rpx;
-  align-items: center;
-}
-
-.reminder-type {
-  font-size: 24rpx;
+.time-badge {
+  font-size: 22rpx;
   color: #999;
-}
-
-.reminder-contact {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 200rpx;
-}
-
-.empty-text {
-  font-size: 32rpx;
-  color: #999;
-  margin-bottom: 16rpx;
-}
-
-.empty-hint {
-  font-size: 26rpx;
-  color: #ccc;
 }
 </style>
