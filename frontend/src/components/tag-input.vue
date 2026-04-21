@@ -36,34 +36,42 @@ function addCustomTag() {
 </script>
 
 <template>
-  <view class="tag-input">
+  <view class="tag-input-component">
     <!-- Selected tags -->
     <view v-if="modelValue.length > 0" class="section">
       <text class="section-label">已选标签</text>
-      <view class="selected-tags">
-        <view
+      <view class="tags-row">
+        <wd-tag
           v-for="tag in modelValue"
           :key="tag"
-          class="selected-tag"
+          size="small"
+          closable
+          :custom-style="{ marginRight: '8px', marginBottom: '8px' }"
+          @close="toggleTag(tag)"
         >
-          <text class="tag-text">{{ tag }}</text>
-          <text class="tag-remove" @click="toggleTag(tag)">×</text>
-        </view>
+          {{ tag }}
+        </wd-tag>
       </view>
     </view>
 
     <!-- Preset tags -->
     <view class="section">
       <text class="section-label">预设标签</text>
-      <view class="preset-tags">
-        <view
+      <view class="tags-row">
+        <wd-tag
           v-for="tag in presetTags"
           :key="tag"
-          :class="['preset-tag', modelValue.includes(tag) ? 'selected' : '']"
+          size="small"
+          :plain="!modelValue.includes(tag)"
+          :custom-style="{
+            marginRight: '8px',
+            marginBottom: '8px',
+            ...(modelValue.includes(tag) ? { backgroundColor: '#07c160', color: '#fff', borderColor: '#07c160' } : {})
+          }"
           @click="toggleTag(tag)"
         >
           {{ tag }}
-        </view>
+        </wd-tag>
       </view>
     </view>
 
@@ -71,27 +79,20 @@ function addCustomTag() {
     <view class="section">
       <text class="section-label">自定义标签</text>
       <view class="custom-input-row">
-        <input
-          class="custom-input"
-          v-model="customInput"
-          placeholder="输入自定义标签"
-          @confirm="addCustomTag"
-        />
-        <view class="add-btn" @click="addCustomTag">+</view>
+        <wd-input v-model="customInput" placeholder="输入自定义标签" size="small" :clearable="true" @confirm="addCustomTag" />
+        <wd-icon name="add" size="24px" @click="addCustomTag" />
       </view>
     </view>
   </view>
 </template>
 
 <style scoped>
-.tag-input {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 32rpx;
+.tag-input-component {
+  padding: 8rpx 0;
 }
 
 .section {
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
 }
 
 .section:last-child {
@@ -99,79 +100,20 @@ function addCustomTag() {
 }
 
 .section-label {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.selected-tags,
-.preset-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-}
-
-.selected-tag {
-  display: flex;
-  align-items: center;
-  padding: 8rpx 24rpx;
-  background-color: #e8f8ef;
-  border-radius: 32rpx;
-}
-
-.tag-text {
-  font-size: 24rpx;
-  color: #07c160;
-}
-
-.tag-remove {
-  margin-left: 8rpx;
-  font-size: 28rpx;
-  color: #07c160;
-  line-height: 1;
-}
-
-.preset-tag {
-  padding: 8rpx 24rpx;
-  background-color: #f6f6f6;
-  border-radius: 32rpx;
   font-size: 24rpx;
   color: #666;
+  display: block;
+  margin-bottom: 12rpx;
 }
 
-.preset-tag.selected {
-  background-color: #07c160;
-  color: #fff;
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .custom-input-row {
   display: flex;
   align-items: center;
   gap: 16rpx;
-}
-
-.custom-input {
-  flex: 1;
-  height: 60rpx;
-  background-color: #f6f6f6;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
-  font-size: 24rpx;
-}
-
-.add-btn {
-  width: 60rpx;
-  height: 60rpx;
-  background-color: #07c160;
-  border-radius: 12rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  flex-shrink: 0;
 }
 </style>
