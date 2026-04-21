@@ -50,55 +50,53 @@ onMounted(() => {
 
 <template>
   <view class="contact-list-page">
-    <view class="search-bar">
-      <input
-        class="search-input"
-        placeholder="搜索姓名或公司"
-        v-model="searchKeyword"
-        @confirm="handleSearch"
-      />
-    </view>
+    <wd-search-bar placeholder="搜索姓名或公司" v-model="searchKeyword" @search="handleSearch" @clear="handleSearch" />
 
     <view class="tag-filter">
       <view
+        class="tag-item"
+        :class="{ active: selectedTag === '' }"
+        @click="selectedTag = ''; loadContacts()"
+      >
+        全部
+      </view>
+      <view
         v-for="tag in allTags"
         :key="tag"
-        :class="['tag-item', selectedTag === tag ? 'active' : '']"
+        class="tag-item"
+        :class="{ active: selectedTag === tag }"
         @click="selectedTag = selectedTag === tag ? '' : tag; loadContacts()"
       >
         {{ tag }}
       </view>
     </view>
 
-    <view class="list" v-if="contacts.length > 0">
-      <view
+    <wd-cell-group v-if="contacts.length > 0">
+      <wd-cell
         v-for="contact in contacts"
         :key="contact.id"
-        class="contact-item"
+        :title="contact.name"
+        :label="contact.company ? contact.company + ' · ' + (contact.title || '') : '暂无公司信息'"
+        is-link
         @click="goDetail(contact.id)"
       >
-        <view class="avatar">
-          <text v-if="contact.avatar" class="avatar-img">{{ contact.avatar }}</text>
-          <text v-else class="avatar-text">{{ contact.name.charAt(0) }}</text>
-        </view>
-        <view class="info">
-          <text class="name">{{ contact.name }}</text>
-          <text v-if="contact.company" class="company">{{ contact.company }} · {{ contact.title || '' }}</text>
-          <text v-else class="company-empty">暂无公司信息</text>
-        </view>
-        <view v-if="contact.tags.length > 0" class="tags">
-          <text v-for="tag in contact.tags" :key="tag" class="tag">{{ tag }}</text>
-        </view>
-      </view>
-    </view>
+        <template #icon>
+          <view class="avatar-circle">{{ contact.name.charAt(0) }}</view>
+        </template>
+        <template v-if="contact.tags.length > 0" #right-icon>
+          <view class="tags-row">
+            <text v-for="tag in contact.tags" :key="tag" class="tag-badge">{{ tag }}</text>
+          </view>
+        </template>
+      </wd-cell>
+    </wd-cell-group>
 
-    <view v-else class="empty">
-      <text class="empty-text">暂无联系人</text>
-      <text class="empty-hint">点击下方按钮添加第一个联系人</text>
-    </view>
+    <wd-empty v-else description="暂无联系人" />
 
-    <button class="import-btn" @click="goImport">从通讯录导入</button>
-    <button class="add-btn" @click="goCreate">+ 添加联系人</button>
+    <!-- #ifndef H5 -->
+    <wd-button block plain @click="goImport" custom-class="import-btn">从通讯录导入</wd-button>
+    <!-- #endif -->
+    <wd-button type="primary" block @click="goCreate" custom-class="add-btn">+ 添加联系人</wd-button>
   </view>
 </template>
 
@@ -107,18 +105,6 @@ onMounted(() => {
   min-height: 100vh;
   background-color: #f5f5f5;
   padding: 32rpx;
-}
-
-.search-bar {
-  margin-bottom: 16rpx;
-}
-
-.search-input {
-  height: 72rpx;
-  background-color: #f6f6f6;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
-  font-size: 28rpx;
 }
 
 .tag-filter {
@@ -140,121 +126,29 @@ onMounted(() => {
   color: #fff;
 }
 
-.contact-item {
-  display: flex;
-  align-items: center;
-  background-color: #fff;
-  padding: 24rpx;
-  border-radius: 16rpx;
-  margin-bottom: 16rpx;
-}
-
-.avatar {
-  width: 88rpx;
-  height: 88rpx;
+.avatar-circle {
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
-  background-color: #f6f6f6;
+  background: #e8f8ef;
+  color: #07c160;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 24rpx;
-  flex-shrink: 0;
-}
-
-.avatar-text {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 600;
-  color: #07c160;
 }
 
-.info {
-  flex: 1;
-  min-width: 0;
-}
-
-.name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  display: block;
-}
-
-.company {
-  font-size: 24rpx;
-  color: #999;
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.company-empty {
-  font-size: 24rpx;
-  color: #ccc;
-  display: block;
-}
-
-.tags {
+.tags-row {
   display: flex;
-  gap: 8rpx;
-  flex-shrink: 0;
 }
 
-.tag {
-  padding: 4rpx 12rpx;
-  background-color: #e8f8ef;
+.tag-badge {
+  padding: 2rpx 8rpx;
+  background: #e8f8ef;
   color: #07c160;
-  border-radius: 8rpx;
+  border-radius: 4rpx;
   font-size: 20rpx;
-}
-
-.empty {
-  text-align: center;
-  padding: 128rpx 0;
-}
-
-.empty-text {
-  font-size: 32rpx;
-  color: #999;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.empty-hint {
-  font-size: 24rpx;
-  color: #ccc;
-  display: block;
-}
-
-.import-btn {
-  position: fixed;
-  bottom: 176rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 64rpx);
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #007aff;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
-  border: none;
-}
-
-.add-btn {
-  position: fixed;
-  bottom: 64rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 64rpx);
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #07c160;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
-  border: none;
+  margin-left: 8rpx;
 }
 </style>

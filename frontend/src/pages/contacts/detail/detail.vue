@@ -64,7 +64,6 @@ function handleInteractionLongPress(item: NonNullable<typeof contact.value>['int
     itemList: ['编辑', '删除'],
     success: async (res) => {
       if (res.tapIndex === 0) {
-        // Edit
         uni.showModal({
           title: '编辑交互记录',
           editable: true,
@@ -83,7 +82,6 @@ function handleInteractionLongPress(item: NonNullable<typeof contact.value>['int
           },
         })
       } else if (res.tapIndex === 1) {
-        // Delete
         uni.showModal({
           title: '确认删除？',
           content: '删除后无法恢复该交互记录',
@@ -124,65 +122,52 @@ function formatDate(dateStr: string): string {
 
 <template>
   <view class="detail-page">
-    <view v-if="contact" class="detail-content">
+    <view v-if="loading">
+      <wd-loading />
+    </view>
+
+    <template v-else-if="contact">
       <!-- Basic info -->
-      <view class="info-card">
-        <view class="avatar">
-          <text class="avatar-text">{{ contact.name.charAt(0) }}</text>
-        </view>
-        <text class="name">{{ contact.name }}</text>
-        <text v-if="contact.company" class="company">{{ contact.company }} · {{ contact.title || '' }}</text>
-        <view v-if="contact.tags.length > 0" class="tags">
-          <text v-for="tag in contact.tags" :key="tag" class="tag">{{ tag }}</text>
-        </view>
-      </view>
-
-      <!-- Contact info -->
-      <view class="detail-card">
-        <text class="card-title">联系方式</text>
-        <view v-if="contact.phone" class="detail-item">
-          <text class="label">电话</text>
-          <text class="value" @click="uni.makePhoneCall({ phoneNumber: contact.phone! })">{{ contact.phone }}</text>
-        </view>
-        <view v-if="contact.email" class="detail-item">
-          <text class="label">邮箱</text>
-          <text class="value">{{ contact.email }}</text>
-        </view>
-        <view v-if="contact.wechatId" class="detail-item">
-          <text class="label">微信</text>
-          <text class="value">{{ contact.wechatId }}</text>
-        </view>
-      </view>
-
-      <!-- Interaction timeline -->
-      <view class="timeline-card">
-        <view class="timeline-header">
-          <text class="card-title">交互记录</text>
-          <text class="add-btn" @click="addInteraction">+ 添加</text>
-        </view>
-        <view v-if="contact.interactions.length > 0" class="timeline">
-          <view v-for="item in contact.interactions" :key="item.id" class="timeline-item" @longpress="handleInteractionLongPress(item)">
-            <view class="timeline-dot" />
-            <view class="timeline-content">
-              <view class="timeline-header-row">
-                <text class="timeline-type">{{ getTypeLabel(item.type) }}</text>
-                <text class="timeline-time">{{ formatDate(item.occurredAt) }}</text>
-              </view>
-              <text class="timeline-text">{{ item.content }}</text>
-            </view>
+      <wd-cell-group>
+        <view class="info-header">
+          <view class="avatar-circle">{{ contact.name.charAt(0) }}</view>
+          <text class="name">{{ contact.name }}</text>
+          <text v-if="contact.company" class="company">{{ contact.company }} · {{ contact.title || '' }}</text>
+          <view v-if="contact.tags.length > 0" class="tags">
+            <text v-for="tag in contact.tags" :key="tag" class="tag">{{ tag }}</text>
           </view>
         </view>
-        <view v-else class="empty-timeline">
-          <text>暂无交互记录</text>
-        </view>
-      </view>
-    </view>
+      </wd-cell-group>
 
-    <!-- Actions -->
-    <view class="actions">
-      <button class="action-btn edit" @click="goEdit">编辑联系人</button>
-      <button class="action-btn delete" @click="deleteContact">删除联系人</button>
-    </view>
+      <!-- Contact info -->
+      <wd-cell-group title="联系方式">
+        <wd-cell v-if="contact.phone" title="电话" :value="contact.phone" is-link @click="uni.makePhoneCall({ phoneNumber: contact.phone! })" />
+        <wd-cell v-if="contact.email" title="邮箱" :value="contact.email" />
+        <wd-cell v-if="contact.wechatId" title="微信" :value="contact.wechatId" />
+      </wd-cell-group>
+
+      <!-- Interaction timeline -->
+      <wd-cell-group title="交互记录">
+        <template #extra>
+          <wd-button size="small" type="primary" @click="addInteraction">+ 添加</wd-button>
+        </template>
+        <wd-cell
+          v-for="item in contact.interactions"
+          :key="item.id"
+          :title="getTypeLabel(item.type)"
+          :label="item.content"
+          :value="formatDate(item.occurredAt)"
+          @longpress="handleInteractionLongPress(item)"
+        />
+        <wd-empty v-if="contact.interactions.length === 0" description="暂无交互记录" />
+      </wd-cell-group>
+
+      <!-- Actions -->
+      <view class="actions">
+        <wd-button type="primary" block @click="goEdit">编辑联系人</wd-button>
+        <wd-button type="error" block plain @click="deleteContact">删除联系人</wd-button>
+      </view>
+    </template>
   </view>
 </template>
 
@@ -190,34 +175,28 @@ function formatDate(dateStr: string): string {
 .detail-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 32rpx;
+  padding: 24rpx;
 }
 
-.info-card {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 48rpx;
+.info-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 32rpx;
+  padding: 24rpx 0;
 }
 
-.avatar {
+.avatar-circle {
   width: 128rpx;
   height: 128rpx;
   border-radius: 50%;
-  background-color: #e8f8ef;
+  background: #e8f8ef;
+  color: #07c160;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16rpx;
-}
-
-.avatar-text {
   font-size: 48rpx;
   font-weight: 600;
-  color: #07c160;
+  margin-bottom: 16rpx;
 }
 
 .name {
@@ -240,126 +219,13 @@ function formatDate(dateStr: string): string {
 
 .tag {
   padding: 4rpx 12rpx;
-  background-color: #e8f8ef;
+  background: #e8f8ef;
   color: #07c160;
   border-radius: 8rpx;
   font-size: 20rpx;
 }
 
-.detail-card,
-.timeline-card {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 32rpx;
-  margin-bottom: 32rpx;
-}
-
-.card-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 24rpx;
-  display: block;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 16rpx 0;
-  border-bottom: 1px solid #f6f6f6;
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.label {
-  font-size: 28rpx;
-  color: #999;
-}
-
-.value {
-  font-size: 28rpx;
-  color: #333;
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24rpx;
-}
-
-.add-btn {
-  font-size: 28rpx;
-  color: #07c160;
-}
-
-.timeline-item {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
-}
-
-.timeline-dot {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
-  background-color: #07c160;
-  margin-top: 12rpx;
-  flex-shrink: 0;
-}
-
-.timeline-header-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8rpx;
-}
-
-.timeline-type {
-  font-size: 24rpx;
-  color: #07c160;
-  font-weight: 600;
-}
-
-.timeline-time {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.timeline-text {
-  font-size: 28rpx;
-  color: #333;
-  display: block;
-}
-
-.empty-timeline {
-  text-align: center;
-  padding: 32rpx 0;
-  color: #ccc;
-  font-size: 28rpx;
-}
-
 .actions {
   margin-top: 32rpx;
-}
-
-.action-btn {
-  height: 80rpx;
-  line-height: 80rpx;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  border: none;
-  margin-bottom: 16rpx;
-}
-
-.action-btn.edit {
-  background-color: #07c160;
-  color: #fff;
-}
-
-.action-btn.delete {
-  background-color: transparent;
-  color: #e64340;
 }
 </style>
