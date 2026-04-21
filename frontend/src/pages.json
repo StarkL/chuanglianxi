@@ -77,6 +77,12 @@
       "style": {
         "navigationBarTitleText": "添加提醒"
       }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
     }
   ],
   "globalStyle": {
@@ -84,5 +90,31 @@
     "navigationBarTitleText": "常联系",
     "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#07c160",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/contacts/list",
+        "text": "联系人",
+        "iconPath": "static/tabbar/contacts.png",
+        "selectedIconPath": "static/tabbar/contacts-active.png"
+      },
+      {
+        "pagePath": "pages/reminders/list/list",
+        "text": "提醒",
+        "iconPath": "static/tabbar/reminders.png",
+        "selectedIconPath": "static/tabbar/reminders-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "static/tabbar/mine.png",
+        "selectedIconPath": "static/tabbar/mine-active.png"
+      }
+    ]
   }
 }
