@@ -6,6 +6,19 @@ import { login } from '../../api/auth.js'
 const loading = ref(false)
 const error = ref('')
 
+// #ifdef H5
+async function handleH5MockLogin() {
+  if (loading.value) return
+  loading.value = true
+  error.value = ''
+  setToken('dev-token-h5')
+  setUserInfo({ id: 'dev-user', nickname: 'H5测试用户', avatar: '', subscriptionTier: 'free' })
+  uni.switchTab({ url: '/pages/index/index' })
+  loading.value = false
+}
+// #endif
+
+// #ifdef MP-WEIXIN
 async function handleLogin() {
   if (loading.value) return
   loading.value = true
@@ -47,6 +60,7 @@ async function handleLogin() {
     loading.value = false
   }
 }
+// #endif
 </script>
 
 <template>
@@ -61,6 +75,13 @@ async function handleLogin() {
     </view>
 
     <view class="login-section">
+      <!-- #ifdef H5 -->
+      <button class="login-btn" :loading="loading" :disabled="loading" @click="handleH5MockLogin">
+        模拟登录 (H5开发)
+      </button>
+      <!-- #endif -->
+
+      <!-- #ifdef MP-WEIXIN -->
       <button
         class="login-btn"
         :loading="loading"
@@ -69,6 +90,8 @@ async function handleLogin() {
       >
         微信登录
       </button>
+      <!-- #endif -->
+
       <text class="login-hint">登录后即可开始管理你的人脉</text>
     </view>
 

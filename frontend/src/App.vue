@@ -1,6 +1,16 @@
 <script setup lang="ts">
+import type { ConfigProviderThemeVars } from 'wot-design-uni'
 import { getToken, setUserInfo } from './utils/auth.js'
 import { verifyToken } from './api/auth.js'
+
+const themeVars: ConfigProviderThemeVars = {
+  colorTheme: '#07c160',
+  buttonPrimaryBgColor: '#07c160',
+  buttonPrimaryColor: '#ffffff',
+  tabbarActiveColor: '#07c160',
+  colorSuccess: '#07c160',
+  cellTapBg: '#f0f9f4'
+}
 
 async function checkSession(): Promise<boolean> {
   const token = getToken()
@@ -35,9 +45,11 @@ async function checkAndRedirect(): Promise<void> {
 </script>
 
 <template>
-  <view class="app">
-    <slot />
-  </view>
+  <wd-config-provider :theme-vars="themeVars">
+    <view class="app">
+      <slot />
+    </view>
+  </wd-config-provider>
 </template>
 
 <style>
