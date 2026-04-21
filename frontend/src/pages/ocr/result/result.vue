@@ -68,41 +68,32 @@ async function handleSave() {
 
 <template>
   <view class="result-page">
-    <view class="form">
-      <view class="form-group">
-        <text class="label">姓名 <text class="required">*</text></text>
-        <input class="input" v-model="name" placeholder="姓名" />
-      </view>
+    <wd-cell-group border inset>
+      <wd-form-item label="姓名" required>
+        <wd-input v-model="name" placeholder="姓名" :clearable="true" />
+      </wd-form-item>
+      <wd-form-item label="公司">
+        <wd-input v-model="company" placeholder="公司" :clearable="true" />
+      </wd-form-item>
+      <wd-form-item label="职位">
+        <wd-input v-model="title" placeholder="职位" :clearable="true" />
+      </wd-form-item>
+      <wd-form-item label="电话">
+        <wd-input v-model="phone" placeholder="电话" type="number" :clearable="true" />
+      </wd-form-item>
+      <wd-form-item label="邮箱">
+        <wd-input v-model="email" placeholder="邮箱" :clearable="true" />
+      </wd-form-item>
+      <wd-form-item label="微信号">
+        <wd-input v-model="wechatId" placeholder="微信号" :clearable="true" />
+      </wd-form-item>
+    </wd-cell-group>
 
-      <view class="form-group">
-        <text class="label">公司</text>
-        <input class="input" v-model="company" placeholder="公司" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">职位</text>
-        <input class="input" v-model="title" placeholder="职位" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">电话</text>
-        <input class="input" v-model="phone" placeholder="电话" type="number" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">邮箱</text>
-        <input class="input" v-model="email" placeholder="邮箱" type="text" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">微信号</text>
-        <input class="input" v-model="wechatId" placeholder="微信号" />
-      </view>
+    <view class="save-section">
+      <wd-button block type="primary" :loading="saving" :disabled="saving" @click="handleSave">
+        保存为联系人
+      </wd-button>
     </view>
-
-    <button class="save-btn" :loading="saving" :disabled="saving" @click="handleSave">
-      保存为联系人
-    </button>
   </view>
 </template>
 
@@ -114,53 +105,7 @@ async function handleSave() {
   padding-bottom: 160rpx;
 }
 
-.form {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 32rpx;
-}
-
-.form-group {
-  margin-bottom: 32rpx;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.label {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 12rpx;
-}
-
-.required {
-  color: #e64340;
-}
-
-.input {
-  height: 80rpx;
-  background-color: #f6f6f6;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
-  font-size: 28rpx;
-}
-
-.save-btn {
-  position: fixed;
-  bottom: 64rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 64rpx);
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #07c160;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
-  border: none;
+.save-section {
+  margin-top: 32rpx;
 }
 </style>
