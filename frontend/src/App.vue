@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { onLaunch } from '@dcloudio/uni-app'
 import type { ConfigProviderThemeVars } from 'wot-design-uni'
-import { getToken, setUserInfo } from './utils/auth.js'
+import { getToken } from './utils/auth.js'
 import { verifyToken } from './api/auth.js'
 
 const themeVars: ConfigProviderThemeVars = {
@@ -24,24 +25,23 @@ async function checkSession(): Promise<boolean> {
   }
 }
 
-function navigateToLogin(): void {
-  const pages = getCurrentPages()
-  const currentPage = pages[pages.length - 1]
-  const route = currentPage?.route
-
-  uni.reLaunch({
-    url: `/pages/login/login${route && route !== 'pages/login/login' ? `?redirect=${encodeURIComponent(route)}` : ''}`,
-  })
-}
-
-async function checkAndRedirect(): Promise<void> {
+async function redirectIfUnauthenticated(): Promise<void> {
   const isValid = await checkSession()
   if (!isValid) {
     uni.removeStorageSync('token')
     uni.removeStorageSync('userInfo')
-    navigateToLogin()
+    uni.reLaunch({ url: '/pages/login/login' })
   }
 }
+
+onLaunch(async () => {
+  const token = getToken()
+  if (!token) {
+    uni.reLaunch({ url: '/pages/login/login' })
+    return
+  }
+  await redirectIfUnauthenticated()
+})
 </script>
 
 <template>
