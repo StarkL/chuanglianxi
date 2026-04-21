@@ -71,20 +71,19 @@ async function handleScan() {
 
 <template>
   <view class="scan-page">
-    <view class="scan-icon">
-      <text class="icon-text">📷</text>
-    </view>
-    <text class="scan-title">扫描名片</text>
-    <text class="scan-hint">拍照或从相册选择名片</text>
+    <wd-empty image="scan" description="拍照或从相册选择名片" />
 
-    <button
-      class="scan-btn"
-      :loading="scanning"
-      :disabled="scanning"
-      @click="handleScan"
-    >
-      {{ scanning ? '识别中...' : '选择图片' }}
-    </button>
+    <view class="scan-actions">
+      <wd-button
+        block
+        type="primary"
+        :loading="scanning"
+        :disabled="scanning"
+        @click="handleScan"
+      >
+        {{ scanning ? '识别中...' : '选择图片' }}
+      </wd-button>
+    </view>
   </view>
 </template>
 
@@ -92,50 +91,10 @@ async function handleScan() {
 .scan-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32rpx;
+  padding: 64rpx 32rpx;
 }
 
-.scan-icon {
-  width: 160rpx;
-  height: 160rpx;
-  background-color: #e8f8ef;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 48rpx;
-}
-
-.icon-text {
-  font-size: 80rpx;
-}
-
-.scan-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16rpx;
-}
-
-.scan-hint {
-  font-size: 28rpx;
-  color: #999;
-  margin-bottom: 96rpx;
-}
-
-.scan-btn {
-  width: calc(100% - 64rpx);
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #07c160;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
-  border: none;
+.scan-actions {
+  margin-top: 64rpx;
 }
 </style>
