@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite'
-import uni from '@dcloudio/vite-plugin-uni'
+// @ts-ignore - vite-plugin-uni uses non-standard ESM/CJS interop
+import _uni from '@dcloudio/vite-plugin-uni'
+const uni = (_uni as any).default || _uni
 import { resolve } from 'path'
 
 export default defineConfig({
