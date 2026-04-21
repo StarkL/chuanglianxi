@@ -12,7 +12,7 @@ interface RequestOptions {
   data?: Record<string, unknown>
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 export function request<T>(options: RequestOptions): Promise<ApiResponse<T>> {
   const token = getToken()
