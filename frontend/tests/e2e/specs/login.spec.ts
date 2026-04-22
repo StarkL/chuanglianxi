@@ -5,7 +5,7 @@ test.describe('Login Flow', () => {
     await page.goto('/')
 
     // Should show login page
-    await expect(page.getByText('常联系')).toBeVisible()
+    await expect(page.getByText('常联系', { exact: true })).toBeVisible()
     await expect(page.getByText('欢迎使用常联系')).toBeVisible()
 
     // Should show mock login button (H5)
@@ -20,6 +20,6 @@ test.describe('Login Flow', () => {
     await loginBtn.click()
 
     // Should navigate to contacts list (first tabBar page)
-    await expect(page.getByText('联系人')).toBeVisible()
+    await expect(page.locator('uni-page-head').getByText('联系人')).toBeVisible()
   })
 })
