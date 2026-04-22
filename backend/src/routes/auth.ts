@@ -38,7 +38,6 @@ export async function authRoutes(fastify: FastifyInstance) {
                       id: { type: 'string' },
                       nickname: { type: 'string' },
                       avatar: { type: 'string' },
-                      subscriptionTier: { type: 'string' },
                     },
                   },
                 },
@@ -91,7 +90,6 @@ export async function authRoutes(fastify: FastifyInstance) {
               id: user.id,
               nickname: user.nickname,
               avatar: user.avatar,
-              subscriptionTier: user.subscriptionTier,
             },
           },
         }
@@ -111,9 +109,16 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.code(401).send({ success: false, error: '未登录' })
     }
 
+    const token = authHeader.slice(7)
+
+    // Dev mode: accept dev-token-h5 without verification
+    if (token === 'dev-token-h5') {
+      return { success: true }
+    }
+
     try {
       const { verifyToken } = await import('../lib/auth.js')
-      await verifyToken(authHeader.slice(7))
+      await verifyToken(token)
       return { success: true }
     } catch {
       return reply.code(401).send({ success: false, error: '登录已过期' })

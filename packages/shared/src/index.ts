@@ -3,8 +3,6 @@ export interface User {
   openId: string
   nickname: string | null
   avatar: string | null
-  subscriptionTier: 'free' | 'pro' | 'ai-enhanced' | 'ai-deep'
-  subscriptionEndsAt: Date | null
   createdAt: Date
 }
 

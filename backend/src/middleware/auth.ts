@@ -12,8 +12,16 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply):
     return reply.code(401).send({ success: false, error: '未登录' })
   }
 
+  const token = authHeader.slice(7)
+
+  // Dev mode: accept dev-token-h5 without JWT verification
+  if (token === 'dev-token-h5') {
+    ;(request as AuthenticatedRequest).userId = 'dev-user'
+    ;(request as AuthenticatedRequest).openId = 'dev-openid'
+    return
+  }
+
   try {
-    const token = authHeader.slice(7)
     const payload = await verifyToken(token)
     ;(request as AuthenticatedRequest).userId = payload.sub
     ;(request as AuthenticatedRequest).openId = payload.openId
@@ -32,7 +40,6 @@ export async function registerProtectedRoutes(fastify: FastifyInstance) {
         id: true,
         nickname: true,
         avatar: true,
-        subscriptionTier: true,
         createdAt: true,
       },
     })

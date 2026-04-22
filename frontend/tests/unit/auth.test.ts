@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { setToken, getToken, removeToken, setUserInfo, getUserInfo, clearSession } from '../../src/utils/auth.js'
+import {
+  setToken,
+  getToken,
+  removeToken,
+  setUserInfo,
+  getUserInfo,
+  clearSession
+} from '../../src/utils/auth.js'
 import { storage } from './setup.js'
 
 beforeEach(() => {
@@ -31,7 +38,7 @@ describe('removeToken', () => {
 
 describe('setUserInfo / getUserInfo', () => {
   it('stores and retrieves user info as JSON', () => {
-    const info = { id: 'user-1', nickname: 'Test', avatar: '', subscriptionTier: 'free' }
+    const info = { id: 'user-1', nickname: 'Test', avatar: '' }
     setUserInfo(info)
     const retrieved = getUserInfo()
     expect(retrieved).toEqual(info)
@@ -58,7 +65,7 @@ describe('clearSession', () => {
 
 describe('getUserInfo H5 vs mock compatibility', () => {
   it('parses JSON string (mock mode)', () => {
-    const info = { id: 'user-1', nickname: 'Test', avatar: '', subscriptionTier: 'free' }
+    const info = { id: 'user-1', nickname: 'Test', avatar: '' }
     storage.set('userInfo', JSON.stringify(info))
     const retrieved = getUserInfo()
     expect(retrieved).toEqual(info)
@@ -67,7 +74,7 @@ describe('getUserInfo H5 vs mock compatibility', () => {
   it('returns object directly (H5 mode — uni-h5 getStorageSync returns parsed object)', () => {
     // In H5 mode, setStorageSync stores '{"type":"object","data":{...}}'
     // and getStorageSync returns the inner data object directly
-    const info = { id: 'h5-user', nickname: 'H5User', avatar: '', subscriptionTier: 'free' }
+    const info = { id: 'h5-user', nickname: 'H5User', avatar: '' }
     // Simulate H5 behavior: getStorageSync returns the parsed object directly
     const original = (globalThis as any).uni.getStorageSync
     ;(globalThis as any).uni.getStorageSync = (key: string) => {

@@ -12,7 +12,6 @@ async function main() {
         openId: 'dev-openid-h5',
         nickname: 'H5测试用户',
         avatar: '',
-        subscriptionTier: 'free',
       },
     })
     console.log('Created dev user for H5 mock login')

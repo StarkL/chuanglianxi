@@ -1,6 +1,6 @@
 # 常联系 (ChangLianXi) — Roadmap
 
-**Phases:** 8 | **Requirements mapped:** 23 | All V1 requirements covered
+**Phases:** 7 | **Requirements mapped:** 23 | All V1 requirements covered
 
 ---
 
@@ -165,29 +165,7 @@ Plans:
 
 ---
 
-## Phase 7: 付费系统
-
-**Status:** DEFERRED — 跳过，V1 不做付费功能
-
-~~**Goal:** 实现微信支付订阅和免费版限制~~
-
-~~**Requirements:** PAYMENT-01, PAYMENT-02, PAYMENT-03~~
-
-~~**Success Criteria:**
-1. 免费版用户最多创建 100 个联系人
-2. 付费版用户解锁无限联系人、无限 OCR 等功能
-3. 用户可以通过微信支付完成订阅（¥15/月或 ¥99/年）
-4. 订阅到期后自动降级为免费版~~
-
-~~**Deliverables:**
-- 微信支付集成
-- 订阅管理页面
-- 免费版限制中间件
-- 订阅状态同步~~
-
----
-
-## Phase 8: 前端完善与测试
+## Phase 7: 前端完善与测试
 
 **Goal:** UI 优化、测试编写、小程序审核准备
 

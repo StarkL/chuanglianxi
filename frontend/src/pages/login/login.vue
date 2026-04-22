@@ -12,8 +12,8 @@ async function handleH5MockLogin() {
   loading.value = true
   error.value = ''
   setToken('dev-token-h5')
-  setUserInfo({ id: 'dev-user', nickname: 'H5测试用户', avatar: '', subscriptionTier: 'free' })
-  uni.switchTab({ url: '/pages/index/index' })
+  setUserInfo({ id: 'dev-user', nickname: 'H5测试用户', avatar: '' })
+  uni.switchTab({ url: '/pages/contacts/list' })
   loading.value = false
 }
 // #endif

@@ -5,7 +5,6 @@ interface UserInfo {
   id: string
   nickname: string | null
   avatar: string | null
-  subscriptionTier: string
 }
 
 export function setToken(token: string): void {
@@ -28,7 +27,10 @@ export function setUserInfo(info: UserInfo): void {
 export function getUserInfo(): UserInfo | null {
   try {
     const info = uni.getStorageSync(USER_KEY)
-    return info ? (JSON.parse(info) as UserInfo) : null
+    if (!info) return null
+    // In H5 mode, getStorageSync returns the object directly (not JSON string)
+    // In mock mode (tests), it returns a JSON string
+    return typeof info === 'string' ? (JSON.parse(info) as UserInfo) : info
   } catch {
     return null
   }
