@@ -5,10 +5,19 @@ import { login } from '../../api/auth.js'
 
 const loading = ref(false)
 const error = ref('')
+const agreedToPolicies = ref(false)
+
+function navigateToPrivacy() {
+  uni.navigateTo({ url: '/pages/privacy/privacy' })
+}
+
+function navigateToAgreement() {
+  uni.navigateTo({ url: '/pages/agreement/agreement' })
+}
 
 // #ifdef H5
 async function handleH5MockLogin() {
-  if (loading.value) return
+  if (loading.value || !agreedToPolicies.value) return
   loading.value = true
   error.value = ''
   setToken('dev-token-h5')
@@ -20,7 +29,7 @@ async function handleH5MockLogin() {
 
 // #ifdef MP-WEIXIN
 async function handleLogin() {
-  if (loading.value) return
+  if (loading.value || !agreedToPolicies.value) return
   loading.value = true
   error.value = ''
 
@@ -43,7 +52,7 @@ async function handleLogin() {
     if (res.success && res.data) {
       setToken(res.data.token)
       setUserInfo(res.data.user)
-      uni.switchTab({ url: '/pages/index/index' })
+      uni.switchTab({ url: '/pages/contacts/list' })
     } else {
       error.value = res.error || '登录失败，请重试'
     }
@@ -76,7 +85,7 @@ async function handleLogin() {
 
     <view class="login-section">
       <!-- #ifdef H5 -->
-      <button class="login-btn" :loading="loading" :disabled="loading" @click="handleH5MockLogin">
+      <button class="login-btn" :loading="loading" :disabled="loading || !agreedToPolicies" @click="handleH5MockLogin">
         模拟登录 (H5开发)
       </button>
       <!-- #endif -->
@@ -85,7 +94,7 @@ async function handleLogin() {
       <button
         class="login-btn"
         :loading="loading"
-        :disabled="loading"
+        :disabled="loading || !agreedToPolicies"
         @click="handleLogin"
       >
         微信登录
@@ -100,9 +109,14 @@ async function handleLogin() {
     </view>
 
     <view class="privacy-section">
-      <text class="privacy-text">
-        登录即表示同意<text class="link">用户协议</text>和<text class="link">隐私政策</text>
-      </text>
+      <view class="checkbox-row" @click="agreedToPolicies = !agreedToPolicies">
+        <view class="checkbox" :class="{ checked: agreedToPolicies }">
+          <text v-if="agreedToPolicies" class="checkmark">✓</text>
+        </view>
+        <text class="privacy-text">
+          我已阅读并同意<text class="link" @click.stop="navigateToAgreement">《用户协议》</text>和<text class="link" @click.stop="navigateToPrivacy">《隐私政策》</text>
+        </text>
+      </view>
     </view>
   </view>
 </template>
@@ -173,7 +187,7 @@ async function handleLogin() {
 }
 
 .login-btn[disabled] {
-  opacity: 0.7;
+  opacity: 0.5;
 }
 
 .login-hint {
@@ -196,11 +210,43 @@ async function handleLogin() {
 
 .privacy-section {
   text-align: center;
+  margin-top: 32rpx;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.checkbox {
+  width: 32rpx;
+  height: 32rpx;
+  min-width: 32rpx;
+  border: 2rpx solid #ccc;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4rpx;
+}
+
+.checkbox.checked {
+  background-color: #07c160;
+  border-color: #07c160;
+}
+
+.checkmark {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
 }
 
 .privacy-text {
   font-size: 24rpx;
   color: #999;
+  line-height: 1.6;
 }
 
 .link {

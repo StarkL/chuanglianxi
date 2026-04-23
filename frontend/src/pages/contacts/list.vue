@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { getContacts, type Contact } from '../../api/contacts.js'
 
 const contacts = ref<Contact[]>([])
 const loading = ref(false)
+const searching = ref(false)
 const searchKeyword = ref('')
 const selectedTag = ref('')
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const allTags = ref<string[]>(['工作', '朋友', '家人'])
 
 async function loadContacts() {
-  loading.value = true
+  searching.value = true
   try {
     const params: Record<string, string> = {}
     if (searchKeyword.value) params.search = searchKeyword.value
@@ -23,12 +27,15 @@ async function loadContacts() {
   } catch {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
-    loading.value = false
+    searching.value = false
   }
 }
 
 function handleSearch() {
-  loadContacts()
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    loadContacts()
+  }, 500)
 }
 
 function goDetail(id: string) {
@@ -46,11 +53,16 @@ function goImport() {
 onMounted(() => {
   loadContacts()
 })
+
+// Reload when page becomes visible again (e.g. after returning from edit/detail)
+onShow(() => {
+  loadContacts()
+})
 </script>
 
 <template>
   <view class="contact-list-page">
-    <wd-search-bar placeholder="搜索姓名或公司" v-model="searchKeyword" @search="handleSearch" @clear="handleSearch" />
+    <wd-search placeholder="搜索姓名或公司" v-model="searchKeyword" @search="handleSearch" @clear="handleSearch" />
 
     <view class="tag-filter">
       <view
@@ -91,7 +103,7 @@ onMounted(() => {
       </wd-cell>
     </wd-cell-group>
 
-    <wd-empty v-else description="暂无联系人" />
+    <wd-status-tip v-else image="content" tip="暂无联系人" />
 
     <!-- #ifndef H5 -->
     <wd-button block plain @click="goImport" custom-class="import-btn">从通讯录导入</wd-button>

@@ -34,12 +34,23 @@ async function redirectIfUnauthenticated(): Promise<void> {
   }
 }
 
+// #ifdef H5
+// In H5 dev mode, trust the dev-token without backend verification
+function skipH5DevVerification(): boolean {
+  const token = getToken()
+  return token === 'dev-token-h5'
+}
+// #endif
+
 onLaunch(async () => {
   const token = getToken()
   if (!token) {
     uni.reLaunch({ url: '/pages/login/login' })
     return
   }
+  // #ifdef H5
+  if (skipH5DevVerification()) return
+  // #endif
   await redirectIfUnauthenticated()
 })
 </script>

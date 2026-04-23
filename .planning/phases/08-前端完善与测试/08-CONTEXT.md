@@ -1,81 +1,83 @@
 # Phase 08: 前端完善与测试 - Context
 
-**Gathered:** 2026-04-21
+**Gathered:** 2026-04-23
 **Status:** Ready for planning
 
 <domain>
 ## Phase Boundary
 
-Phase 8 是 V1 上线前的最后一个阶段，包含四个核心目标：
-1. **H5/PC 版本适配** — 支持浏览器开发调试，减少微信开发者工具依赖
-2. **UI 框架接入** — 引入 wot-design-uni，替换所有手写样式
-3. **测试覆盖** — Vitest 工具函数 + Playwright E2E 核心流程
-4. **小程序审核准备** — 补齐隐私政策、用户协议、tabbar 等审核硬性要求
+Phase 08 是 V1 上线前的最后一个阶段，包含四个核心目标：
+1. **现有页面交互优化** — 表单验证、搜索防抖、名片墙跳转、我的页面完善
+2. **缺失页面补齐** — 隐私政策、用户协议、名片详情页
+3. **H5/PC 版本适配** — 浏览器开发调试支持
+4. **测试覆盖** — Vitest + Playwright 核心流程
 
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
-### H5/PC 版本适配（方案 C）
-- **D-01:** 使用 uni-app H5 编译（安装 `@dcloudio/uni-h5`），添加 `dev:h5` 脚本
-- **D-02:** 开发环境用 Vite proxy 代理后端 `/api` 到 `http://localhost:3000`，避免 CORS 问题
-- **D-03:** 使用 `#ifdef H5` / `#ifndef H5` 条件编译处理微信专属功能（登录、通讯录导入等）
-- **D-04:** H5 登录页用模拟登录按钮跳过微信授权
-- **D-05:** H5 下隐藏通讯录导入功能
-- **D-06:** CSS 通过媒体查询做 PC 端响应式（max-width 限制 + grid 布局）
-- **D-07:** 前端请求统一使用 `/api` 前缀，小程序和 H5 一套代码
+### 表单验证
+- **D-01:** 提交时校验为主，不做实时校验（小程序输入法体验不佳）
+- **D-02:** 手机号增加格式校验（正则 `^1[3-9]\d{9}$`），不合法时阻止提交
+- **D-03:** 姓名为必填，提交时校验非空
 
-### UI 框架接入（wot-design-uni）
-- **D-08:** 引入 `wot-design-uni`（Vue 3 + TS 编写，71 个组件）
-- **D-09:** 用 wot-design-uni 替换当前所有手写样式（列表、表单、卡片、弹窗等）
-- **D-10:** 首页导航从 emoji 改为 wot 的 grid/tabbar 组件
-- **D-11:** 联系人列表页改用 `wd-cell` / `wd-list` 组件，替代自定义 item
-- **D-12:** 表单页面改用 `wd-form` + `wd-input` 组件
-- **D-13:** 空状态统一使用 wot 的 `wd-empty` 组件
-- **D-14:** 搜索栏改用 `wd-search-bar` 组件
-- **D-15:** 底部增加 tabbar 导航（联系人/提醒/我的），使用 `wd-tabbar`
+### 搜索体验
+- **D-04:** 搜索输入添加 500ms 防抖，避免频繁后端查询
+- **D-05:** 搜索加载时显示 `wd-loading` 微状态
+- **D-06:** 不做搜索结果高亮（数据量不大，复杂度不划算）
 
-### 测试策略
-- **D-16:** Vitest 用于测试纯逻辑工具函数（token 处理、请求包装、类型校验）
-- **D-17:** Playwright E2E 基于 H5 编译产物，在浏览器中跑端到端测试
-- **D-18:** E2E 覆盖核心流程：登录 → 添加联系人 → 搜索 → 名片扫描 → 添加提醒
-- **D-19:** 不单独测 Vue 组件渲染 — E2E 已覆盖
+### 名片详情
+- **D-07:** 创建 `pages/card-detail/card-detail.vue`
+- **D-08:** 展示：姓名、公司/职位、电话、邮箱、识别时间
+- **D-09:** 底部按钮：「保存为联系人」+「删除名片」
+- **D-10:** 名片墙卡片添加 `@click` 跳转，传递 `cardId` 参数
 
-### 缺失页面补齐
-- **D-20:** 新增隐私政策页面（微信审核强制要求）
-- **D-21:** 新增用户协议页面（微信审核强制要求）
-- **D-22:** 新增名片详情页面（名片墙卡片点击后查看完整 OCR 信息）
-- **D-23:** 新增"我的"页面（设置、隐私政策、用户协议、关于、退出登录）
-- **D-24:** 登录页增加隐私勾选提示（微信审核要求）
+### "我的"页面
+- **D-11:** 添加 wd-cell-group 列表：隐私政策、用户协议、关于常联系（v0.1.0）、退出登录
+- **D-12:** 版本号从 package.json 读取
 
-### 已有实现确认
-- **D-25:** 已装 `@dcloudio/uni-ui` ^1.5.6，将被 wot-design-uni 替代
-- **D-26:** 所有 12 个页面已注册在 pages.json 中
-- **D-27:** 后端 CORS 配置：`origin: '*'` + `credentials: true`（H5 开发用 proxy 绕过）
-- **D-28:** WeChat 绿色主题色 `#07c160` 需统一迁移到 wot 的主题配置
-- **D-29:** API 响应格式：`{ success: boolean, data?: T, error?: string }` 保持不变
+### 隐私合规页面
+- **D-13:** 创建 `pages/privacy/privacy.vue` 和 `pages/agreement/agreement.vue`
+- **D-14:** 登录页添加隐私勾选框，未勾选时登录按钮 disabled
+- **D-15:** 政策文字为可点击链接，跳转到对应页面
+
+### 技术决策
+- **D-16:** `wd-status-tip` 作为空状态组件（`wd-empty` 不存在）
+- **D-17:** `wd-search` 作为搜索组件（`wd-search-bar` 不存在）
+- **D-18:** H5 模式 `dev-token-h5` 绕过 JWT 验证（仅开发使用）
 
 ### Claude's Discretion
-- wot-design-uni 的具体安装配置方式（easycom vs 全局注册）
-- Vite proxy 路径的具体映射规则
-- 隐私政策和用户协议的具体文案内容
-- 各页面迁移到 wot 组件的具体顺序和优先级
+- 隐私政策和用户协议的具体文案内容（需要标准中文模板）
+- 名片详情页的视觉排版细节（字段布局、间距）
+- 搜索防抖的具体延迟时间（500ms 为建议值）
 
 </decisions>
 
 <canonical_refs>
 ## Canonical References
 
-### 前端完善与测试
-- `.planning/ROADMAP.md` §Phase 8 — 前端完善与测试阶段目标和交付物
-- `.planning/REQUIREMENTS.md` — 全部 V1 验证需求
+**Downstream agents MUST read these before planning or implementing.**
 
-### 设计系统
+### UI 组件规范
 - `.planning/phases/02-weixin-auth/02-UI-SPEC.md` — 颜色、间距、字体、WeChat 绿色主题规范
+- `frontend/src/pages.json` — easycom 配置、页面注册、tabBar 配置
 
-### H5 编译
-- `.planning/PROJECT.md` §Constraints — uni-app + Vue 3 + TypeScript 技术栈约束
+### 已有代码
+- `frontend/src/api/contacts.ts` — Contact/CContactDetail 类型 + CRUD API
+- `frontend/src/api/ocr.ts` — OCR 相关 API
+- `frontend/src/utils/auth.ts` — Token 工具函数
+- `frontend/src/utils/request.ts` — 统一请求包装
+
+### 验证报告
+- `.planning/phases/08-前端完善与测试/08-VERIFICATION.md` — 5 个待修复缺口
+
+### 阶段总结
+- `.planning/phases/08-前端完善与测试/08-01-SUMMARY.md` — H5 编译、wot-design-uni、Vite proxy
+- `.planning/phases/08-前端完善与测试/08-02-SUMMARY.md` — 页面迁移到 wot 组件
+- `.planning/phases/08-前端完善与测试/08-03-SUMMARY.md` — 更多页面迁移
+- `.planning/phases/08-前端完善与测试/08-04-SUMMARY.md` — TabBar、导航、mine 页面
+- `.planning/phases/08-前端完善与测试/08-05-SUMMARY.md` — 测试基础设施
 
 </canonical_refs>
 
@@ -83,51 +85,48 @@ Phase 8 是 V1 上线前的最后一个阶段，包含四个核心目标：
 ## Existing Code Insights
 
 ### Reusable Assets
-- `frontend/src/api/contacts.ts` — Contact/CContactDetail 类型定义 + 完整 CRUD API 封装
-- `frontend/src/api/auth.ts` — 登录/登出 API
-- `frontend/src/api/interactions.ts` — 交互记录 API
-- `frontend/src/api/ocr.ts` — OCR 相关 API
-- `frontend/src/api/reminders.ts` — 提醒 API
-- `frontend/src/utils/request.ts` — 统一请求包装（自动附加 token、错误处理）
-- `frontend/src/utils/auth.ts` — Token 工具函数
+- `wot-design-uni` (102 components) — wd-search, wd-status-tip, wd-cell-group, wd-form, wd-input, wd-button 等已在使用
+- `frontend/src/utils/auth.ts` — Token 工具（setToken, getToken, getUserInfo, clearSession）
+- `frontend/src/utils/request.ts` — 请求包装（自动附加 token、401 处理）
+- `frontend/src/api/contacts.ts` — 完整 CRUD API
+- `frontend/src/api/ocr.ts` — OCR API
 
 ### Established Patterns
 - API 响应格式：`{ success: boolean, data?: T, error?: string }`
-- 权限控制：所有路由使用 `preHandler: [requireAuth]`
-- 前端页面路由：`uni.navigateTo({ url: '/pages/...' })` 模式
-- 样式：rpx 单位响应式，WeChat 绿色 #07c160 主题色
-- 12 个页面全部在 pages.json 注册
+- 页面导航：`uni.navigateTo` (非 tabBar) / `uni.switchTab` (tabBar)
+- 条件编译：`#ifdef H5` / `#ifdef MP-WEIXIN`
+- 列表刷新：`onShow` 生命周期（tabBar 页面返回时触发）
+- 错误提示：`uni.showToast({ title, icon: 'none' })`
 
 ### Integration Points
-- 首页（index.vue）有 4 个导航卡片：联系人、提醒、扫描名片、名片墙
-- 名片墙（ocr/cards/cards.vue）已有卡片但无详情页
-- 路由注册在 `pages.json` 统一管理
-- 后端 CORS 在 `backend/src/config/cors.ts` 配置
+- `pages.json` — 所有页面需在此注册
+- `App.vue` — wd-config-provider 主题包装 + onLaunch 鉴权
+- TabBar 配置 — 3 个 tab：联系人/提醒/我的
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- 用户希望尽量在浏览器（H5）调试，减少微信开发者工具依赖
-- 所有页面样式统一为微信原生风格（wot-design-uni 风格接近微信原生）
-- 隐私政策和用户协议需要清晰易读（类似微信公众号文章风格）
-- 登录页增加隐私勾选（"我已阅读并同意《隐私政策》和《用户协议》"）
-- 底部 tabbar 建议：联系人 / 提醒 / 我的（3 个 tab）
+- 搜索防抖使用 `setTimeout` + `clearTimeout` 实现，不引入额外依赖
+- 手机号校验正则：`^1[3-9]\d{9}$`（中国手机号格式）
+- 版本号：v0.1.0（首次发布）
+- 隐私政策和用户协议需要标准中文模板（类似微信小程序默认文案）
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
-- 批量通讯录导入 — 后续阶段实现 VCF 导入
-- 联系人关系图谱可视化 — V2 范围
-- 智能联系建议 — V2 范围
-- 语音笔记自动转录 — V2 范围
+- 列表左滑快捷删除操作 — 未来优化
+- 搜索结果高亮 — 数据量增长后再做
+- 首页更多快捷入口（统计、最近联系人等） — 核心功能稳定后再加
+- 表单实时校验 — 当前提交时校验足够
+- 名片 OCR 使用次数统计 — 去掉免费限制后暂不需要
 
 </deferred>
 
 ---
 
 *Phase: 08-前端完善与测试*
-*Context gathered: 2026-04-21*
+*Context gathered: 2026-04-23*

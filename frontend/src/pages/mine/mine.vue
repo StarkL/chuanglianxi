@@ -1,21 +1,39 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getUserInfo, clearSession } from '../../utils/auth.js'
-import { logout } from '../../api/auth.js'
+import { getUserInfo } from '../../utils/auth.js'
 
 const userInfo = ref<{ nickname: string | null; avatar: string | null } | null>(null)
+const version = 'v0.1.0'
 
 onMounted(() => {
   const info = getUserInfo()
   userInfo.value = info
 })
 
+function goPrivacy() {
+  uni.navigateTo({ url: '/pages/privacy/privacy' })
+}
+
+function goAgreement() {
+  uni.navigateTo({ url: '/pages/agreement/agreement' })
+}
+
+function goScan() {
+  uni.navigateTo({ url: '/pages/ocr/scan/scan' })
+}
+
+function goCards() {
+  uni.navigateTo({ url: '/pages/ocr/cards/cards' })
+}
+
 async function handleLogout() {
   try {
+    const { logout } = await import('../../api/auth.js')
     await logout()
   } catch {
     // Server may be unreachable, clear local session anyway
   } finally {
+    const { clearSession } = await import('../../utils/auth.js')
     clearSession()
     uni.reLaunch({ url: '/pages/login/login' })
   }
@@ -37,45 +55,59 @@ function confirmLogout() {
 
 <template>
   <view class="mine">
+    <!-- User info -->
     <view v-if="userInfo" class="user-section">
-      <wd-cell-group border>
-        <wd-cell center>
-          <template #icon>
-            <view class="avatar-circle">
-              <text v-if="userInfo.nickname" class="avatar-text">
-                {{ userInfo.nickname.charAt(0) }}
-              </text>
-              <text v-else class="avatar-text">👤</text>
-            </view>
-          </template>
-          <template #title>
-            <text class="nickname">
-              {{ userInfo.nickname || '未设置昵称' }}
-            </text>
-          </template>
-        </wd-cell>
-      </wd-cell-group>
+      <view class="welcome">
+        <text class="title">欢迎使用常联系</text>
+        <text class="subtitle">
+          {{ userInfo.nickname || '你的人脉管理助手' }}
+        </text>
+      </view>
     </view>
 
     <view v-else class="user-section">
-      <wd-cell-group border>
-        <wd-cell center>
-          <template #icon>
-            <view class="avatar-circle">
-              <text class="avatar-text">👤</text>
-            </view>
-          </template>
-          <template #title>
-            <text class="nickname">未登录</text>
-          </template>
-        </wd-cell>
-      </wd-cell-group>
+      <view class="welcome">
+        <text class="title">欢迎使用常联系</text>
+        <text class="subtitle">你的人脉管理助手</text>
+      </view>
     </view>
 
-    <wd-gap :height="32" />
+    <!-- Quick actions -->
+    <view class="nav-section">
+      <wd-grid :column="2" :border="false">
+        <wd-grid-item @click="goScan">
+          <template #icon>
+            <wd-icon name="scan" size="28px" color="#07c160" />
+          </template>
+          <template #text>
+            <text class="nav-label">扫描名片</text>
+          </template>
+        </wd-grid-item>
+        <wd-grid-item @click="goCards">
+          <template #icon>
+            <wd-icon name="star" size="28px" color="#07c160" />
+          </template>
+          <template #text>
+            <text class="nav-label">名片墙</text>
+          </template>
+        </wd-grid-item>
+      </wd-grid>
+    </view>
 
+    <wd-gap :height="24" :bg-color="'transparent'" />
+
+    <!-- Settings and links -->
+    <wd-cell-group title="设置">
+      <wd-cell title="隐私政策" is-link @click="goPrivacy" />
+      <wd-cell title="用户协议" is-link @click="goAgreement" />
+      <wd-cell title="关于常联系" :value="version" />
+    </wd-cell-group>
+
+    <wd-gap :height="24" :bg-color="'transparent'" />
+
+    <!-- Logout -->
     <view class="action-section">
-      <wd-button block @click="confirmLogout" custom-class="logout-btn">
+      <wd-button block plain type="error" @click="confirmLogout">
         退出登录
       </wd-button>
     </view>
@@ -92,38 +124,38 @@ function confirmLogout() {
 
 .user-section {
   width: 100%;
+  text-align: center;
   margin-bottom: 16rpx;
 }
 
-.avatar-circle {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background-color: #f6f6f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.welcome {
+  text-align: center;
 }
 
-.avatar-text {
+.title {
+  display: block;
   font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
   color: #999;
 }
 
-.nickname {
-  font-size: 32rpx;
+.nav-section {
+  width: 100%;
+}
+
+.nav-label {
+  font-size: 28rpx;
   color: #333;
   font-weight: 600;
 }
 
 .action-section {
   width: 100%;
-}
-</style>
-
-<style>
-.logout-btn {
-  --wot-button-color: #e64340 !important;
-  --wot-button-border-color: #eee !important;
 }
 </style>

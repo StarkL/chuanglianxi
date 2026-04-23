@@ -39,6 +39,11 @@ function goScan() {
   uni.navigateTo({ url: '/pages/ocr/scan/scan' })
 }
 
+function goCardDetail(card: BusinessCard) {
+  const data = card.ocrData ? encodeURIComponent(JSON.stringify(card.ocrData)) : ''
+  uni.navigateTo({ url: `/pages/card-detail/card-detail?cardId=${card.id}&data=${data}` })
+}
+
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
   return `${date.getMonth() + 1}月${date.getDate()}日`
@@ -52,6 +57,7 @@ function formatDate(dateStr: string): string {
         v-for="card in cards"
         :key="card.id"
         class="card-item"
+        @click="goCardDetail(card)"
       >
         <view class="card-content">
           <text class="card-name">{{ card.ocrData?.name || '未识别' }}</text>
@@ -62,7 +68,7 @@ function formatDate(dateStr: string): string {
       </view>
     </view>
 
-    <wd-empty v-else description="暂无名片" icon="scan" />
+    <wd-status-tip v-else image="content" tip="暂无名片" />
 
     <wd-button type="primary" block @click="goScan">+ 扫描名片</wd-button>
   </view>

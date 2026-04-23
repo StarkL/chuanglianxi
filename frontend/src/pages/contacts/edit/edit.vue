@@ -83,6 +83,11 @@ async function handleSave() {
     return
   }
 
+  if (phone.value.trim() && !/^1[3-9]\d{9}$/.test(phone.value.trim())) {
+    uni.showToast({ title: '手机号格式不正确', icon: 'none' })
+    return
+  }
+
   saving.value = true
   try {
     const data = {
