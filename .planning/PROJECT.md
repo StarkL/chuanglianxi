@@ -62,7 +62,6 @@
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | 微信生态优先 | 最大差异化，用户获取成本低 | ✓ Good |
-| 永久免费 | 不设付费门槛，降低用户决策成本 | ✓ Good |
 | uni-app 跨平台 | 一次开发多端发布，国内生态最成熟 | ✓ Good |
 | Node.js + TypeScript | 前后端统一语言 | ✓ Good |
 | PostgreSQL | JSON 支持好，AI 向量扩展成熟 | ✓ Good |
