@@ -43,7 +43,7 @@ function confirmLogout() {
   uni.showModal({
     title: '确认退出？',
     content: '退出后需要重新授权登录',
-    confirmColor: '#e64340',
+    confirmColor: '#e03131',
     success: (res) => {
       if (res.confirm) {
         handleLogout()
@@ -120,6 +120,7 @@ function confirmLogout() {
   flex-direction: column;
   padding: 32rpx;
   min-height: 100vh;
+  background-color: #f6f5f4;
 }
 
 .user-section {
@@ -136,13 +137,13 @@ function confirmLogout() {
   display: block;
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   margin-bottom: 16rpx;
 }
 
 .subtitle {
   font-size: 28rpx;
-  color: #999;
+  color: #787671;
 }
 
 .nav-section {
@@ -151,7 +152,7 @@ function confirmLogout() {
 
 .nav-label {
   font-size: 28rpx;
-  color: #333;
+  color: #1a1a1a;
   font-weight: 600;
 }
 
