@@ -77,7 +77,7 @@ function formatDate(dateStr: string): string {
 <style scoped>
 .card-wall {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
   padding: 32rpx;
   padding-bottom: 160rpx;
 }
@@ -90,36 +90,36 @@ function formatDate(dateStr: string): string {
 .card-item {
   break-inside: avoid;
   background-color: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: 24rpx;
+  padding: 48rpx;
   margin-bottom: 16rpx;
 }
 
 .card-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   display: block;
   margin-bottom: 8rpx;
 }
 
 .card-company {
   font-size: 24rpx;
-  color: #999;
+  color: #787671;
   display: block;
   margin-bottom: 4rpx;
 }
 
 .card-title {
   font-size: 22rpx;
-  color: #07c160;
+  color: #5645d4;
   display: block;
   margin-bottom: 12rpx;
 }
 
 .card-date {
   font-size: 20rpx;
-  color: #ccc;
+  color: #a4a097;
   display: block;
 }
 </style>

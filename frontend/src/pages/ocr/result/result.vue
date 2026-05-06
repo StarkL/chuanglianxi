@@ -108,7 +108,7 @@ function handleRetake() {
 <style scoped>
 .result-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
   padding: 24rpx;
   padding-bottom: 160rpx;
 }

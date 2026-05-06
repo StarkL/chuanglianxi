@@ -140,14 +140,14 @@ onMounted(() => {
       </wd-cell-group>
     </view>
 
-    <wd-empty v-if="reminders.length === 0 && !loading" description="暂无提醒" />
+    <wd-status-tip v-if="reminders.length === 0 && !loading" image="content" tip="暂无提醒" />
   </view>
 </template>
 
 <style scoped>
 .reminder-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
   padding: 24rpx;
 }
 
@@ -157,6 +157,6 @@ onMounted(() => {
 
 .contact-label {
   font-size: 24rpx;
-  color: #999;
+  color: #787671;
 }
 </style>

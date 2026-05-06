@@ -71,7 +71,7 @@ async function handleScan() {
 
 <template>
   <view class="scan-page">
-    <wd-empty image="scan" description="拍照或从相册选择名片" />
+    <wd-status-tip image="search" tip="拍照或从相册选择名片" />
 
     <view class="scan-actions">
       <wd-button
@@ -90,7 +90,7 @@ async function handleScan() {
 <style scoped>
 .scan-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
   padding: 64rpx 32rpx;
 }
 

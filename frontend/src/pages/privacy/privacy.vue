@@ -73,7 +73,7 @@
 <style scoped>
 .policy-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
 }
 
 .content {
@@ -84,7 +84,7 @@
   display: block;
   font-size: 40rpx;
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   text-align: center;
   margin-bottom: 8rpx;
 }
@@ -92,7 +92,7 @@
 .update-time {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: #787671;
   text-align: center;
   margin-bottom: 40rpx;
 }
@@ -101,7 +101,7 @@
   display: block;
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   margin-top: 40rpx;
   margin-bottom: 16rpx;
 }
@@ -109,7 +109,7 @@
 .para {
   display: block;
   font-size: 28rpx;
-  color: #666;
+  color: #5d5b54;
   line-height: 1.8;
   margin-bottom: 16rpx;
 }
@@ -117,7 +117,7 @@
 .list-item {
   display: block;
   font-size: 28rpx;
-  color: #666;
+  color: #5d5b54;
   line-height: 1.8;
   margin-left: 16rpx;
   margin-bottom: 8rpx;
