@@ -107,13 +107,13 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "常联系",
     "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#F5F5F5"
+    "backgroundColor": "#f6f5f4"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#07c160",
+    "color": "#787671",
+    "selectedColor": "#5645d4",
     "backgroundColor": "#ffffff",
-    "borderStyle": "white",
+    "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/contacts/list",

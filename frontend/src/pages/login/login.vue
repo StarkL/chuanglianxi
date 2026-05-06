@@ -138,7 +138,7 @@ async function handleLogin() {
   justify-content: center;
   width: 240rpx;
   height: 240rpx;
-  background-color: #07c160;
+  background-color: #5645d4;
   border-radius: 48rpx;
 }
 
@@ -157,13 +157,13 @@ async function handleLogin() {
   display: block;
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   margin-bottom: 16rpx;
 }
 
 .subtitle {
   font-size: 28rpx;
-  color: #999;
+  color: #787671;
 }
 
 .login-section {
@@ -178,10 +178,10 @@ async function handleLogin() {
   width: 100%;
   height: 88rpx;
   line-height: 88rpx;
-  background-color: #07c160;
+  background-color: #5645d4;
   color: #ffffff;
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 500;
   border-radius: 16rpx;
   border: none;
 }
@@ -192,7 +192,7 @@ async function handleLogin() {
 
 .login-hint {
   font-size: 24rpx;
-  color: #999;
+  color: #787671;
   margin-top: 16rpx;
 }
 
@@ -205,7 +205,7 @@ async function handleLogin() {
 
 .error-text {
   font-size: 28rpx;
-  color: #e64340;
+  color: #e03131;
 }
 
 .privacy-section {
@@ -233,8 +233,8 @@ async function handleLogin() {
 }
 
 .checkbox.checked {
-  background-color: #07c160;
-  border-color: #07c160;
+  background-color: #5645d4;
+  border-color: #5645d4;
 }
 
 .checkmark {
@@ -245,11 +245,11 @@ async function handleLogin() {
 
 .privacy-text {
   font-size: 24rpx;
-  color: #999;
+  color: #787671;
   line-height: 1.6;
 }
 
 .link {
-  color: #07c160;
+  color: #5645d4;
 }
 </style>

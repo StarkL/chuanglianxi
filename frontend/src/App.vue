@@ -5,12 +5,12 @@ import { getToken } from './utils/auth.js'
 import { verifyToken } from './api/auth.js'
 
 const themeVars: ConfigProviderThemeVars = {
-  colorTheme: '#07c160',
-  buttonPrimaryBgColor: '#07c160',
+  colorTheme: '#5645d4',
+  buttonPrimaryBgColor: '#5645d4',
   buttonPrimaryColor: '#ffffff',
-  tabbarActiveColor: '#07c160',
-  colorSuccess: '#07c160',
-  cellTapBg: '#f0f9f4'
+  tabbarActiveColor: '#5645d4',
+  colorSuccess: '#5645d4',
+  cellTapBg: '#e6e0f5'
 }
 
 async function checkSession(): Promise<boolean> {
@@ -65,6 +65,6 @@ onLaunch(async () => {
 
 <style>
 page {
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
 }
 </style>
