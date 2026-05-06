@@ -115,7 +115,7 @@ onShow(() => {
 <style scoped>
 .contact-list-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
   padding: 32rpx;
 }
 
@@ -127,14 +127,14 @@ onShow(() => {
 
 .tag-item {
   padding: 8rpx 24rpx;
-  background-color: #f6f6f6;
-  border-radius: 32rpx;
+  background-color: #f6f5f4;
+  border-radius: 9999px;
   font-size: 24rpx;
-  color: #666;
+  color: #5d5b54;
 }
 
 .tag-item.active {
-  background-color: #07c160;
+  background-color: #5645d4;
   color: #fff;
 }
 
@@ -142,8 +142,8 @@ onShow(() => {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #e8f8ef;
-  color: #07c160;
+  background: #e6e0f5;
+  color: #391c57;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,9 +157,9 @@ onShow(() => {
 
 .tag-badge {
   padding: 2rpx 8rpx;
-  background: #e8f8ef;
-  color: #07c160;
-  border-radius: 4rpx;
+  background: #e6e0f5;
+  color: #391c57;
+  border-radius: 8rpx;
   font-size: 20rpx;
   margin-left: 8rpx;
 }
