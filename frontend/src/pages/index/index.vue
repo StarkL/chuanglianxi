@@ -42,7 +42,7 @@ function goCards() {
       <wd-grid :column="2" :border="false">
         <wd-grid-item @click="goScan">
           <template #icon>
-            <wd-icon name="scan" size="28px" color="#07c160" />
+            <wd-icon name="scan" size="28px" color="#5645d4" />
           </template>
           <template #text>
             <text class="nav-label">扫描名片</text>
@@ -50,7 +50,7 @@ function goCards() {
         </wd-grid-item>
         <wd-grid-item @click="goCards">
           <template #icon>
-            <wd-icon name="star" size="28px" color="#07c160" />
+            <wd-icon name="star" size="28px" color="#5645d4" />
           </template>
           <template #text>
             <text class="nav-label">名片墙</text>
@@ -84,13 +84,13 @@ function goCards() {
   display: block;
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   margin-bottom: 16rpx;
 }
 
 .subtitle {
   font-size: 28rpx;
-  color: #999;
+  color: #787671;
 }
 
 .nav-section {
@@ -99,7 +99,7 @@ function goCards() {
 
 .nav-label {
   font-size: 28rpx;
-  color: #333;
+  color: #1a1a1a;
   font-weight: 600;
 }
 </style>
