@@ -205,7 +205,7 @@ async function handleSave() {
 <style scoped>
 .edit-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
   padding: 24rpx;
   padding-bottom: 160rpx;
 }
@@ -235,8 +235,8 @@ async function handleSave() {
 
 .input {
   height: 80rpx;
-  background-color: #f6f6f6;
-  border-radius: 12rpx;
+  background-color: #f6f5f4;
+  border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
   display: flex;
