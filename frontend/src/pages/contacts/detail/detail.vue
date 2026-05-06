@@ -43,7 +43,7 @@ function deleteContact() {
   uni.showModal({
     title: '确认删除？',
     content: '删除后无法恢复该联系人及其所有交互记录',
-    confirmColor: '#e64340',
+    confirmColor: '#e03131',
     success: async (res) => {
       if (res.confirm && contact.value) {
         try {
@@ -85,7 +85,7 @@ function handleInteractionLongPress(item: NonNullable<typeof contact.value>['int
         uni.showModal({
           title: '确认删除？',
           content: '删除后无法恢复该交互记录',
-          confirmColor: '#e64340',
+          confirmColor: '#e03131',
           success: async (delRes) => {
             if (delRes.confirm && contact.value) {
               try {
@@ -159,7 +159,7 @@ function formatDate(dateStr: string): string {
           :value="formatDate(item.occurredAt)"
           @longpress="handleInteractionLongPress(item)"
         />
-        <wd-empty v-if="contact.interactions.length === 0" description="暂无交互记录" />
+        <wd-status-tip v-if="contact.interactions.length === 0" image="content" tip="暂无交互记录" />
       </wd-cell-group>
 
       <!-- Actions -->
@@ -174,7 +174,7 @@ function formatDate(dateStr: string): string {
 <style scoped>
 .detail-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f6f5f4;
   padding: 24rpx;
 }
 
@@ -189,8 +189,8 @@ function formatDate(dateStr: string): string {
   width: 128rpx;
   height: 128rpx;
   border-radius: 50%;
-  background: #e8f8ef;
-  color: #07c160;
+  background: #e6e0f5;
+  color: #391c57;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,13 +202,13 @@ function formatDate(dateStr: string): string {
 .name {
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: #1a1a1a;
   margin-bottom: 8rpx;
 }
 
 .company {
   font-size: 28rpx;
-  color: #999;
+  color: #787671;
 }
 
 .tags {
@@ -219,8 +219,8 @@ function formatDate(dateStr: string): string {
 
 .tag {
   padding: 4rpx 12rpx;
-  background: #e8f8ef;
-  color: #07c160;
+  background: #e6e0f5;
+  color: #391c57;
   border-radius: 8rpx;
   font-size: 20rpx;
 }
