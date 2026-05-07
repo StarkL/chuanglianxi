@@ -77,7 +77,7 @@ function confirmLogout() {
       <wd-grid :column="2" :border="false">
         <wd-grid-item @click="goScan">
           <template #icon>
-            <wd-icon name="scan" size="28px" color="#07c160" />
+            <wd-icon name="scan" size="28px" color="#5645d4" />
           </template>
           <template #text>
             <text class="nav-label">扫描名片</text>
@@ -85,7 +85,7 @@ function confirmLogout() {
         </wd-grid-item>
         <wd-grid-item @click="goCards">
           <template #icon>
-            <wd-icon name="star" size="28px" color="#07c160" />
+            <wd-icon name="star" size="28px" color="#5645d4" />
           </template>
           <template #text>
             <text class="nav-label">名片墙</text>
