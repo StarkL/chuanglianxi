@@ -24,7 +24,7 @@ test.describe('Contact Management', () => {
       const buttons = document.querySelectorAll('.add-btn, .wd-button')
       for (const btn of buttons) {
         if (btn.textContent?.includes('添加联系人')) {
-          (btn as HTMLElement).click()
+          ;(btn as HTMLElement).click()
           return true
         }
       }
@@ -43,7 +43,7 @@ test.describe('Contact Management', () => {
       const buttons = document.querySelectorAll('uni-button, button, .wd-button')
       for (const btn of buttons) {
         if (btn.textContent?.includes('保存')) {
-          (btn as HTMLElement).click()
+          ;(btn as HTMLElement).click()
           return true
         }
       }

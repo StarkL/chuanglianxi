@@ -53,7 +53,7 @@ test.describe('Core User Flow', () => {
       const buttons = document.querySelectorAll('uni-button, button, .wd-button, .logout-btn')
       for (const btn of buttons) {
         if (btn.textContent?.includes('退出登录')) {
-          (btn as HTMLElement).click()
+          ;(btn as HTMLElement).click()
           return true
         }
       }
@@ -66,7 +66,7 @@ test.describe('Core User Flow', () => {
       const buttons = document.querySelectorAll('uni-button, button, .uni-button')
       for (const btn of buttons) {
         if (btn.textContent?.includes('确认')) {
-          (btn as HTMLElement).click()
+          ;(btn as HTMLElement).click()
           return true
         }
       }

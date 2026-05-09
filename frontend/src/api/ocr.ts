@@ -34,7 +34,7 @@ export function scanBusinessCard(imagePath: string): Promise<ScanResult> {
       filePath: imagePath,
       name: 'image',
       header: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
       success: (res) => {
         try {
@@ -44,7 +44,7 @@ export function scanBusinessCard(imagePath: string): Promise<ScanResult> {
           reject(new Error('解析响应失败'))
         }
       },
-      fail: (err) => reject(err),
+      fail: (err) => reject(err)
     })
   })
 }

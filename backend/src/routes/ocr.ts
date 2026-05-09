@@ -69,36 +69,44 @@ export async function ocrRoutes(fastify: FastifyInstance) {
     return { success: true, data: cards }
   })
 
-  fastify.get('/business-cards/:id', { preHandler: [requireAuth] }, async (request: FastifyRequest, reply: FastifyReply) => {
-    const { userId } = request as AuthenticatedRequest
-    const { id } = request.params as { id: string }
+  fastify.get(
+    '/business-cards/:id',
+    { preHandler: [requireAuth] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { userId } = request as AuthenticatedRequest
+      const { id } = request.params as { id: string }
 
-    const card = await prisma.businessCard.findFirst({
-      where: { id, userId },
-      select: { id: true, imageUrl: true, ocrData: true, createdAt: true },
-    })
+      const card = await prisma.businessCard.findFirst({
+        where: { id, userId },
+        select: { id: true, imageUrl: true, ocrData: true, createdAt: true },
+      })
 
-    if (!card) {
-      return reply.code(404).send({ success: false, error: '名片不存在' })
+      if (!card) {
+        return reply.code(404).send({ success: false, error: '名片不存在' })
+      }
+
+      return { success: true, data: card }
     }
+  )
 
-    return { success: true, data: card }
-  })
+  fastify.delete(
+    '/business-cards/:id',
+    { preHandler: [requireAuth] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { userId } = request as AuthenticatedRequest
+      const { id } = request.params as { id: string }
 
-  fastify.delete('/business-cards/:id', { preHandler: [requireAuth] }, async (request: FastifyRequest, reply: FastifyReply) => {
-    const { userId } = request as AuthenticatedRequest
-    const { id } = request.params as { id: string }
+      const existing = await prisma.businessCard.findFirst({
+        where: { id, userId },
+        select: { id: true },
+      })
 
-    const existing = await prisma.businessCard.findFirst({
-      where: { id, userId },
-      select: { id: true },
-    })
+      if (!existing) {
+        return reply.code(404).send({ success: false, error: '名片不存在' })
+      }
 
-    if (!existing) {
-      return reply.code(404).send({ success: false, error: '名片不存在' })
+      await prisma.businessCard.delete({ where: { id } })
+      return { success: true }
     }
-
-    await prisma.businessCard.delete({ where: { id } })
-    return { success: true }
-  })
+  )
 }

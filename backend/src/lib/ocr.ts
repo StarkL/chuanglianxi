@@ -3,11 +3,7 @@ const require = createRequire(import.meta.url)
 const { ocr: AipOcr } = require('baidu-aip-sdk')
 import { env } from '../config/env.js'
 
-const ocrClient = new AipOcr(
-  env.BAIDU_OCR_APP_ID,
-  env.BAIDU_OCR_API_KEY,
-  env.BAIDU_OCR_SECRET_KEY
-)
+const ocrClient = new AipOcr(env.BAIDU_OCR_APP_ID, env.BAIDU_OCR_API_KEY, env.BAIDU_OCR_SECRET_KEY)
 
 export interface NormalizedOCRData {
   name: string

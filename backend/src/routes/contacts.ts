@@ -57,7 +57,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
     }
 
     if (query.tag) {
-      where.tags = { has: query.tag }
+      where.tags = { contains: `"${query.tag}"` }
     }
 
     const contacts = await prisma.contact.findMany({
@@ -77,7 +77,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
       },
     })
 
-    return { success: true, data: contacts }
+    return { success: true, data: contacts.map(c => ({ ...c, tags: JSON.parse(c.tags || '[]') })) }
   })
 
   fastify.get(
@@ -117,7 +117,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
         return reply.code(404).send({ success: false, error: '联系人不存在' })
       }
 
-      return { success: true, data: contact }
+      return { success: true, data: { ...contact, tags: JSON.parse(contact.tags || '[]') } }
     }
   )
 
@@ -172,7 +172,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
           email,
           avatar,
           source,
-          tags: tags ?? [],
+          tags: JSON.stringify(tags ?? []),
           birthdayType,
           birthday: birthday ? new Date(birthday) : undefined,
           lunarMonth,
@@ -180,7 +180,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
         },
       })
 
-      return { success: true, data: contact }
+      return { success: true, data: { ...contact, tags: JSON.parse(contact.tags || '[]') } }
     }
   )
 
@@ -205,11 +205,12 @@ export async function contactRoutes(fastify: FastifyInstance) {
         where: { id },
         data: {
           ...data,
+          tags: data.tags !== undefined ? JSON.stringify(data.tags) : undefined,
           birthday: data.birthday ? new Date(data.birthday) : undefined,
         },
       })
 
-      return { success: true, data: contact }
+      return { success: true, data: { ...contact, tags: JSON.parse(contact.tags || '[]') } }
     }
   )
 
@@ -265,7 +266,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
         })
 
         if (existing) {
-          return { success: true, data: existing, duplicate: true }
+          return { success: true, data: { ...existing, tags: JSON.parse(existing.tags || '[]') }, duplicate: true }
         }
 
         const contact = await prisma.contact.create({
@@ -274,11 +275,11 @@ export async function contactRoutes(fastify: FastifyInstance) {
             name,
             phone: phoneNumber,
             source: 'phone-import',
-            tags: [],
+            tags: "[]",
           },
         })
 
-        return { success: true, data: contact, duplicate: false }
+        return { success: true, data: { ...contact, tags: JSON.parse(contact.tags || '[]') }, duplicate: false }
       } catch {
         return reply.code(400).send({ success: false, error: '解密失败，请重新登录' })
       }

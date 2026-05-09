@@ -42,7 +42,7 @@
 
 ## Context
 
-- **技术栈**: uni-app + Vue 3 + TypeScript（前端），Node.js + Fastify/Express + TypeScript（后端），PostgreSQL 15+（主数据），Redis（缓存）
+- **技术栈**: uni-app + Vue 3 + TypeScript（前端），Node.js + Fastify/Express + TypeScript（后端），SQLite（嵌入式数据库，零运维）
 - **目标市场**: 中国市场优先，微信生态深度集成
 - **用户群体**: 商务人士、自由职业者、职场新人到中层管理者（25-40 岁）
 - **商业模式**: 免费 + 增值订阅（¥15/月或 ¥99/年）
@@ -65,6 +65,7 @@
 | uni-app 跨平台 | 一次开发多端发布，国内生态最成熟 | ✓ Good |
 | Node.js + TypeScript | 前后端统一语言 | ✓ Good |
 | PostgreSQL | JSON 支持好，AI 向量扩展成熟 | ✓ Good |
+| SQLite | 内存占用极低（~5MB），零运维，适合轻量部署 | ✓ Good (Phase 11) |
 | 手动转发聊天 | 合规优先，避免微信接口政策风险 | — Pending |
 | 分三阶段交付 AI | V1 轻量、V2 增强、V3 深度 | — Pending |
 
