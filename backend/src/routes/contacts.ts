@@ -51,8 +51,8 @@ export async function contactRoutes(fastify: FastifyInstance) {
 
     if (query.search) {
       where.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { company: { contains: query.search, mode: 'insensitive' } },
+        { name: { contains: query.search } },
+        { company: { contains: query.search } },
       ]
     }
 
@@ -77,7 +77,10 @@ export async function contactRoutes(fastify: FastifyInstance) {
       },
     })
 
-    return { success: true, data: contacts.map(c => ({ ...c, tags: JSON.parse(c.tags || '[]') })) }
+    return {
+      success: true,
+      data: contacts.map((c) => ({ ...c, tags: JSON.parse(c.tags || '[]') })),
+    }
   })
 
   fastify.get(
@@ -266,7 +269,11 @@ export async function contactRoutes(fastify: FastifyInstance) {
         })
 
         if (existing) {
-          return { success: true, data: { ...existing, tags: JSON.parse(existing.tags || '[]') }, duplicate: true }
+          return {
+            success: true,
+            data: { ...existing, tags: JSON.parse(existing.tags || '[]') },
+            duplicate: true,
+          }
         }
 
         const contact = await prisma.contact.create({
@@ -275,11 +282,15 @@ export async function contactRoutes(fastify: FastifyInstance) {
             name,
             phone: phoneNumber,
             source: 'phone-import',
-            tags: "[]",
+            tags: '[]',
           },
         })
 
-        return { success: true, data: { ...contact, tags: JSON.parse(contact.tags || '[]') }, duplicate: false }
+        return {
+          success: true,
+          data: { ...contact, tags: JSON.parse(contact.tags || '[]') },
+          duplicate: false,
+        }
       } catch {
         return reply.code(400).send({ success: false, error: '解密失败，请重新登录' })
       }
