@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getUserInfo } from '../../utils/auth.js'
+import { getUserInfo } from '../../utils/auth'
 
 const userInfo = ref<{ nickname: string | null; avatar: string | null } | null>(null)
 

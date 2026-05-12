@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { createContact, type Contact } from '../api/contacts.js'
+import { createContact, type Contact } from '../../api/contacts'
 
 interface OcrData {
   name: string
@@ -71,7 +71,7 @@ async function deleteCard() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          const { request } = await import('../utils/request.js')
+          const { request } = await import('../../utils/request')
           await request({ url: `/business-cards/${cardId.value}`, method: 'DELETE' })
           uni.showToast({ title: '已删除', icon: 'success' })
           setTimeout(() => uni.navigateBack(), 500)

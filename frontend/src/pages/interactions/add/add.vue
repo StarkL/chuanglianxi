@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { createInteraction } from '../../../api/interactions.js'
+import { createInteraction } from '../../../api/interactions'
 
 const contactId = ref('')
 const saving = ref(false)

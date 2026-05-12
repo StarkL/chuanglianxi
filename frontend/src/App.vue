@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onLaunch } from '@dcloudio/uni-app'
 import type { ConfigProviderThemeVars } from 'wot-design-uni'
-import { getToken } from './utils/auth.js'
-import { verifyToken } from './api/auth.js'
+import { getToken } from './utils/auth'
+import { verifyToken } from './api/auth'
 
 const themeVars: ConfigProviderThemeVars = {
   colorTheme: '#5645d4',

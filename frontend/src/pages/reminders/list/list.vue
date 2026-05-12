@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { getReminders, type Reminder } from '../../../api/reminders.js'
+import { getReminders, type Reminder } from '../../../api/reminders'
 
 const reminders = ref<Reminder[]>([])
 const loading = ref(false)

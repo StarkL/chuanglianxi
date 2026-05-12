@@ -20,7 +20,7 @@ const loading = ref(false)
 async function loadCards() {
   loading.value = true
   try {
-    const { request } = await import('../../../utils/request.js')
+    const { request } = await import('../../../utils/request')
     const res = await request<BusinessCard[]>({
       url: '/business-cards',
       method: 'GET',

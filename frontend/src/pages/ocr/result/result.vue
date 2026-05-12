@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { createContact } from '../../../api/contacts.js'
+import { createContact } from '../../../api/contacts'
 
 const saving = ref(false)
 

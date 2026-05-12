@@ -1,4 +1,4 @@
-import { getToken } from './auth.js'
+import { getToken } from './auth'
 
 interface ApiResponse<T = unknown> {
   success: boolean

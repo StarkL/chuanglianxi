@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getContacts } from '../../../api/contacts.js'
-import { createReminder } from '../../../api/reminders.js'
+import { getContacts } from '../../../api/contacts'
+import { createReminder } from '../../../api/reminders'
 
 interface Contact {
   id: string

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getContact, type ContactDetail } from '../../../api/contacts.js'
-import { deleteInteraction, updateInteraction } from '../../../api/interactions.js'
+import { getContact, type ContactDetail } from '../../../api/contacts'
+import { deleteInteraction, updateInteraction } from '../../../api/interactions'
 
 const contact = ref<ContactDetail | null>(null)
 const loading = ref(false)
@@ -47,7 +47,7 @@ function deleteContact() {
     success: async (res) => {
       if (res.confirm && contact.value) {
         try {
-          const { deleteContact } = await import('../../../api/contacts.js')
+          const { deleteContact } = await import('../../../api/contacts')
           await deleteContact(contact.value.id)
           uni.showToast({ title: '已删除', icon: 'success' })
           setTimeout(() => uni.navigateBack(), 500)

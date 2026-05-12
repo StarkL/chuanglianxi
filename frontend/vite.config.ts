@@ -6,6 +6,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [uni()],
+  base: '/crm/',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')

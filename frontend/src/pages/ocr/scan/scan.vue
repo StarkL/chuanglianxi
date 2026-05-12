@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { request } from '../../../utils/request.js'
+import { request } from '../../../utils/request'
 
 const scanning = ref(false)
 

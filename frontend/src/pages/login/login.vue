@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { setToken, setUserInfo } from '../../utils/auth.js'
-import { login } from '../../api/auth.js'
+import { setToken, setUserInfo } from '../../utils/auth'
+import { login } from '../../api/auth'
 
 const loading = ref(false)
 const error = ref('')

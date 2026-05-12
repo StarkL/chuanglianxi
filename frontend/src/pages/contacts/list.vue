@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { getContacts, type Contact } from '../../api/contacts.js'
+import { getContacts, type Contact } from '../../api/contacts'
 
 const contacts = ref<Contact[]>([])
 const loading = ref(false)

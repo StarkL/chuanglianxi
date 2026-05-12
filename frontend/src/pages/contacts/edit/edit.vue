@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { createContact, updateContact, getContact } from '../../../api/contacts.js'
+import { createContact, updateContact, getContact } from '../../../api/contacts'
 import TagInput from '../../../components/tag-input.vue'
 
 const contactId = ref('')

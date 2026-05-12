@@ -1,4 +1,4 @@
-import { getToken } from '../../utils/auth.js'
+import { getToken } from '../../utils/auth'
 
 export interface ScanResult {
   success: boolean

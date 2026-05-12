@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getUserInfo } from '../../utils/auth.js'
+import { getUserInfo } from '../../utils/auth'
 
 const userInfo = ref<{ nickname: string | null; avatar: string | null } | null>(null)
 const version = 'v0.1.0'
@@ -28,12 +28,12 @@ function goCards() {
 
 async function handleLogout() {
   try {
-    const { logout } = await import('../../api/auth.js')
+    const { logout } = await import('../../api/auth')
     await logout()
   } catch {
     // Server may be unreachable, clear local session anyway
   } finally {
-    const { clearSession } = await import('../../utils/auth.js')
+    const { clearSession } = await import('../../utils/auth')
     clearSession()
     uni.reLaunch({ url: '/pages/login/login' })
   }

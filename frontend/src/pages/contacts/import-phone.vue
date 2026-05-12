@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { importContactFromPhone } from '../../api/contacts.js'
+import { importContactFromPhone } from '../../api/contacts'
 
 const importing = ref(false)
 
