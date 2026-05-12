@@ -1,29 +1,16 @@
 import { defineConfig } from 'tsup'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+// Externalize all node_modules to avoid bundling issues with CJS modules
+const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf8'))
+const allDeps = { ...pkg.dependencies, ...pkg.devDependencies }
 
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm'],
   dts: true,
   clean: true,
-  noExternal: [],
-  external: [
-    '@prisma/client',
-    '@prisma/runtime-library',
-    'prisma',
-    'dotenv',
-    'pg',
-    'pg-native',
-    'openai',
-    'baidu-aip-sdk',
-    'node-schedule',
-    '@types/node-schedule',
-    'jose',
-    'fastify',
-    '@fastify/cors',
-    '@fastify/swagger',
-    '@fastify/swagger-ui',
-    'env-schema',
-    'zod',
-  ],
+  external: Object.keys(allDeps),
   splitting: false,
 })
