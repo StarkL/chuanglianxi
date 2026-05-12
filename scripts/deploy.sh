@@ -1,10 +1,11 @@
 #!/bin/bash
-# 常联系 - 轻量级部署脚本
+# 常联系 - VPS 部署脚本（端口 5000 + SQLite）
 set -e
 
-echo "=== 常联系 部署开始 ==="
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$SCRIPT_DIR/backend"
 
-cd backend
+echo "=== 常联系 部署开始 (端口: 5000) ==="
 
 # 1. 安装依赖
 echo ">> 安装依赖..."
@@ -22,8 +23,6 @@ npx prisma db push --accept-data-loss
 echo ">> 构建项目..."
 pnpm build
 
-cd ..
-
 # 5. 停止旧进程
 echo ">> 停止旧进程..."
 if [ -f app.pid ]; then
@@ -35,12 +34,14 @@ else
   sleep 2
 fi
 
-# 6. 启动新进程
+# 6. 启动新进程（在 backend 目录下运行，确保 .env 正确加载）
 echo ">> 启动新进程..."
-nohup node backend/dist/index.js > app.log 2>&1 &
+nohup node dist/index.js > app.log 2>&1 &
 echo $! > app.pid
 
 echo "=== 部署完成 ==="
+echo "后端端口: 5000"
 echo "进程 PID: $(cat app.pid)"
-echo "日志: tail -f app.log"
-echo "停止: kill \$(cat app.pid)"
+echo "日志: tail -f backend/app.log"
+echo "停止: bash scripts/stop.sh"
+echo "健康检查: curl http://127.0.0.1:5000/api/health"
