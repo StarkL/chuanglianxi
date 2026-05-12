@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm --dts --clean --no-splitting --external @prisma/client --external prisma --external openai --external baidu-aip-sdk --external node-schedule --external jose --external fastify --external \"@fastify/*\"",
+    "build": "tsup",
     "test": "vitest run",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
