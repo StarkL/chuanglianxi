@@ -16,90 +16,166 @@ function goScan() {
 function goCards() {
   uni.navigateTo({ url: '/pages/ocr/cards/cards' })
 }
+
+function goReminders() {
+  uni.navigateTo({ url: '/pages/reminders/list/list' })
+}
+
+function goContacts() {
+  uni.switchTab({ url: '/pages/contacts/list' })
+}
 </script>
 
 <template>
   <view class="home">
-    <view v-if="userInfo" class="user-section">
-      <view class="welcome">
-        <text class="title">欢迎使用常联系</text>
-        <text class="subtitle">
-          {{ userInfo.nickname || '你的人脉管理助手' }}
-        </text>
+    <!-- 欢迎区域 -->
+    <view class="hero-card">
+      <view class="hero-bg" />
+      <view class="hero-content">
+        <text class="greeting">Hi</text>
+        <text class="hero-name">{{ userInfo?.nickname || '常联系用户' }}</text>
+        <text class="hero-subtitle">开启你的人脉管理之旅</text>
       </view>
     </view>
 
-    <view v-else class="user-section">
-      <view class="welcome">
-        <text class="title">欢迎使用常联系</text>
-        <text class="subtitle">你的人脉管理助手</text>
-      </view>
-    </view>
-
-    <wd-gap :height="16" :bg-color="'transparent'" />
-
+    <!-- 核心功能导航 -->
     <view class="nav-section">
-      <wd-grid :column="2" :border="false">
-        <wd-grid-item @click="goScan">
-          <template #icon>
-            <wd-icon name="scan" size="28px" color="#5645d4" />
-          </template>
-          <template #text>
-            <text class="nav-label">扫描名片</text>
-          </template>
-        </wd-grid-item>
-        <wd-grid-item @click="goCards">
-          <template #icon>
-            <wd-icon name="star" size="28px" color="#5645d4" />
-          </template>
-          <template #text>
-            <text class="nav-label">名片墙</text>
-          </template>
-        </wd-grid-item>
-      </wd-grid>
+      <view class="nav-item" @click="goContacts">
+        <view class="nav-icon contacts-icon">
+          <wd-icon name="user-group" size="24px" color="#FFFFFF" />
+        </view>
+        <text class="nav-label">联系人</text>
+        <text class="nav-desc">管理你的人脉</text>
+      </view>
+      <view class="nav-item" @click="goReminders">
+        <view class="nav-icon reminders-icon">
+          <wd-icon name="alarm" size="24px" color="#FFFFFF" />
+        </view>
+        <text class="nav-label">提醒</text>
+        <text class="nav-desc">不错过重要时刻</text>
+      </view>
+      <view class="nav-item" @click="goScan">
+        <view class="nav-icon scan-icon">
+          <wd-icon name="scan" size="24px" color="#FFFFFF" />
+        </view>
+        <text class="nav-label">扫描名片</text>
+        <text class="nav-desc">快速录入人脉</text>
+      </view>
+      <view class="nav-item" @click="goCards">
+        <view class="nav-icon cards-icon">
+          <wd-icon name="star" size="24px" color="#FFFFFF" />
+        </view>
+        <text class="nav-label">名片墙</text>
+        <text class="nav-desc">查看收藏名片</text>
+      </view>
     </view>
   </view>
 </template>
 
 <style scoped>
 .home {
+  min-height: 100vh;
+  background-color: #F8F9FA;
+  padding: 32rpx;
+}
+
+/* ---- Hero 欢迎区域 ---- */
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 50%, #74B9FF 100%);
+  border-radius: 32rpx;
+  padding: 56rpx 40rpx 44rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 16rpx 48rpx rgba(108, 92, 231, 0.25);
+}
+
+.hero-bg {
+  position: absolute;
+  right: -60rpx;
+  bottom: -60rpx;
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.greeting {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-name {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.hero-subtitle {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4rpx;
+}
+
+/* ---- 核心功能导航 ---- */
+.nav-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.nav-item {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 32rpx 24rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 64rpx 32rpx;
-  min-height: 100vh;
+  gap: 16rpx;
+  box-shadow: 0 4rpx 24rpx rgba(108, 92, 231, 0.08);
 }
 
-.user-section {
-  width: 100%;
-  text-align: center;
+.nav-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.welcome {
-  text-align: center;
-  margin-bottom: 32rpx;
+.contacts-icon {
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
 }
 
-.title {
-  display: block;
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 16rpx;
+.reminders-icon {
+  background: linear-gradient(135deg, #FD79A8, #FDCB6E);
 }
 
-.subtitle {
-  font-size: 28rpx;
-  color: #787671;
+.scan-icon {
+  background: linear-gradient(135deg, #00B894, #55EFC4);
 }
 
-.nav-section {
-  width: 100%;
+.cards-icon {
+  background: linear-gradient(135deg, #74B9FF, #A29BFE);
 }
 
 .nav-label {
   font-size: 28rpx;
-  color: #1a1a1a;
   font-weight: 600;
+  color: #2D3436;
+}
+
+.nav-desc {
+  font-size: 22rpx;
+  color: #B2BEC3;
 }
 </style>

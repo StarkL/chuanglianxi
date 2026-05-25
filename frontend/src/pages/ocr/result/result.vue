@@ -14,18 +14,20 @@ const cardId = ref('')
 
 onMounted(() => {
   const pages = getCurrentPages()
-  const currentPage = pages[pages.length - 1] as { $page: { options: { data?: string } } }
-  const dataStr = currentPage.$page.options?.data
-  if (dataStr) {
+  const currentPage = pages[pages.length - 1] as { $page: { options: { data?: string; cardId?: string } } }
+  const { data, cardId: cid } = currentPage.$page.options || {}
+
+  if (cid) cardId.value = cid
+
+  if (data) {
     try {
-      const data = JSON.parse(decodeURIComponent(dataStr))
-      name.value = data.name || ''
-      company.value = data.company || ''
-      title.value = data.title || ''
-      phone.value = data.phone || ''
-      email.value = data.email || ''
-      wechatId.value = data.wechatId || ''
-      cardId.value = data.cardId || ''
+      const parsed = JSON.parse(decodeURIComponent(data))
+      name.value = parsed.name || ''
+      company.value = parsed.company || ''
+      title.value = parsed.title || ''
+      phone.value = parsed.phone || ''
+      email.value = parsed.email || ''
+      wechatId.value = parsed.wechatId || ''
     } catch {
       uni.showToast({ title: '数据解析失败', icon: 'none' })
     }
@@ -72,35 +74,70 @@ function handleRetake() {
 
 <template>
   <view class="result-page">
-    <wd-form>
-      <wd-form-item label="姓名" prop="name">
-        <wd-input v-model="name" placeholder="姓名" />
-      </wd-form-item>
+    <!-- 名片预览卡片 -->
+    <view class="card-preview">
+      <view class="card-preview__gradient" />
+      <view class="card-preview__content">
+        <view class="card-preview__header">
+          <view class="card-preview__avatar">
+            <text class="card-preview__avatar-text">{{ name ? name.charAt(0) : '?' }}</text>
+          </view>
+          <view class="card-preview__info">
+            <text class="card-preview__name">{{ name || '未识别姓名' }}</text>
+            <text v-if="company || title" class="card-preview__role">
+              {{ company }}<template v-if="company && title"> · </template>{{ title }}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
 
-      <wd-form-item label="公司" prop="company">
-        <wd-input v-model="company" placeholder="公司" />
-      </wd-form-item>
+    <!-- 信息编辑区 -->
+    <view class="edit-section">
+      <text class="edit-section__title">确认信息</text>
+      <view class="edit-card">
+        <view class="edit-field">
+          <text class="edit-field__label">姓名</text>
+          <input v-model="name" class="edit-field__input" placeholder="请输入姓名" />
+        </view>
+        <view class="edit-divider" />
+        <view class="edit-field">
+          <text class="edit-field__label">公司</text>
+          <input v-model="company" class="edit-field__input" placeholder="请输入公司名称" />
+        </view>
+        <view class="edit-divider" />
+        <view class="edit-field">
+          <text class="edit-field__label">职位</text>
+          <input v-model="title" class="edit-field__input" placeholder="请输入职位" />
+        </view>
+      </view>
 
-      <wd-form-item label="职位" prop="title">
-        <wd-input v-model="title" placeholder="职位" />
-      </wd-form-item>
+      <view class="edit-card">
+        <view class="edit-field">
+          <text class="edit-field__label">电话</text>
+          <input v-model="phone" class="edit-field__input" placeholder="请输入电话" type="number" />
+        </view>
+        <view class="edit-divider" />
+        <view class="edit-field">
+          <text class="edit-field__label">邮箱</text>
+          <input v-model="email" class="edit-field__input" placeholder="请输入邮箱" type="email" />
+        </view>
+        <view class="edit-divider" />
+        <view class="edit-field">
+          <text class="edit-field__label">微信号</text>
+          <input v-model="wechatId" class="edit-field__input" placeholder="请输入微信号" />
+        </view>
+      </view>
+    </view>
 
-      <wd-form-item label="电话" prop="phone">
-        <wd-input v-model="phone" placeholder="电话" type="number" />
-      </wd-form-item>
-
-      <wd-form-item label="邮箱" prop="email">
-        <wd-input v-model="email" placeholder="邮箱" type="email" />
-      </wd-form-item>
-
-      <wd-form-item label="微信号" prop="wechatId">
-        <wd-input v-model="wechatId" placeholder="微信号" />
-      </wd-form-item>
-    </wd-form>
-
-    <view class="button-group">
-      <wd-button type="primary" block :loading="saving" @click="handleSave">确认保存</wd-button>
-      <wd-button block @click="handleRetake">重新扫描</wd-button>
+    <!-- 操作按钮 -->
+    <view class="action-group">
+      <view class="btn-primary" :class="{ 'btn-primary--loading': saving }" @click="handleSave">
+        <text class="btn-primary__text">{{ saving ? '保存中...' : '确认保存' }}</text>
+      </view>
+      <view class="btn-secondary" @click="handleRetake">
+        <text class="btn-secondary__text">重新扫描</text>
+      </view>
     </view>
   </view>
 </template>
@@ -108,12 +145,185 @@ function handleRetake() {
 <style scoped>
 .result-page {
   min-height: 100vh;
-  background-color: #f6f5f4;
-  padding: 24rpx;
-  padding-bottom: 160rpx;
+  background: $bg-main;
+  padding: $space-md;
+  padding-bottom: 200rpx;
 }
 
-.button-group {
-  margin-top: 32rpx;
+/* 名片预览卡片 */
+.card-preview {
+  position: relative;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  margin-bottom: $space-md;
+}
+
+.card-preview__gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, $primary 0%, $primary-light 60%, $temp-warm 100%);
+  opacity: 0.9;
+}
+
+.card-preview__content {
+  position: relative;
+  z-index: 1;
+  padding: $space-md;
+  min-height: 180rpx;
+}
+
+.card-preview__header {
+  display: flex;
+  align-items: center;
+}
+
+.card-preview__avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+  margin-right: $space-sm;
+}
+
+.card-preview__avatar-text {
+  color: #fff;
+  font-size: $font-lg;
+  font-weight: 700;
+}
+
+.card-preview__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-preview__name {
+  color: #fff;
+  font-size: $font-lg;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+
+.card-preview__role {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: $font-sm;
+}
+
+/* 编辑区 */
+.edit-section {
+  margin-bottom: $space-md;
+}
+
+.edit-section__title {
+  font-size: $font-md;
+  font-weight: 600;
+  color: $text-primary;
+  display: block;
+  margin-bottom: $space-sm;
+  padding-left: $space-xs;
+}
+
+.edit-card {
+  background: $bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  padding: $space-sm 0;
+  margin-bottom: $space-sm;
+}
+
+.edit-field {
+  display: flex;
+  align-items: center;
+  padding: $space-sm $space-md;
+}
+
+.edit-field__label {
+  width: 120rpx;
+  font-size: $font-sm;
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+.edit-field__input {
+  flex: 1;
+  font-size: $font-sm;
+  color: $text-primary;
+  text-align: right;
+  padding: 8rpx 0;
+}
+
+.edit-divider {
+  height: 1rpx;
+  background: $border-light;
+  margin: 0 $space-md;
+}
+
+/* 操作按钮 */
+.action-group {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $space-sm $space-md;
+  padding-bottom: calc($space-sm + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(248, 249, 250, 0.98), rgba(248, 249, 250, 0.9));
+  backdrop-filter: blur(12rpx);
+}
+
+.btn-primary {
+  width: 100%;
+  height: 88rpx;
+  border-radius: $radius-md;
+  background: linear-gradient(135deg, $primary 0%, $primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(108, 92, 231, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: $space-sm;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary--loading {
+  opacity: 0.8;
+}
+
+.btn-primary__text {
+  color: #fff;
+  font-size: $font-md;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+}
+
+.btn-secondary {
+  width: 100%;
+  height: 88rpx;
+  border-radius: $radius-md;
+  background: $bg-card;
+  border: 2rpx solid $border-color;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary__text {
+  color: $text-secondary;
+  font-size: $font-md;
+  font-weight: 500;
+  letter-spacing: 2rpx;
 }
 </style>

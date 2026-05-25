@@ -74,50 +74,58 @@ async function handleLogin() {
 
 <template>
   <view class="login-page">
-    <view class="logo-section">
-      <view class="logo-text">常联系</view>
+    <!-- Logo 区域 -->
+    <view class="logo-card">
+      <view class="logo-inner">
+        <view class="logo-icon">
+          <text class="logo-emoji">💬</text>
+        </view>
+        <text class="logo-text">常联系</text>
+        <text class="logo-slogan">温暖你的人脉圈</text>
+      </view>
     </view>
 
+    <!-- 欢迎文字 -->
     <view class="welcome-section">
-      <text class="title">欢迎使用常联系</text>
-      <text class="subtitle">使用微信账号登录，开启你的人脉管理之旅</text>
+      <text class="welcome-title">欢迎回来</text>
+      <text class="welcome-subtitle">使用微信账号登录，开启你的人脉管理之旅</text>
     </view>
 
+    <!-- 登录按钮 -->
     <view class="login-section">
       <!-- #ifdef H5 -->
-      <button class="login-btn" :loading="loading" :disabled="loading || !agreedToPolicies" @click="handleH5MockLogin">
-        模拟登录 (H5开发)
+      <button class="login-btn" :class="{ disabled: !agreedToPolicies }" :loading="loading" :disabled="loading || !agreedToPolicies" @click="handleH5MockLogin">
+        <text class="btn-text">模拟登录 (H5开发)</text>
       </button>
       <!-- #endif -->
 
       <!-- #ifdef MP-WEIXIN -->
-      <button
-        class="login-btn"
-        :loading="loading"
-        :disabled="loading || !agreedToPolicies"
-        @click="handleLogin"
-      >
-        微信登录
+      <button class="login-btn" :class="{ disabled: !agreedToPolicies }" :loading="loading" :disabled="loading || !agreedToPolicies" @click="handleLogin">
+        <text class="btn-text">微信登录</text>
       </button>
       <!-- #endif -->
-
-      <text class="login-hint">登录后即可开始管理你的人脉</text>
     </view>
 
-    <view v-if="error" class="error-section">
+    <!-- 错误提示 -->
+    <view v-if="error" class="error-card">
+      <text class="error-icon">⚠️</text>
       <text class="error-text">{{ error }}</text>
     </view>
 
+    <!-- 隐私协议 -->
     <view class="privacy-section">
       <view class="checkbox-row" @click="agreedToPolicies = !agreedToPolicies">
         <view class="checkbox" :class="{ checked: agreedToPolicies }">
-          <text v-if="agreedToPolicies" class="checkmark">✓</text>
+          <text v-if="agreedToPolicies" class="check-icon">✓</text>
         </view>
         <text class="privacy-text">
           我已阅读并同意<text class="link" @click.stop="navigateToAgreement">《用户协议》</text>和<text class="link" @click.stop="navigateToPrivacy">《隐私政策》</text>
         </text>
       </view>
     </view>
+
+    <!-- 底部提示 -->
+    <text class="footer-text">登录后即可开始管理你的人脉</text>
   </view>
 </template>
 
@@ -127,129 +135,188 @@ async function handleLogin() {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  background-color: #ffffff;
-  padding: 128rpx 64rpx 64rpx;
+  background: linear-gradient(180deg, #F0EEFF 0%, #F8F9FA 30%);
+  padding: 120rpx 48rpx 64rpx;
 }
 
-.logo-section {
-  margin-bottom: 96rpx;
+/* ---- Logo 区域 ---- */
+.logo-card {
+  margin-bottom: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 240rpx;
-  height: 240rpx;
-  background-color: #5645d4;
+}
+
+.logo-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.logo-icon {
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 48rpx;
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 24rpx 64rpx rgba(108, 92, 231, 0.3);
+}
+
+.logo-emoji {
+  font-size: 72rpx;
 }
 
 .logo-text {
   font-size: 48rpx;
-  font-weight: 600;
-  color: #ffffff;
+  font-weight: 700;
+  color: #2D3436;
+  letter-spacing: 4rpx;
 }
 
+.logo-slogan {
+  font-size: 26rpx;
+  color: #636E72;
+  margin-top: -8rpx;
+}
+
+/* ---- 欢迎文字 ---- */
 .welcome-section {
   text-align: center;
-  margin-bottom: 96rpx;
+  margin-bottom: 80rpx;
 }
 
-.title {
+.welcome-title {
   display: block;
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #2D3436;
   margin-bottom: 16rpx;
 }
 
-.subtitle {
+.welcome-subtitle {
   font-size: 28rpx;
-  color: #787671;
+  color: #636E72;
+  line-height: 1.6;
 }
 
+/* ---- 登录按钮 ---- */
 .login-section {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 64rpx;
+  margin-bottom: 48rpx;
 }
 
 .login-btn {
   width: 100%;
-  height: 88rpx;
-  line-height: 88rpx;
-  background-color: #5645d4;
-  color: #ffffff;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+  color: #FFFFFF;
   font-size: 32rpx;
-  font-weight: 500;
-  border-radius: 16rpx;
+  font-weight: 600;
+  border-radius: 32rpx;
+  border: none;
+  box-shadow: 0 12rpx 40rpx rgba(108, 92, 231, 0.3);
+}
+
+.login-btn.disabled {
+  background: #B2BEC3;
+  box-shadow: none;
+}
+
+.login-btn::after {
   border: none;
 }
 
-.login-btn[disabled] {
-  opacity: 0.5;
+.btn-text {
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 600;
 }
 
-.login-hint {
-  font-size: 24rpx;
-  color: #787671;
-  margin-top: 16rpx;
-}
-
-.error-section {
+/* ---- 错误提示 ---- */
+.error-card {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background: rgba(224, 49, 49, 0.06);
+  border: 1rpx solid rgba(224, 49, 49, 0.15);
+  border-radius: 16rpx;
+  padding: 20rpx 28rpx;
   margin-bottom: 32rpx;
-  padding: 16rpx 32rpx;
-  background-color: #fff2f0;
-  border-radius: 8rpx;
+  width: 100%;
+}
+
+.error-icon {
+  font-size: 28rpx;
 }
 
 .error-text {
-  font-size: 28rpx;
-  color: #e03131;
+  font-size: 26rpx;
+  color: #E03131;
 }
 
+/* ---- 隐私协议 ---- */
 .privacy-section {
-  text-align: center;
-  margin-top: 32rpx;
+  margin-top: 16rpx;
 }
 
 .checkbox-row {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
 .checkbox {
-  width: 32rpx;
-  height: 32rpx;
-  min-width: 32rpx;
-  border: 2rpx solid #ccc;
-  border-radius: 6rpx;
+  width: 36rpx;
+  height: 36rpx;
+  min-width: 36rpx;
+  border: 3rpx solid #D2D2D2;
+  border-radius: 10rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 4rpx;
+  transition: all 0.2s;
 }
 
 .checkbox.checked {
-  background-color: #5645d4;
-  border-color: #5645d4;
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+  border-color: #6C5CE7;
+  box-shadow: 0 4rpx 12rpx rgba(108, 92, 231, 0.25);
 }
 
-.checkmark {
+.check-icon {
   font-size: 24rpx;
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .privacy-text {
   font-size: 24rpx;
-  color: #787671;
-  line-height: 1.6;
+  color: #636E72;
+  line-height: 1.8;
+  flex: 1;
 }
 
 .link {
-  color: #5645d4;
+  color: #6C5CE7;
+  font-weight: 500;
+}
+
+/* ---- 底部提示 ---- */
+.footer-text {
+  font-size: 22rpx;
+  color: #B2BEC3;
+  margin-top: 48rpx;
+  text-align: center;
 }
 </style>

@@ -1,5 +1,63 @@
-$primary-color: #07c160;
-$text-primary: #333;
-$text-secondary: #999;
-$bg-color: #f5f5f5;
-$border-color: #eee;
+/* ============================================
+ * 常联系 · 设计系统 Design System
+ * 运动诗学风格 - 2026-05-20
+ * ============================================ */
+
+/* ---- Color Tokens ---- */
+$primary: #6C5CE7;
+$primary-light: #A29BFE;
+$primary-dark: #5541D7;
+
+/* 关系温度 */
+$temp-cold: #74B9FF;
+$temp-warm: #FD79A8;
+$temp-hot: #FDCB6E;
+
+/* 紧急 / 错误 */
+$urgent: #E17055;
+$urgent-dark: #D63031;
+$error: #E03131;
+
+/* 成功 / 家人 */
+$success: #00B894;
+$success-light: #55EFC4;
+
+/* 背景 */
+$bg-main: #F8F9FA;
+$bg-card: #FFFFFF;
+$bg-card-hover: #F0EEFF;
+
+/* 文字 */
+$text-primary: #2D3436;
+$text-secondary: #636E72;
+$text-tertiary: #B2BEC3;
+
+/* 边框 / 分隔 */
+$border-color: #EEE;
+$border-light: #F0F0F0;
+
+/* ---- Spacing Tokens ---- */
+$space-xs: 8rpx;
+$space-sm: 16rpx;
+$space-md: 32rpx;
+$space-lg: 48rpx;
+$space-xl: 64rpx;
+
+/* ---- Radius Tokens ---- */
+$radius-sm: 16rpx;
+$radius-md: 24rpx;
+$radius-lg: 32rpx;
+$radius-full: 9999rpx;
+
+/* ---- Shadow Tokens ---- */
+$shadow-card: 0 4rpx 24rpx rgba(108, 92, 231, 0.08);
+$shadow-card-hover: 0 8rpx 40rpx rgba(108, 92, 231, 0.15);
+$shadow-float: 0 16rpx 64rpx rgba(108, 92, 231, 0.2);
+
+/* ---- Typography ---- */
+$font-xs: 22rpx;
+$font-sm: 26rpx;
+$font-md: 30rpx;
+$font-lg: 34rpx;
+$font-xl: 40rpx;
+$font-xxl: 48rpx;

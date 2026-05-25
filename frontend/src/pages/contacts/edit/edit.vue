@@ -22,25 +22,29 @@ const selectedTags = ref<string[]>([])
 function toggleTag(tag: string) {
   const idx = selectedTags.value.indexOf(tag)
   if (idx >= 0) {
-    selectedTags.value.splice(idx, 1)
+    selectedTags.value = selectedTags.value.filter((_, i) => i !== idx)
   } else {
-    selectedTags.value.push(tag)
+    selectedTags.value = [...selectedTags.value, tag]
   }
 }
 
 const monthOptions = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
 const dayOptions = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
 
-function onBirthdayChange(e: any) {
-  birthday.value = e.detail.value
+interface PickerEvent {
+  detail: { value: number | string }
 }
 
-function onLunarMonthChange(e: any) {
+function onBirthdayChange(e: PickerEvent) {
+  birthday.value = e.detail.value as string
+}
+
+function onLunarMonthChange(e: PickerEvent) {
   const idx = e.detail.value as number
   lunarMonth.value = idx + 1
 }
 
-function onLunarDayChange(e: any) {
+function onLunarDayChange(e: PickerEvent) {
   const idx = e.detail.value as number
   lunarDay.value = idx + 1
 }
@@ -128,104 +132,291 @@ async function handleSave() {
 
 <template>
   <view class="edit-page">
-    <wd-form ref="formRef">
-      <wd-form-item label="姓名" prop="name" required>
-        <wd-input v-model="name" placeholder="请输入姓名" />
-      </wd-form-item>
+    <!-- 基本信息分组 -->
+    <view class="form-group">
+      <text class="group-title">基本信息</text>
+      <view class="form-card">
+        <view class="form-item">
+          <text class="form-label required">姓名</text>
+          <input
+            class="form-input"
+            v-model="name"
+            placeholder="请输入姓名"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+        <view class="divider" />
+        <view class="form-item">
+          <text class="form-label">公司</text>
+          <input
+            class="form-input"
+            v-model="company"
+            placeholder="请输入公司名称"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+        <view class="divider" />
+        <view class="form-item">
+          <text class="form-label">职位</text>
+          <input
+            class="form-input"
+            v-model="title"
+            placeholder="请输入职位"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+      </view>
+    </view>
 
-      <wd-form-item label="公司" prop="company">
-        <wd-input v-model="company" placeholder="请输入公司名称" />
-      </wd-form-item>
+    <!-- 联系方式分组 -->
+    <view class="form-group">
+      <text class="group-title">联系方式</text>
+      <view class="form-card">
+        <view class="form-item">
+          <text class="form-label">电话</text>
+          <input
+            class="form-input"
+            v-model="phone"
+            placeholder="请输入电话号码"
+            type="number"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+        <view class="divider" />
+        <view class="form-item">
+          <text class="form-label">邮箱</text>
+          <input
+            class="form-input"
+            v-model="email"
+            placeholder="请输入邮箱"
+            type="email"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+        <view class="divider" />
+        <view class="form-item">
+          <text class="form-label">微信号</text>
+          <input
+            class="form-input"
+            v-model="wechatId"
+            placeholder="请输入微信号"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+      </view>
+    </view>
 
-      <wd-form-item label="职位" prop="title">
-        <wd-input v-model="title" placeholder="请输入职位" />
-      </wd-form-item>
-
-      <wd-form-item label="电话" prop="phone">
-        <wd-input v-model="phone" placeholder="请输入电话号码" type="number" />
-      </wd-form-item>
-
-      <wd-form-item label="邮箱" prop="email">
-        <wd-input v-model="email" placeholder="请输入邮箱" type="email" />
-      </wd-form-item>
-
-      <wd-form-item label="微信号" prop="wechatId">
-        <wd-input v-model="wechatId" placeholder="请输入微信号" />
-      </wd-form-item>
-
-      <wd-form-item label="标签" prop="tags">
+    <!-- 标签分组 -->
+    <view class="form-group">
+      <text class="group-title">标签</text>
+      <view class="form-card">
         <tag-input v-model="selectedTags" />
-      </wd-form-item>
+      </view>
+    </view>
 
-      <wd-form-item label="生日" prop="birthday">
-        <view class="birthday-section">
-          <view class="birthday-type">
-            <wd-button
-              size="small"
-              :type="birthdayType === 'solar' ? 'primary' : 'default'"
-              @click="birthdayType = 'solar'"
-            >公历</wd-button>
-            <wd-button
-              size="small"
-              :type="birthdayType === 'lunar' ? 'primary' : 'default'"
-              @click="birthdayType = 'lunar'"
-            >农历</wd-button>
+    <!-- 生日分组 -->
+    <view class="form-group">
+      <text class="group-title">生日</text>
+      <view class="form-card birthday-card">
+        <!-- 公历/农历切换 -->
+        <view class="birthday-type-switch">
+          <view
+            class="type-btn"
+            :class="{ active: birthdayType === 'solar' }"
+            @click="birthdayType = 'solar'"
+          >
+            <text class="type-btn-text" :class="{ active: birthdayType === 'solar' }">公历</text>
           </view>
+          <view
+            class="type-btn"
+            :class="{ active: birthdayType === 'lunar' }"
+            @click="birthdayType = 'lunar'"
+          >
+            <text class="type-btn-text" :class="{ active: birthdayType === 'lunar' }">农历</text>
+          </view>
+        </view>
 
-          <view v-if="birthdayType === 'solar'" class="birthday-solar">
-            <picker mode="date" :value="birthday" @change="onBirthdayChange">
-              <view class="input picker-input">
+        <!-- 公历选择 -->
+        <view v-if="birthdayType === 'solar'" class="birthday-picker">
+          <picker mode="date" :value="birthday" @change="onBirthdayChange">
+            <view class="picker-display">
+              <text class="picker-icon">📅</text>
+              <text :class="{ 'picker-text': !!birthday, 'picker-placeholder': !birthday }">
                 {{ birthday || '请选择日期' }}
+              </text>
+            </view>
+          </picker>
+        </view>
+
+        <!-- 农历选择 -->
+        <view v-if="birthdayType === 'lunar'" class="birthday-lunar">
+          <view class="lunar-row">
+            <picker mode="selector" :range="monthOptions" @change="onLunarMonthChange">
+              <view class="picker-display lunar-picker">
+                <text :class="{ 'picker-text': lunarMonth, 'picker-placeholder': !lunarMonth }">
+                  {{ lunarMonth ? `${lunarMonth}月` : '月份' }}
+                </text>
+              </view>
+            </picker>
+            <picker mode="selector" :range="dayOptions" @change="onLunarDayChange">
+              <view class="picker-display lunar-picker">
+                <text :class="{ 'picker-text': lunarDay, 'picker-placeholder': !lunarDay }">
+                  {{ lunarDay ? `${lunarDay}日` : '日期' }}
+                </text>
               </view>
             </picker>
           </view>
-
-          <view v-if="birthdayType === 'lunar'" class="birthday-lunar">
-            <view class="lunar-row">
-              <picker mode="selector" :range="monthOptions" @change="onLunarMonthChange">
-                <view class="input picker-input">
-                  {{ lunarMonth ? `${lunarMonth}月` : '月份' }}
-                </view>
-              </picker>
-              <picker mode="selector" :range="dayOptions" @change="onLunarDayChange">
-                <view class="input picker-input">
-                  {{ lunarDay ? `${lunarDay}日` : '日期' }}
-                </view>
-              </picker>
-            </view>
-          </view>
         </view>
-      </wd-form-item>
-    </wd-form>
+      </view>
+    </view>
 
-    <wd-button type="primary" block :loading="saving" @click="handleSave">保存</wd-button>
+    <!-- 保存按钮 -->
+    <view class="save-btn-wrap">
+      <view class="save-btn" :class="{ saving }" @click="handleSave">
+        <text class="save-btn-text">{{ contactId ? '保存修改' : '创建联系人' }}</text>
+      </view>
+    </view>
   </view>
 </template>
 
 <style scoped>
 .edit-page {
   min-height: 100vh;
-  background-color: #f6f5f4;
-  padding: 24rpx;
+  background-color: #F8F9FA;
+  padding: 24rpx 32rpx;
   padding-bottom: 160rpx;
 }
 
-.birthday-section {
-  width: 100%;
+/* ---- 表单分组 ---- */
+.form-group {
+  margin-bottom: 32rpx;
 }
 
-.birthday-type {
+.group-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2D3436;
+  display: block;
+  margin-bottom: 16rpx;
+  padding-left: 8rpx;
+}
+
+.form-card {
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 24rpx rgba(108, 92, 231, 0.08);
+  overflow: hidden;
+}
+
+/* ---- 表单项 ---- */
+.form-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  min-height: 96rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #2D3436;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.form-label.required::before {
+  content: '*';
+  color: #E17055;
+  margin-right: 4rpx;
+}
+
+.form-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #2D3436;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.input-placeholder {
+  color: #B2BEC3;
+}
+
+.divider {
+  height: 1rpx;
+  background: #F0F0F0;
+  margin: 0 32rpx;
+}
+
+/* ---- 标签输入 ---- */
+.form-card :deep(.tag-input-wrap) {
+  padding: 24rpx 32rpx;
+}
+
+/* ---- 生日分组 ---- */
+.birthday-card {
+  padding: 24rpx 32rpx;
+}
+
+.birthday-type-switch {
   display: flex;
   gap: 16rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 24rpx;
 }
 
-.birthday-solar {
-  margin-top: 12rpx;
+.type-btn {
+  padding: 12rpx 32rpx;
+  border-radius: 9999rpx;
+  background: #F8F9FA;
+  border: 2rpx solid #EEE;
+  transition: all 0.3s ease;
+}
+
+.type-btn.active {
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+  border-color: #6C5CE7;
+}
+
+.type-btn-text {
+  font-size: 26rpx;
+  color: #636E72;
+}
+
+.type-btn-text.active {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.birthday-picker {
+  margin-top: 8rpx;
+}
+
+.picker-display {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  background: #F8F9FA;
+  border-radius: 16rpx;
+  min-height: 80rpx;
+}
+
+.picker-icon {
+  font-size: 32rpx;
+}
+
+.picker-text {
+  font-size: 28rpx;
+  color: #2D3436;
+}
+
+.picker-placeholder {
+  font-size: 28rpx;
+  color: #B2BEC3;
 }
 
 .birthday-lunar {
-  margin-top: 12rpx;
+  margin-top: 8rpx;
 }
 
 .lunar-row {
@@ -233,17 +424,41 @@ async function handleSave() {
   gap: 16rpx;
 }
 
-.input {
-  height: 80rpx;
-  background-color: #f6f5f4;
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  font-size: 28rpx;
-  display: flex;
-  align-items: center;
+.lunar-picker {
+  flex: 1;
 }
 
-.picker-input {
+/* ---- 保存按钮 ---- */
+.save-btn-wrap {
+  padding: 16rpx 0 32rpx;
+}
+
+.save-btn {
   width: 100%;
+  height: 96rpx;
+  border-radius: 9999rpx;
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(108, 92, 231, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.save-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.2);
+}
+
+.save-btn.saving {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.save-btn-text {
+  font-size: 32rpx;
+  color: #FFFFFF;
+  font-weight: 600;
+  letter-spacing: 2rpx;
 }
 </style>
