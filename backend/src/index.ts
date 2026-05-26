@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
 import { env } from './config/env.js'
 import { corsOptions } from './config/cors.js'
 import { registerRoutes } from './routes/index.js'
@@ -13,6 +14,7 @@ const app = Fastify({
 })
 
 await app.register(cors, corsOptions)
+await app.register(helmet)
 await registerRoutes(app)
 
 const start = async () => {

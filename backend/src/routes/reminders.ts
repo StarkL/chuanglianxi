@@ -83,9 +83,9 @@ export async function reminderRoutes(fastify: FastifyInstance) {
               type: 'string',
               enum: ['relationship', 'birthday', 'custom'],
             },
-            message: { type: 'string', minLength: 1 },
+            message: { type: 'string', minLength: 1, maxLength: 500 },
             scheduledAt: { type: 'string' },
-            recurrenceRule: { type: 'string' },
+            recurrenceRule: { type: 'string', maxLength: 200 },
           },
         },
       },
@@ -129,9 +129,9 @@ export async function reminderRoutes(fastify: FastifyInstance) {
         body: {
           type: 'object',
           properties: {
-            message: { type: 'string' },
+            message: { type: 'string', maxLength: 500 },
             scheduledAt: { type: 'string' },
-            recurrenceRule: { type: 'string' },
+            recurrenceRule: { type: 'string', maxLength: 200 },
           },
         },
       },

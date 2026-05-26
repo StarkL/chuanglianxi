@@ -13,6 +13,15 @@ export async function ocrRoutes(fastify: FastifyInstance) {
     '/ocr/business-card',
     {
       preHandler: [requireAuth],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['imageData'],
+          properties: {
+            imageData: { type: 'string', maxLength: 5000000 }, // ~5MB base64
+          },
+        },
+      },
     },
     async (request: FastifyRequest<{ Body: OcrRequestBody }>, reply: FastifyReply) => {
       const { userId } = request as AuthenticatedRequest

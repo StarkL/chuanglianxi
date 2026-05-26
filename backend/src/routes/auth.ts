@@ -18,9 +18,9 @@ export async function authRoutes(fastify: FastifyInstance) {
           type: 'object',
           required: ['code'],
           properties: {
-            code: { type: 'string' },
-            nickname: { type: 'string' },
-            avatar: { type: 'string' },
+            code: { type: 'string', maxLength: 500 },
+            nickname: { type: 'string', maxLength: 200 },
+            avatar: { type: 'string', maxLength: 2000 },
           },
         },
         response: {

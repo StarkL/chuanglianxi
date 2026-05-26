@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
+    "@fastify/helmet": "^13.0.2",
     "@fastify/swagger": "^9.4.0",
     "@fastify/swagger-ui": "^5.2.0",
     "@types/node-schedule": "^2.1.8",

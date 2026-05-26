@@ -50,10 +50,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
     const where: Record<string, unknown> = { userId }
 
     if (query.search) {
-      where.OR = [
-        { name: { contains: query.search } },
-        { company: { contains: query.search } },
-      ]
+      where.OR = [{ name: { contains: query.search } }, { company: { contains: query.search } }]
     }
 
     if (query.tag) {
@@ -133,15 +130,15 @@ export async function contactRoutes(fastify: FastifyInstance) {
           type: 'object',
           required: ['name'],
           properties: {
-            name: { type: 'string', minLength: 1 },
-            company: { type: 'string' },
-            title: { type: 'string' },
-            phone: { type: 'string' },
-            wechatId: { type: 'string' },
-            email: { type: 'string' },
-            avatar: { type: 'string' },
-            source: { type: 'string' },
-            tags: { type: 'array', items: { type: 'string' } },
+            name: { type: 'string', minLength: 1, maxLength: 200 },
+            company: { type: 'string', maxLength: 200 },
+            title: { type: 'string', maxLength: 200 },
+            phone: { type: 'string', maxLength: 50 },
+            wechatId: { type: 'string', maxLength: 100 },
+            email: { type: 'string', maxLength: 200 },
+            avatar: { type: 'string', maxLength: 2000 },
+            source: { type: 'string', maxLength: 200 },
+            tags: { type: 'array', items: { type: 'string', maxLength: 50 } },
           },
         },
       },
@@ -249,9 +246,9 @@ export async function contactRoutes(fastify: FastifyInstance) {
           type: 'object',
           required: ['code', 'encryptedData', 'iv'],
           properties: {
-            code: { type: 'string' },
-            encryptedData: { type: 'string' },
-            iv: { type: 'string' },
+            code: { type: 'string', maxLength: 500 },
+            encryptedData: { type: 'string', maxLength: 10000 },
+            iv: { type: 'string', maxLength: 100 },
           },
         },
       },
