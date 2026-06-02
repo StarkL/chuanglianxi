@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { createInteraction } from '../../../api/interactions'
+import { emitDataChanged } from '../../../utils/events'
 
 const contactId = ref('')
 const saving = ref(false)
@@ -45,6 +46,7 @@ async function handleSave() {
     }
 
     await createInteraction(data)
+    emitDataChanged('interactions', 'create')
     uni.showToast({ title: '已保存', icon: 'success' })
     setTimeout(() => uni.navigateBack(), 500)
   } catch {

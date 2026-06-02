@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { request } from '../../../utils/request'
+import { onDataChanged } from '../../../utils/events'
 
 interface BusinessCard {
   id: string
@@ -57,6 +58,10 @@ function getAvatarColor(name: string): string {
 
 onMounted(() => {
   loadCards()
+  // 监听名片数据变更（扫描新名片后触发）
+  onDataChanged('businessCards', () => {
+    loadCards()
+  })
 })
 </script>
 

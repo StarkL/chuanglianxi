@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { getContact, type ContactDetail } from '../../../api/contacts'
 import { deleteInteraction, updateInteraction } from '../../../api/interactions'
+import { emitDataChanged, onDataChanged } from '../../../utils/events'
 
 const contact = ref<ContactDetail | null>(null)
 const loading = ref(false)
@@ -11,6 +12,16 @@ onMounted(async () => {
   const currentPage = pages[pages.length - 1] as { $page: { options: { id: string } } }
   const id = currentPage.$page.options.id
   if (id) await loadContact(id)
+
+  // 监听联系人变更（编辑页修改后触发）和交互记录变更
+  // 注意：只监听 create/update，delete 时直接导航返回，不重新加载
+  onDataChanged('contacts', (event) => {
+    if (event.action === 'delete') return
+    if (id) loadContact(id)
+  })
+  onDataChanged('interactions', () => {
+    if (id) loadContact(id)
+  })
 })
 
 async function loadContact(id: string) {

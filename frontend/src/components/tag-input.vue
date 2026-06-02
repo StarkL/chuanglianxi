@@ -54,29 +54,8 @@ function handleInputConfirm() {
 
 <template>
   <view class="tag-input-component">
-    <!-- 已选标签 -->
-    <view v-if="modelValue.length > 0" class="selected-section">
-      <text class="section-label">已选标签</text>
-      <view class="selected-tags">
-        <view
-          v-for="tag in modelValue"
-          :key="tag"
-          class="selected-tag"
-        >
-          <text class="selected-tag-text">{{ tag }}</text>
-          <view class="selected-tag-remove" @click.stop="toggleTag(tag)">
-            <text class="remove-icon">×</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 分隔线 -->
-    <view v-if="modelValue.length > 0" class="divider" />
-
     <!-- 预设标签 -->
     <view class="preset-section">
-      <text class="section-label">选择标签</text>
       <view class="preset-tags">
         <view
           v-for="tag in presetTags"
@@ -89,9 +68,6 @@ function handleInputConfirm() {
         </view>
       </view>
     </view>
-
-    <!-- 分隔线 -->
-    <view class="divider" />
 
     <!-- 自定义输入 -->
     <view class="custom-section">
@@ -114,78 +90,19 @@ function handleInputConfirm() {
 
     <!-- 标签计数 -->
     <view class="tag-count">
-      已选 <text class="count-num">{{ modelValue.length }}</text> 个标签
+      已选 <text class="count-num">{{ modelValue.length }}</text> / {{ MAX_TAGS }}
     </view>
   </view>
 </template>
 
 <style scoped>
 .tag-input-component {
-  padding: 0;
-}
-
-/* ---- Section Label ---- */
-.section-label {
-  font-size: 24rpx;
-  color: #B2BEC3;
-  display: block;
-  margin-bottom: 24rpx;
-}
-
-/* ---- 已选标签 ---- */
-.selected-section {
-  padding-top: 4rpx;
-}
-
-.selected-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-}
-
-.selected-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 10rpx 8rpx 10rpx 24rpx;
-  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
-  border-radius: 9999rpx;
-  box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.15);
-}
-
-.selected-tag-text {
-  font-size: 24rpx;
-  color: #FFFFFF;
-  font-weight: 500;
-}
-
-.selected-tag-remove {
-  width: 32rpx;
-  height: 32rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8rpx;
-}
-
-.remove-icon {
-  font-size: 22rpx;
-  color: #FFFFFF;
-  font-weight: 700;
-  line-height: 1;
-}
-
-/* ---- 分隔线 ---- */
-.divider {
-  height: 1rpx;
-  background: #F0F0F0;
-  margin: 28rpx 0;
+  padding: 20rpx 24rpx;
 }
 
 /* ---- 预设标签 ---- */
 .preset-section {
-  padding-top: 4rpx;
+  padding-top: 0;
 }
 
 .preset-tags {
@@ -201,17 +118,16 @@ function handleInputConfirm() {
   background: #F8F9FA;
   border: 2rpx solid #EEE;
   border-radius: 9999rpx;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .preset-tag:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
 
 .preset-tag.active {
-  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+  background: #6C5CE7;
   border-color: #6C5CE7;
-  box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.15);
 }
 
 .preset-tag-text {
@@ -229,7 +145,7 @@ function handleInputConfirm() {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  margin-top: 8rpx;
+  margin-top: 24rpx;
 }
 
 .custom-input {
@@ -257,7 +173,7 @@ function handleInputConfirm() {
   justify-content: center;
   box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.15);
   flex-shrink: 0;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s ease;
 }
 
 .custom-add-btn:active {
@@ -281,7 +197,7 @@ function handleInputConfirm() {
   font-size: 20rpx;
   color: #B2BEC3;
   text-align: right;
-  margin-top: 20rpx;
+  margin-top: 16rpx;
 }
 
 .count-num {

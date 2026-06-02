@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { createContact } from '../../../api/contacts'
+import { emitDataChanged } from '../../../utils/events'
 
 const saving = ref(false)
 
@@ -55,6 +56,7 @@ async function handleSave() {
 
     const res = await createContact(data)
     if (res.success && res.data) {
+      emitDataChanged('contacts', 'create')
       uni.showToast({ title: '已保存', icon: 'success' })
       setTimeout(() => uni.navigateBack({ delta: 2 }), 500)
     } else {

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { getContacts } from '../../../api/contacts'
 import { createReminder } from '../../../api/reminders'
+import { emitDataChanged } from '../../../utils/events'
 
 interface Contact {
   id: string
@@ -80,6 +81,7 @@ async function handleSubmit() {
     })
 
     uni.showToast({ title: '提醒已创建', icon: 'success' })
+    emitDataChanged('reminders', 'create')
     setTimeout(() => {
       uni.navigateBack()
     }, 500)

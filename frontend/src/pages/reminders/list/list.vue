@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { getReminders, type Reminder } from '../../../api/reminders'
+import { onDataChanged } from '../../../utils/events'
 
 const reminders = ref<Reminder[]>([])
 const loading = ref(false)
@@ -115,6 +116,10 @@ async function loadReminders() {
 
 onMounted(() => {
   loadReminders()
+  // 监听提醒数据变更（添加新提醒后触发）
+  onDataChanged('reminders', () => {
+    loadReminders()
+  })
 })
 </script>
 

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { createContact, updateContact, getContact } from '../../../api/contacts'
 import TagInput from '../../../components/tag-input.vue'
+import { emitDataChanged } from '../../../utils/events'
 
 const contactId = ref('')
 const name = ref('')
@@ -110,11 +111,13 @@ async function handleSave() {
 
     if (contactId.value) {
       await updateContact(contactId.value, data)
+      emitDataChanged('contacts', 'update', contactId.value)
       uni.showToast({ title: '已保存', icon: 'success' })
     } else {
       const res = await createContact(data)
       if (res.success && res.data) {
         contactId.value = res.data.id
+        emitDataChanged('contacts', 'create', res.data.id)
       }
       uni.showToast({ title: '已创建', icon: 'success' })
     }

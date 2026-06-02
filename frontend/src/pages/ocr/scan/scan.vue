@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { request } from '../../../utils/request'
+import { emitDataChanged } from '../../../utils/events'
 
 const scanning = ref(false)
 

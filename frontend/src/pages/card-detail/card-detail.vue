@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { request } from '../../utils/request'
 import { createContact, type Contact } from '../../api/contacts'
+import { emitDataChanged } from '../../utils/events'
 
 interface OcrData {
   name: string
@@ -53,6 +54,7 @@ async function saveAsContact() {
       tags: [],
     }
     await createContact(data)
+    emitDataChanged('contacts', 'create')
     uni.showToast({ title: '已保存为联系人', icon: 'success' })
     setTimeout(() => {
       uni.navigateBack({ delta: 2 })
@@ -74,6 +76,7 @@ async function deleteCard() {
       if (result.confirm) {
         try {
           await request({ url: `/business-cards/${cardId.value}`, method: 'DELETE' })
+          emitDataChanged('businessCards', 'delete', cardId.value)
           uni.showToast({ title: '已删除', icon: 'success' })
           setTimeout(() => uni.navigateBack(), 500)
         } catch {

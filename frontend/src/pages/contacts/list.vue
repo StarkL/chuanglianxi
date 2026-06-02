@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
 import { getContacts, type Contact } from '../../api/contacts'
+import { onDataChanged } from '../../utils/events'
 
 const contacts = ref<Contact[]>([])
 const searchKeyword = ref('')
@@ -11,10 +11,15 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const allTags = ref<string[]>(['工作', '朋友', '家人'])
 
-// 页面显示时刷新列表（新增联系人后返回时触发）
-onShow(() => {
+onMounted(() => {
   loadContacts()
+  // 监听联系人数据变更事件（编辑页创建/更新后触发）
+  onDataChanged('contacts', () => {
+    loadContacts()
+  })
 })
+
+// 页面销毁时清理事件监听（uni-app 中用 onUnmounted 或页面栈管理）
 
 async function loadContacts() {
   try {
