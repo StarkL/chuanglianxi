@@ -37,3 +37,32 @@ export function logout() {
     method: 'POST'
   })
 }
+
+export interface PasswordLoginParams {
+  username: string
+  password?: string
+}
+
+export interface RegisterParams {
+  username: string
+  password?: string
+  nickname?: string
+  avatar?: string
+}
+
+export function passwordLogin(params: PasswordLoginParams) {
+  return request<LoginResult>({
+    url: '/auth/login',
+    method: 'POST',
+    data: params
+  })
+}
+
+export function register(params: RegisterParams) {
+  return request<LoginResult>({
+    url: '/auth/register',
+    method: 'POST',
+    data: params
+  })
+}
+

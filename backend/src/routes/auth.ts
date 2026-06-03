@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { code2Session } from '../lib/wechat.js'
 import { generateToken } from '../lib/auth.js'
+import { hashPassword, verifyPassword } from '../lib/hash.js'
 
 interface WechatLoginBody {
   code: string
@@ -80,7 +81,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           })
         }
 
-        const token = await generateToken({ sub: user.id, openId: user.openId })
+        const token = await generateToken({ sub: user.id, openId: user.openId || undefined })
 
         return {
           success: true,
@@ -99,6 +100,167 @@ export async function authRoutes(fastify: FastifyInstance) {
           success: false,
           error: message.includes('code2Session') ? '微信授权失败' : '登录失败，请重试',
         })
+      }
+    }
+  )
+
+  fastify.post<{ Body: any }>(
+    '/auth/register',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['username', 'password'],
+          properties: {
+            username: { type: 'string', minLength: 3, maxLength: 50 },
+            password: { type: 'string', minLength: 6, maxLength: 100 },
+            nickname: { type: 'string', maxLength: 200 },
+            avatar: { type: 'string', maxLength: 2000 },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              data: {
+                type: 'object',
+                properties: {
+                  token: { type: 'string' },
+                  user: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nickname: { type: 'string' },
+                      avatar: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const body = request.body as any
+      const { username, password, nickname, avatar } = body
+
+      try {
+        const existingUser = await prisma.user.findUnique({ where: { username } })
+        if (existingUser) {
+          return reply.code(400).send({ success: false, error: '用户名已存在' })
+        }
+
+        const passwordHash = hashPassword(password)
+        const user = await prisma.user.create({
+          data: {
+            username,
+            passwordHash,
+            nickname: nickname || username,
+            avatar: avatar || '',
+          },
+        })
+
+        const token = await generateToken({ sub: user.id })
+
+        return {
+          success: true,
+          data: {
+            token,
+            user: {
+              id: user.id,
+              nickname: user.nickname,
+              avatar: user.avatar,
+            },
+          },
+        }
+      } catch (error: unknown) {
+        return reply.code(400).send({ success: false, error: '注册失败，请稍后重试' })
+      }
+    }
+  )
+
+  fastify.post<{ Body: any }>(
+    '/auth/login',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['username', 'password'],
+          properties: {
+            username: { type: 'string' },
+            password: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              data: {
+                type: 'object',
+                properties: {
+                  token: { type: 'string' },
+                  user: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      nickname: { type: 'string' },
+                      avatar: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const body = request.body as any
+      const { username, password } = body
+
+      try {
+        const user = await prisma.user.findUnique({ where: { username } })
+        if (!user || !user.passwordHash) {
+          return reply.code(400).send({ success: false, error: '用户名或密码错误' })
+        }
+
+        const isVerified = verifyPassword(password, user.passwordHash)
+        if (!isVerified) {
+          return reply.code(400).send({ success: false, error: '用户名或密码错误' })
+        }
+
+        const token = await generateToken({ sub: user.id })
+
+        return {
+          success: true,
+          data: {
+            token,
+            user: {
+              id: user.id,
+              nickname: user.nickname,
+              avatar: user.avatar,
+            },
+          },
+        }
+      } catch (error: unknown) {
+        return reply.code(400).send({ success: false, error: '登录失败，请稍后重试' })
       }
     }
   )

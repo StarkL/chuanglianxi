@@ -43,6 +43,8 @@ function confirmLogout() {
   uni.showModal({
     title: '确认退出？',
     content: '退出后需要重新授权登录',
+    cancelText: '取消',
+    confirmText: '确定',
     confirmColor: '#e03131',
     success: (res) => {
       if (res.confirm) {

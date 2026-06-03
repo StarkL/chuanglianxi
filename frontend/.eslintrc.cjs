@@ -4,6 +4,10 @@ module.exports = {
     browser: true,
     es2020: true,
   },
+  globals: {
+    uni: 'readonly',
+    getCurrentPages: 'readonly',
+  },
   extends: [
     'eslint:recommended',
     'plugin:vue/vue3-recommended',

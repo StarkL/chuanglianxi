@@ -75,6 +75,8 @@ function deleteContact() {
   uni.showModal({
     title: '确认删除？',
     content: '删除后无法恢复该联系人及其所有交互记录',
+    cancelText: '取消',
+    confirmText: '确定',
     confirmColor: '#e03131',
     success: async (res: unknown) => {
       const result = res as { confirm: boolean }
@@ -95,6 +97,8 @@ async function editInteractionItem(item: NonNullable<typeof contact.value>['inte
     editable: true,
     placeholderText: '输入交互内容',
     content: item.content,
+    cancelText: '取消',
+    confirmText: '确定',
     success: async (editRes: unknown) => {
       const res = editRes as PickerCallback
       if (res.confirm && res.content && contact.value) {
@@ -114,6 +118,8 @@ async function deleteInteractionItem(item: NonNullable<typeof contact.value>['in
   uni.showModal({
     title: '确认删除？',
     content: '删除后无法恢复该交互记录',
+    cancelText: '取消',
+    confirmText: '确定',
     confirmColor: '#e03131',
     success: async (delRes: unknown) => {
       const res = delRes as { confirm: boolean }

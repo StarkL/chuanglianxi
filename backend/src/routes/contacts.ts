@@ -18,6 +18,7 @@ interface CreateContactBody {
   birthday?: string
   lunarMonth?: number
   lunarDay?: number
+  ignoreDuplicate?: boolean
 }
 
 interface UpdateContactBody {
@@ -139,6 +140,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
             avatar: { type: 'string', maxLength: 2000 },
             source: { type: 'string', maxLength: 200 },
             tags: { type: 'array', items: { type: 'string', maxLength: 50 } },
+            ignoreDuplicate: { type: 'boolean' },
           },
         },
       },
@@ -159,7 +161,24 @@ export async function contactRoutes(fastify: FastifyInstance) {
         birthday,
         lunarMonth,
         lunarDay,
+        ignoreDuplicate,
       } = request.body
+
+      if (!ignoreDuplicate) {
+        const existing = await prisma.contact.findFirst({
+          where: { userId, name: name.trim() },
+        })
+        if (existing) {
+          return {
+            success: false,
+            error: 'duplicate',
+            data: {
+              ...existing,
+              tags: JSON.parse(existing.tags || '[]'),
+            },
+          }
+        }
+      }
 
       const contact = await prisma.contact.create({
         data: {
@@ -201,10 +220,11 @@ export async function contactRoutes(fastify: FastifyInstance) {
         return reply.code(404).send({ success: false, error: '联系人不存在' })
       }
 
+      const { ignoreDuplicate, ...updateData } = data as any
       const contact = await prisma.contact.update({
         where: { id },
         data: {
-          ...data,
+          ...updateData,
           tags: data.tags !== undefined ? JSON.stringify(data.tags) : undefined,
           birthday: data.birthday ? new Date(data.birthday) : undefined,
         },

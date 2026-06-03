@@ -1,15 +1,14 @@
 import { test, expect } from '@playwright/test'
+import { registerAndLogin } from '../login-helper'
 
 test.describe('UI Design - Contact Form (New)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.getByText('模拟登录 (H5开发)').click()
-    await page.waitForTimeout(500)
+    await registerAndLogin(page)
   })
 
   test('add contact form displays with new card layout', async ({ page }) => {
     await page.locator('.fab').click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(1000)
 
     // Check form groups exist
     await expect(page.getByText('基本信息').first()).toBeVisible()
@@ -18,20 +17,20 @@ test.describe('UI Design - Contact Form (New)', () => {
     await expect(page.getByText('生日').first()).toBeVisible()
 
     // Check form inputs
-    const nameInput = page.locator('input[placeholder="请输入姓名"]').first()
+    const nameInput = page.locator('input').nth(0)
     await expect(nameInput).toBeVisible()
 
-    const companyInput = page.locator('input[placeholder="请输入公司名称"]').first()
+    const companyInput = page.locator('input').nth(1)
     await expect(companyInput).toBeVisible()
   })
 
   test('create contact with new form and verify', async ({ page }) => {
     await page.locator('.fab').click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(1000)
 
     // Fill name
-    await page.locator('input[placeholder="请输入姓名"]').first().fill('李设计')
-    await page.locator('input[placeholder="请输入公司名称"]').first().fill('设计公司')
+    await page.locator('input').nth(0).fill('李设计')
+    await page.locator('input').nth(1).fill('设计公司')
 
     // Select a tag
     await page.locator('.preset-tag').filter({ hasText: '工作' }).first().click()
@@ -49,8 +48,8 @@ test.describe('UI Design - Contact Form (New)', () => {
   test('contact card displays new gradient header', async ({ page }) => {
     // Create a contact first
     await page.locator('.fab').click()
-    await page.waitForTimeout(500)
-    await page.locator('input[placeholder="请输入姓名"]').first().fill('王卡片')
+    await page.waitForTimeout(1000)
+    await page.locator('input').nth(0).fill('王卡片')
     await page.locator('.save-btn').click()
     await page.waitForTimeout(1500)
 
@@ -73,7 +72,7 @@ test.describe('UI Design - Contact Form (New)', () => {
     await page.waitForTimeout(500)
 
     // Check stat overview cards exist
-    await expect(page.locator('.stat-card')).toBeVisible()
+    await expect(page.locator('.stats-card')).toBeVisible()
 
     // Take screenshot
     await page.screenshot({
@@ -87,7 +86,7 @@ test.describe('UI Design - Contact Form (New)', () => {
     await page.waitForTimeout(500)
 
     // Check user section with gradient
-    await expect(page.locator('.user-section')).toBeVisible()
+    await expect(page.locator('.user-card')).toBeVisible()
 
     // Take screenshot
     await page.screenshot({

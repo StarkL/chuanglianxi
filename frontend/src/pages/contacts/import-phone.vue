@@ -37,24 +37,30 @@ async function handleImport() {
     uni.chooseContact({
       success: async (res: unknown) => {
         const contactRes = res as ContactChooseRes
+        if (!contactRes.encryptedData || !contactRes.iv) {
+          uni.hideLoading()
+          uni.showToast({ title: '无法获取联系人数据', icon: 'none' })
+          return
+        }
         importing.value = true
         uni.showLoading({ title: '导入中...' })
         try {
           const result = await importContactFromPhone(code, contactRes.encryptedData, contactRes.iv)
           uni.hideLoading()
-          if (result.success) {
-            if (result.duplicate) {
+          if (result.success && result.data) {
+            if (result.data.duplicate) {
               uni.showModal({
                 title: '提示',
                 content: '该联系人已存在',
                 showCancel: false,
+                confirmText: '确定',
               })
             } else {
               uni.showToast({ title: '导入成功', icon: 'success' })
               setTimeout(() => uni.navigateBack(), 500)
             }
           } else {
-            uni.showToast({ title: '导入失败', icon: 'none' })
+            uni.showToast({ title: result.error || '导入失败', icon: 'none' })
           }
         } catch {
           uni.hideLoading()

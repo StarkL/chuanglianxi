@@ -4,7 +4,7 @@ import type { NormalizedOCRData } from './ocr.js'
 
 const qwen = new OpenAI({
   apiKey: env.QWEN_API_KEY,
-  baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+  baseURL: 'https://coding.dashscope.aliyuncs.com/v1',
 })
 
 const SYSTEM_PROMPT = `You are a professional business card information completion assistant. Based on the following OCR-extracted data, complete any missing information:

@@ -17,12 +17,12 @@ const scheduledDate = ref('')
 const scheduledTime = ref('09:00')
 const recurrenceRule = ref('')
 
-const reminderTypes = [
+const reminderTypes: Array<{ value: 'relationship' | 'birthday' | 'custom'; label: string; icon: string; color: string }> = [
   { value: 'custom', label: '自定义', icon: '📝', color: '#74B9FF' },
   { value: 'relationship', label: '关系提醒', icon: '🔔', color: '#6C5CE7' },
   { value: 'birthday', label: '生日提醒', icon: '🎂', color: '#FD79A8' },
 ]
-const selectedType = ref('custom')
+const selectedType = ref<'relationship' | 'birthday' | 'custom'>('custom')
 
 const recurrenceOptions = ['不重复', '每天', '每周', '每月', '每年']
 const recurrenceValues = ['', 'daily', 'weekly', 'monthly', 'yearly']
@@ -41,7 +41,7 @@ function onRecurrenceChange(e: PickerEvent) {
   recurrenceRule.value = recurrenceValues[idx]
 }
 
-function selectType(type: string) {
+function selectType(type: 'relationship' | 'birthday' | 'custom') {
   selectedType.value = type
 }
 
@@ -149,7 +149,7 @@ async function handleSubmit() {
       <view class="form-row">
         <view class="form-item half">
           <text class="form-label">日期</text>
-          <picker mode="date" :value="scheduledDate" @change="e => scheduledDate = e.detail.value">
+          <picker mode="date" :value="scheduledDate" @change="(e: any) => scheduledDate = e.detail.value">
             <view class="form-input picker-input">
               <text :class="{ placeholder: !scheduledDate }">{{ scheduledDate || '选择日期' }}</text>
               <text class="picker-arrow">›</text>
@@ -158,7 +158,7 @@ async function handleSubmit() {
         </view>
         <view class="form-item half">
           <text class="form-label">时间</text>
-          <picker mode="time" :value="scheduledTime" @change="e => scheduledTime = e.detail.value">
+          <picker mode="time" :value="scheduledTime" @change="(e: any) => scheduledTime = e.detail.value">
             <view class="form-input picker-input">
               <text>{{ scheduledTime }}</text>
               <text class="picker-arrow">›</text>

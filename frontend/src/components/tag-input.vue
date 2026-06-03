@@ -10,11 +10,17 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string[]): void
 }>()
 
-const presetTags = props.presetTags ?? ['工作', '朋友', '家人', '同事', '客户', 'VIP', '投资人', '前同事']
+const presets = props.presetTags ?? ['工作', '朋友', '家人', '同事', '客户', 'VIP', '投资人', '前同事']
 const customInput = ref('')
 const MAX_TAGS = 10
 
 const selectedSet = computed(() => new Set(props.modelValue))
+
+const allTags = computed(() => {
+  const current = props.modelValue ?? []
+  const custom = current.filter(tag => !presets.includes(tag))
+  return [...presets, ...custom]
+})
 
 function toggleTag(tag: string) {
   const tags = [...props.modelValue]
@@ -58,7 +64,7 @@ function handleInputConfirm() {
     <view class="preset-section">
       <view class="preset-tags">
         <view
-          v-for="tag in presetTags"
+          v-for="tag in allTags"
           :key="tag"
           class="preset-tag"
           :class="{ active: selectedSet.has(tag) }"

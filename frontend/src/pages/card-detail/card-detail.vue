@@ -70,6 +70,8 @@ async function deleteCard() {
   uni.showModal({
     title: '确认删除？',
     content: '删除后无法恢复该名片',
+    cancelText: '取消',
+    confirmText: '确定',
     confirmColor: '#e64340',
     success: async (res: unknown) => {
       const result = res as { confirm: boolean }
