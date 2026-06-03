@@ -4,6 +4,16 @@ import { request } from '../../../utils/request'
 import { emitDataChanged } from '../../../utils/events'
 
 const scanning = ref(false)
+const selectedImagePath = ref('')
+
+function previewSelectedImage() {
+  if (selectedImagePath.value) {
+    uni.previewImage({
+      urls: [selectedImagePath.value],
+      current: selectedImagePath.value,
+    })
+  }
+}
 
 async function handleScan() {
   try {
@@ -18,9 +28,27 @@ async function handleScan() {
     })
 
     const imagePath = imageRes.tempFilePaths[0]
+    selectedImagePath.value = imagePath
 
     // Convert image to base64
     const base64 = await new Promise<string>((resolve, reject) => {
+      // #ifdef H5
+      fetch(imagePath)
+        .then(res => res.blob())
+        .then(blob => {
+          const reader = new FileReader()
+          reader.onloadend = () => {
+            const dataUrl = reader.result as string
+            const base64Str = dataUrl.split(',')[1]
+            resolve(base64Str)
+          }
+          reader.onerror = reject
+          reader.readAsDataURL(blob)
+        })
+        .catch(reject)
+      // #endif
+
+      // #ifdef MP-WEIXIN
       // @ts-ignore - uni-app API
       const fs = uni.getFileSystemManager()
       fs.readFile({
@@ -29,6 +57,7 @@ async function handleScan() {
         success: (res: any) => resolve(res.data),
         fail: reject,
       })
+      // #endif
     })
 
     scanning.value = true
@@ -81,6 +110,14 @@ async function handleScan() {
         <view class="scan-frame__corner scan-frame__corner--tr" />
         <view class="scan-frame__corner scan-frame__corner--bl" />
         <view class="scan-frame__corner scan-frame__corner--br" />
+        <!-- 已上传的图片展示 -->
+        <image
+          v-if="selectedImagePath"
+          :src="selectedImagePath"
+          mode="aspectFill"
+          class="preview-img"
+          @click.stop="previewSelectedImage"
+        />
         <!-- 扫描线动画 -->
         <view class="scan-line" />
       </view>
@@ -90,8 +127,8 @@ async function handleScan() {
 
     <!-- 操作区 -->
     <view class="scan-actions">
-      <view class="scan-button-wrap">
-        <view class="scan-button" :class="{ 'scan-button--scanning': scanning }" @click="handleScan">
+      <view class="scan-button-wrap" @click="handleScan">
+        <view class="scan-button" :class="{ 'scan-button--scanning': scanning }">
           <view class="scan-button__inner">
             <text v-if="!scanning" class="scan-button__icon">📷</text>
             <text v-else class="scan-button__icon scan-button__icon--pulse">⏳</text>
@@ -139,6 +176,8 @@ async function handleScan() {
   inset: 0;
   border: 2rpx solid rgba(108, 92, 231, 0.3);
   border-radius: $radius-lg;
+  z-index: 4;
+  pointer-events: none;
 }
 
 /* 四角装饰 */
@@ -146,6 +185,8 @@ async function handleScan() {
   position: absolute;
   width: 40rpx;
   height: 40rpx;
+  z-index: 4;
+  pointer-events: none;
 }
 
 .scan-frame__corner--tl {
@@ -180,6 +221,17 @@ async function handleScan() {
   border-bottom-right-radius: $radius-lg;
 }
 
+/* 预览的图片 */
+.preview-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-lg;
+  z-index: 2;
+  cursor: pointer;
+}
+
 /* 扫描线动画 */
 .scan-line {
   position: absolute;
@@ -191,6 +243,8 @@ async function handleScan() {
   border-radius: 2rpx;
   box-shadow: 0 0 20rpx rgba(108, 92, 231, 0.4);
   animation: scanPulse 2.5s ease-in-out infinite;
+  z-index: 3;
+  pointer-events: none;
 }
 
 @keyframes scanPulse {
@@ -225,6 +279,7 @@ async function handleScan() {
   display: flex;
   flex-direction: column;
   align-items: center;
+  cursor: pointer;
 }
 
 .scan-button {

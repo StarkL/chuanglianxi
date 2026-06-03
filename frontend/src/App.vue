@@ -67,4 +67,10 @@ onLaunch(async () => {
 page {
   background-color: #F8F9FA;
 }
+
+/* #ifdef H5 */
+.uni-swiper-navigation {
+  display: none !important;
+}
+/* #endif */
 </style>

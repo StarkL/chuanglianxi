@@ -59,7 +59,7 @@ export async function sendReminderNotification(args: ReminderNotificationArgs): 
     select: { openId: true },
   })
 
-  if (!user) {
+  if (!user || !user.openId) {
     return false
   }
 

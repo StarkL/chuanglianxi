@@ -1,26 +1,22 @@
 import { test, expect } from '@playwright/test'
+import { registerAndLogin } from '../login-helper'
 
 test.describe('Core User Flow', () => {
   test('login -> navigate to contacts -> search', async ({ page }) => {
     // Step 1: Login
-    await page.goto('/')
-    await expect(page.getByText('常联系', { exact: true })).toBeVisible()
-    await page.getByText('模拟登录 (H5开发)').click()
-    await page.waitForTimeout(500)
+    await registerAndLogin(page)
 
     // Step 2: Verify contacts list loaded (first tabBar page)
     await expect(page.getByText('联系人').first()).toBeVisible()
 
     // Step 3: Page is loaded (contacts list)
     // Verify we're on the contacts page by checking the add button
-    await expect(page.getByText('+ 添加联系人')).toBeVisible()
+    await expect(page.locator('.fab')).toBeVisible()
   })
 
   test('tabBar navigation works', async ({ page }) => {
     // Login
-    await page.goto('/')
-    await page.getByText('模拟登录 (H5开发)').click()
-    await page.waitForTimeout(500)
+    await registerAndLogin(page)
 
     // Click 提醒 tab
     await page.locator('.uni-tabbar__label').filter({ hasText: '提醒' }).click()
@@ -40,9 +36,7 @@ test.describe('Core User Flow', () => {
 
   test('logout from mine page', async ({ page }) => {
     // Login
-    await page.goto('/')
-    await page.getByText('模拟登录 (H5开发)').click()
-    await page.waitForTimeout(500)
+    await registerAndLogin(page)
 
     // Go to mine
     await page.locator('.uni-tabbar__label').filter({ hasText: '我的' }).click()
@@ -74,9 +68,8 @@ test.describe('Core User Flow', () => {
     })
     await page.waitForTimeout(1000)
 
-    // After logout, should show login page or mine page (H5 dev mode behavior)
-    // In H5 dev mode, clearSession removes the token so onLaunch redirects to login
-    const loginVisible = await page.getByText('模拟登录 (H5开发)').isVisible()
+    // After logout, should show login page (with logo/slogan) or mine page (H5 dev mode behavior)
+    const loginVisible = await page.getByText('常联系', { exact: true }).isVisible()
     const logoutBtnVisible = await page.getByText('退出登录').first().isVisible()
     expect(loginVisible || logoutBtnVisible).toBe(true)
   })

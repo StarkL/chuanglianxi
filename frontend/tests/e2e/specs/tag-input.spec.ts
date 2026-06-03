@@ -75,7 +75,7 @@ test.describe('UI Design - Tag Input Component', () => {
 
     await expect(page.locator('.count-num')).toHaveText('2')
 
-    await page.locator('.remove-icon').first().click()
+    await page.locator('.preset-tag').filter({ hasText: '工作' }).first().click()
     await page.waitForTimeout(600)
 
     await expect(page.locator('.count-num')).toHaveText('1')

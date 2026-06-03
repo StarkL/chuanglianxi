@@ -47,7 +47,7 @@ export async function ocrRoutes(fastify: FastifyInstance) {
         data: {
           userId,
           imageUrl: '',
-          ocrData: mergedOcrData as unknown as Record<string, unknown>,
+          ocrData: mergedOcrData as any,
         },
       })
 

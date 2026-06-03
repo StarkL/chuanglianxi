@@ -14,6 +14,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/crm/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/crm\/api/, '/api')
+      },
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true

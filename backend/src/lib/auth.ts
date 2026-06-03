@@ -5,13 +5,13 @@ const secret = new TextEncoder().encode(env.JWT_SECRET)
 
 interface TokenPayload {
   sub: string
-  openId: string
+  openId?: string
 }
 
 const EXPIRATION = '7d'
 
 export async function generateToken(payload: TokenPayload): Promise<string> {
-  return new SignJWT({ openId: payload.openId })
+  return new SignJWT({ ...(payload.openId && { openId: payload.openId }) })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(payload.sub)
     .setIssuedAt()
@@ -25,7 +25,7 @@ export async function verifyToken(
   const { payload } = await jwtVerify(token, secret)
   return {
     sub: payload.sub as string,
-    openId: payload.openId as string,
+    openId: payload.openId as string | undefined,
     iat: payload.iat as number,
     exp: payload.exp as number,
   }

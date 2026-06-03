@@ -7,7 +7,9 @@ export interface Contact {
   title: string | null
   phone: string | null
   email: string | null
+  wechatId: string | null
   avatar: string | null
+  source?: string | null
   tags: string[]
   birthdayType: string | null
   birthday: string | null
@@ -42,7 +44,11 @@ export function getContact(id: string) {
   })
 }
 
-export function createContact(data: Partial<Contact>) {
+export interface CreateContactParams extends Partial<Contact> {
+  ignoreDuplicate?: boolean
+}
+
+export function createContact(data: CreateContactParams) {
   return request<Contact>({
     url: '/contacts',
     method: 'POST',

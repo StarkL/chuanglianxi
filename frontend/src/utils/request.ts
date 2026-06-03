@@ -9,10 +9,10 @@ interface ApiResponse<T = unknown> {
 interface RequestOptions {
   url: string
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  data?: Record<string, unknown>
+  data?: any
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api'
+const BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api'
 
 export function request<T>(options: RequestOptions): Promise<ApiResponse<T>> {
   const token = getToken()

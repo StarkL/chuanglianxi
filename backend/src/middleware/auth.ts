@@ -3,7 +3,7 @@ import { verifyToken } from '../lib/auth.js'
 
 export interface AuthenticatedRequest extends FastifyRequest {
   userId: string
-  openId: string
+  openId?: string
 }
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -32,10 +32,11 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply):
 
 export async function registerProtectedRoutes(fastify: FastifyInstance) {
   // Example: protected route template
-  fastify.get('/auth/me', { preHandler: [requireAuth] }, async (request: AuthenticatedRequest) => {
+  fastify.get('/auth/me', { preHandler: [requireAuth] }, async (request) => {
+    const authReq = request as AuthenticatedRequest
     const { prisma } = await import('../lib/prisma.js')
     const user = await prisma.user.findUnique({
-      where: { id: request.userId },
+      where: { id: authReq.userId },
       select: {
         id: true,
         nickname: true,
