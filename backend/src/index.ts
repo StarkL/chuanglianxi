@@ -19,7 +19,7 @@ await registerRoutes(app)
 
 const start = async () => {
   try {
-    await app.listen({ port: env.PORT, host: '0.0.0.0' })
+    await app.listen({ port: env.PORT, host: '127.0.0.1' })
     app.log.info(`Server running on http://localhost:${env.PORT}`)
 
     // Start the reminder scheduler
