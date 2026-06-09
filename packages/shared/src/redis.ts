@@ -10,7 +10,7 @@ export function getRedis(url: string): IORedis {
       enableOfflineQueue: false,
     })
 
-    redis.on('error', (err) => {
+    redis.on('error', (err: Error) => {
       console.error('[redis] connection error:', err.message)
     })
 

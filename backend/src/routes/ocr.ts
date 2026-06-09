@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js'
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
 import { recognizeBusinessCard } from '../lib/ocr.js'
 import { enrichBusinessCardData } from '../lib/ai-enrich.js'
+import { extractChatPartnerName, generateChatReplies } from '../lib/chat-replier.js'
 
 interface OcrRequestBody {
   imageData: string
@@ -116,6 +117,101 @@ export async function ocrRoutes(fastify: FastifyInstance) {
 
       await prisma.businessCard.delete({ where: { id } })
       return { success: true }
+    }
+  )
+
+  interface ChatReplyRequestBody {
+    imageData: string
+    contactId?: string
+    userPreferences?: string
+  }
+
+  fastify.post<{ Body: ChatReplyRequestBody }>(
+    '/ocr/chat-reply',
+    {
+      preHandler: [requireAuth],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['imageData'],
+          properties: {
+            imageData: { type: 'string', maxLength: 5000000 },
+            contactId: { type: 'string' },
+            userPreferences: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Body: ChatReplyRequestBody }>, reply: FastifyReply) => {
+      const { userId } = request as AuthenticatedRequest
+      const { imageData, contactId, userPreferences } = request.body
+
+      let targetContactId = contactId
+      let detectedName = ''
+
+      // Step 1: Detect contact name from screenshot if not provided
+      if (!targetContactId) {
+        detectedName = await extractChatPartnerName(imageData)
+        const cleanName = detectedName.trim().replace(/\s*\(\d+\)\s*$/, '') // Clean group or count suffixes like " (2)"
+
+        if (cleanName) {
+          const match = await prisma.contact.findFirst({
+            where: {
+              userId,
+              OR: [
+                { name: { contains: cleanName } },
+                { wechatId: { contains: cleanName } }
+              ]
+            },
+            select: { id: true }
+          })
+          if (match) {
+            targetContactId = match.id
+          }
+        }
+      }
+
+      // Step 2: Load contact info from database if found
+      let contactContext = null
+      if (targetContactId) {
+        const contact = await prisma.contact.findFirst({
+          where: { id: targetContactId, userId },
+          include: {
+            interactions: {
+              orderBy: { occurredAt: 'desc' },
+              take: 3,
+            }
+          }
+        })
+
+        if (contact) {
+          contactContext = {
+            name: contact.name,
+            company: contact.company,
+            title: contact.title,
+            tags: JSON.parse(contact.tags || '[]'),
+            notes: contact.customFields ? JSON.stringify(contact.customFields) : '',
+            lastInteractions: contact.interactions.map((i: any) => ({
+              type: i.type,
+              content: i.content,
+              occurredAt: i.occurredAt
+            }))
+          }
+        }
+      }
+
+      // Step 3: Call LLM to generate replies
+      const result = await generateChatReplies(imageData, contactContext, userPreferences)
+
+      return {
+        success: true,
+        data: {
+          detectedName: detectedName || (contactContext ? contactContext.name : ''),
+          contactId: targetContactId || null,
+          analysis: result.analysis,
+          options: result.options
+        }
+      }
     }
   )
 }

@@ -18,7 +18,7 @@ export async function enrichBusinessCardData(
 ): Promise<Partial<NormalizedOCRData>> {
   try {
     const response = await qwen.chat.completions.create({
-      model: 'qwen-plus',
+      model: env.QWEN_MODEL_TEXT,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: JSON.stringify(ocrData) },

@@ -24,6 +24,10 @@ function goReminders() {
 function goContacts() {
   uni.switchTab({ url: '/pages/contacts/list' })
 }
+
+function goChatReply() {
+  uni.navigateTo({ url: '/pages/ocr/chat-reply/chat-reply' })
+}
 </script>
 
 <template>
@@ -35,6 +39,19 @@ function goContacts() {
         <text class="greeting">Hi</text>
         <text class="hero-name">{{ userInfo?.nickname || '常联系用户' }}</text>
         <text class="hero-subtitle">开启你的人脉管理之旅</text>
+      </view>
+    </view>
+
+    <!-- AI 嘴替特色功能入口 -->
+    <view class="ai-banner" @click="goChatReply">
+      <view class="ai-banner__left">
+        <text class="ai-banner__title">AI 嘴替助理</text>
+        <text class="ai-banner__desc">截图一键上传，高情商话术生成</text>
+      </view>
+      <view class="ai-banner__right">
+        <view class="ai-banner__icon">
+          <wd-icon name="chat" size="28px" color="#FFFFFF" />
+        </view>
       </view>
     </view>
 
@@ -86,9 +103,49 @@ function goContacts() {
   background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 50%, #74B9FF 100%);
   border-radius: 32rpx;
   padding: 56rpx 40rpx 44rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
   box-shadow: 0 16rpx 48rpx rgba(108, 92, 231, 0.25);
 }
+
+/* ---- AI 嘴替特色条 ---- */
+.ai-banner {
+  background: linear-gradient(135deg, #FD79A8 0%, #FF7675 100%);
+  border-radius: 32rpx;
+  padding: 36rpx 40rpx;
+  margin-bottom: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 12rpx 36rpx rgba(253, 121, 168, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.ai-banner:active {
+  transform: scale(0.98);
+}
+
+.ai-banner__title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.ai-banner__desc {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 4rpx;
+}
+
+.ai-banner__icon {
+  width: 90rpx;
+  height: 90rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .hero-bg {
   position: absolute;

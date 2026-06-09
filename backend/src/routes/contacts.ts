@@ -77,7 +77,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
 
     return {
       success: true,
-      data: contacts.map((c) => ({ ...c, tags: JSON.parse(c.tags || '[]') })),
+      data: contacts.map((c: any) => ({ ...c, tags: JSON.parse(c.tags || '[]') })),
     }
   })
 
