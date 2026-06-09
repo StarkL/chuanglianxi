@@ -21,12 +21,17 @@ const isSupported = computed(() => SpeechRecognizer.isSupported())
 let recognizer: SpeechRecognizer | null = null
 
 onMounted(() => {
-  if (isSupported.value) {
-    recognizer = new SpeechRecognizer({
-      language: 'zh-CN',
-      continuous: false,
-      interimResults: false,
-    })
+  try {
+    if (isSupported.value) {
+      recognizer = new SpeechRecognizer({
+        language: 'zh-CN',
+        continuous: false,
+        interimResults: false,
+      })
+    }
+  } catch (error) {
+    console.error('SpeechRecognizer init failed:', error)
+    errorMessage.value = '语音识别初始化失败'
   }
 })
 
