@@ -5,6 +5,7 @@ import { contactRoutes } from './contacts.js'
 import { interactionRoutes } from './interactions.js'
 import { ocrRoutes } from './ocr.js'
 import { reminderRoutes } from './reminders.js'
+import { voiceNoteRoutes } from './voice-note.js'
 import { registerProtectedRoutes } from '../middleware/auth.js'
 
 export async function registerRoutes(fastify: FastifyInstance) {
@@ -14,5 +15,6 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(interactionRoutes, { prefix: '/api' })
   fastify.register(ocrRoutes, { prefix: '/api' })
   fastify.register(reminderRoutes, { prefix: '/api' })
+  fastify.register(voiceNoteRoutes, { prefix: '/api' })
   fastify.register(registerProtectedRoutes, { prefix: '/api' })
 }
