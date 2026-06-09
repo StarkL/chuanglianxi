@@ -67,6 +67,12 @@
       }
     },
     {
+      "path": "pages/voice-note/voice-note",
+      "style": {
+        "navigationBarTitleText": "语音速记"
+      }
+    },
+    {
       "path": "pages/card-detail/card-detail",
       "style": {
         "navigationBarTitleText": "名片详情"
