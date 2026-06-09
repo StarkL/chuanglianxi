@@ -12,6 +12,8 @@ const envSchema = z.object({
   BAIDU_OCR_API_KEY: z.string().optional(),
   BAIDU_OCR_SECRET_KEY: z.string().optional(),
   QWEN_API_KEY: z.string().min(1),
+  QWEN_MODEL_TEXT: z.string().default('qwen-plus'),
+  QWEN_MODEL_VISION: z.string().default('qwen3.7-plus'),
   WECHAT_SUBSCRIPTION_TEMPLATE_ID_RELATIONSHIP: z.string().default(''),
   WECHAT_SUBSCRIPTION_TEMPLATE_ID_BIRTHDAY: z.string().default(''),
   WECHAT_SUBSCRIPTION_TEMPLATE_ID_CUSTOM: z.string().default(''),

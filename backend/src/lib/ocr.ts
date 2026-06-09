@@ -25,7 +25,7 @@ export interface NormalizedOCRData {
 export async function recognizeBusinessCard(imageBase64: string): Promise<NormalizedOCRData> {
   try {
     const response = await qwen.chat.completions.create({
-      model: 'qwen3.6-plus',
+      model: env.QWEN_MODEL_VISION,
       messages: [
         {
           role: 'user',

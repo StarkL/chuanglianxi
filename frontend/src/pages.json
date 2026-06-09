@@ -49,6 +49,12 @@
       }
     },
     {
+      "path": "pages/ocr/chat-reply/chat-reply",
+      "style": {
+        "navigationBarTitleText": "AI 嘴替助理"
+      }
+    },
+    {
       "path": "pages/ocr/result/result",
       "style": {
         "navigationBarTitleText": "确认名片信息"
