@@ -6,6 +6,7 @@ import { onDataChanged } from '../../utils/events'
 const contacts = ref<Contact[]>([])
 const searchKeyword = ref('')
 const selectedTag = ref('')
+const searchFocused = ref(false)
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -41,6 +42,24 @@ function handleSearch() {
   searchTimer = setTimeout(() => {
     loadContacts()
   }, 500)
+}
+
+function handleFocus() {
+  searchFocused.value = true
+}
+
+function handleBlur() {
+  searchFocused.value = false
+}
+
+function handleChange() {
+  handleSearch()
+}
+
+function handleCancel() {
+  searchKeyword.value = ''
+  searchFocused.value = false
+  loadContacts()
 }
 
 function goDetail(id: string) {
@@ -86,8 +105,13 @@ function getFreqClass(contact: Contact): string {
       <wd-search
         placeholder="搜索姓名或公司"
         v-model="searchKeyword"
+        :hide-cancel="!searchFocused"
         @search="handleSearch"
         @clear="handleSearch"
+        @change="handleChange"
+        @focus="handleFocus"
+        @blur="handleBlur"
+        @cancel="handleCancel"
         custom-class="custom-search"
       />
     </view>
