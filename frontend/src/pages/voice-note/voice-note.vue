@@ -67,10 +67,24 @@ async function toggleRecording() {
       isRecording.value = false
 
       // 自动处理转录文本
-      await handleProcess()
+      if (result.transcript.trim()) {
+        await handleProcess()
+      } else {
+        errorMessage.value = '未识别到语音内容，请重试'
+      }
     } catch (error: any) {
       isRecording.value = false
-      errorMessage.value = `录音失败: ${error.message}`
+      // 更友好的错误提示
+      const errorMsg = error.message || ''
+      if (errorMsg.includes('not-allowed') || errorMsg.includes('permission')) {
+        errorMessage.value = '麦克风权限被拒绝，请在浏览器设置中允许访问麦克风'
+      } else if (errorMsg.includes('no-speech')) {
+        errorMessage.value = '未检测到语音，请对着麦克风说话'
+      } else if (errorMsg.includes('network')) {
+        errorMessage.value = '网络错误，语音识别需要联网'
+      } else {
+        errorMessage.value = `录音失败: ${errorMsg}`
+      }
     }
   }
 }
@@ -184,23 +198,22 @@ function handleManualInput() {
         <view class="record-subtitle">说出你与联系人的交互，AI 自动整理归档</view>
 
         <view class="record-button-wrapper">
-          <button
+          <view
             class="record-button"
             :class="{ recording: isRecording }"
             @click="toggleRecording"
-            :disabled="isProcessing"
           >
             <view class="record-icon">
               {{ isRecording ? '⏹' : '🎙️' }}
             </view>
-            <text class="record-text">
+            <view class="record-text">
               {{ isRecording ? '停止录音' : '开始录音' }}
-            </text>
-          </button>
+            </view>
+          </view>
 
           <view v-if="isRecording" class="recording-indicator">
             <view class="pulse-dot"></view>
-            <text class="recording-text">正在录音...</text>
+            <view class="recording-text">正在录音...</view>
           </view>
         </view>
 
@@ -361,18 +374,20 @@ function handleManualInput() {
 }
 
 .record-button {
-  width: 240rpx;
-  height: 240rpx;
+  width: 280rpx;
+  height: 280rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
-  border: none;
-  box-shadow: 0 12rpx 40rpx rgba(108, 92, 231, 0.3);
+  gap: 16rpx;
+  box-shadow: 0 16rpx 48rpx rgba(108, 92, 231, 0.35);
   transition: all 0.3s;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .record-button.recording {
@@ -385,13 +400,15 @@ function handleManualInput() {
 }
 
 .record-icon {
-  font-size: 80rpx;
+  font-size: 100rpx;
+  line-height: 1;
 }
 
 .record-text {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #FFFFFF;
   font-weight: 600;
+  letter-spacing: 2rpx;
 }
 
 @keyframes pulse {
@@ -432,13 +449,14 @@ function handleManualInput() {
 }
 
 .manual-input-hint {
-  padding: 16rpx;
+  padding: 20rpx 32rpx;
   background: #F8F9FA;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
+  text-align: center;
 }
 
 .hint-text {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #6C5CE7;
 }
 
