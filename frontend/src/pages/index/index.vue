@@ -28,6 +28,10 @@ function goContacts() {
 function goChatReply() {
   uni.navigateTo({ url: '/pages/ocr/chat-reply/chat-reply' })
 }
+
+function goVoiceNote() {
+  uni.navigateTo({ url: '/pages/voice-note/voice-note' })
+}
 </script>
 
 <template>
@@ -84,6 +88,13 @@ function goChatReply() {
         </view>
         <text class="nav-label">名片墙</text>
         <text class="nav-desc">查看收藏名片</text>
+      </view>
+      <view class="nav-item" @click="goVoiceNote">
+        <view class="nav-icon voice-icon">
+          <wd-icon name="sound" size="24px" color="#FFFFFF" />
+        </view>
+        <text class="nav-label">语音速记</text>
+        <text class="nav-desc">说话就能记录</text>
       </view>
     </view>
   </view>
@@ -223,6 +234,10 @@ function goChatReply() {
 
 .cards-icon {
   background: linear-gradient(135deg, #74B9FF, #A29BFE);
+}
+
+.voice-icon {
+  background: linear-gradient(135deg, #00CEC9, #81ECEC);
 }
 
 .nav-label {
