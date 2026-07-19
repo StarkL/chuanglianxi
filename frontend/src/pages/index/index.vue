@@ -18,7 +18,7 @@ function goCards() {
 }
 
 function goReminders() {
-  uni.navigateTo({ url: '/pages/reminders/list/list' })
+  uni.switchTab({ url: '/pages/reminders/list/list' })
 }
 
 function goContacts() {

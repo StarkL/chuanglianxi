@@ -103,6 +103,12 @@
       }
     },
     {
+      "path": "pages/password/change/change",
+      "style": {
+        "navigationBarTitleText": "修改密码"
+      }
+    },
+    {
       "path": "pages/privacy/privacy",
       "style": {
         "navigationBarTitleText": "隐私政策"

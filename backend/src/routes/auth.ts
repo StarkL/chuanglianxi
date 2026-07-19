@@ -3,6 +3,8 @@ import { prisma } from '../lib/prisma.js'
 import { code2Session } from '../lib/wechat.js'
 import { generateToken } from '../lib/auth.js'
 import { hashPassword, verifyPassword } from '../lib/hash.js'
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
+import { validateNickname, validatePasswordChange } from '../lib/profile-validator.js'
 
 interface WechatLoginBody {
   code: string
@@ -183,6 +185,13 @@ export async function authRoutes(fastify: FastifyInstance) {
           },
         }
       } catch (error: unknown) {
+        const err = error as { code?: string }
+        if (err?.code === 'P2002') {
+          return reply.code(400).send({ success: false, error: '用户名已存在' })
+        }
+        if (err?.code === 'P2003') {
+          return reply.code(400).send({ success: false, error: '数据关联错误，请重试' })
+        }
         return reply.code(400).send({ success: false, error: '注册失败，请稍后重试' })
       }
     }
@@ -291,4 +300,99 @@ export async function authRoutes(fastify: FastifyInstance) {
     // Client clears local storage; server-side token blacklist can be added later
     return { success: true }
   })
+
+  fastify.put<{ Body: any }>(
+    '/auth/profile',
+    {
+      preHandler: [requireAuth],
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            nickname: { type: 'string', maxLength: 200 },
+            oldPassword: { type: 'string' },
+            newPassword: { type: 'string', maxLength: 100 },
+            confirmPassword: { type: 'string', maxLength: 100 },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              data: {
+                type: 'object',
+                properties: {
+                  nickname: { type: 'string' },
+                },
+              },
+            },
+          },
+          400: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const authReq = request as AuthenticatedRequest
+      const body = request.body as any
+      const { nickname, oldPassword, newPassword, confirmPassword } = body
+
+      try {
+        const updateData: Record<string, unknown> = {}
+
+        // 更新昵称
+        if (nickname !== undefined) {
+          const validation = validateNickname(nickname)
+          if (!validation.valid) {
+            return reply.code(400).send({ success: false, error: validation.error })
+          }
+          updateData.nickname = nickname.trim()
+        }
+
+        // 修改密码（仅对有密码的用户）
+        if (oldPassword || newPassword || confirmPassword) {
+          const user = await prisma.user.findUnique({ where: { id: authReq.userId } })
+          if (!user?.passwordHash) {
+            return reply.code(400).send({ success: false, error: '该账户未设置密码' })
+          }
+
+          const pwValidation = validatePasswordChange(oldPassword || '', newPassword || '', confirmPassword || '')
+          if (!pwValidation.valid) {
+            return reply.code(400).send({ success: false, error: pwValidation.error })
+          }
+
+          if (!verifyPassword(oldPassword, user.passwordHash)) {
+            return reply.code(400).send({ success: false, error: '原密码错误' })
+          }
+
+          updateData.passwordHash = hashPassword(newPassword)
+        }
+
+        if (Object.keys(updateData).length === 0) {
+          return reply.code(400).send({ success: false, error: '没有需要更新的内容' })
+        }
+
+        await prisma.user.update({ where: { id: authReq.userId }, data: updateData })
+
+        const updated = await prisma.user.findUnique({
+          where: { id: authReq.userId },
+          select: { nickname: true },
+        })
+
+        return { success: true, data: { nickname: updated?.nickname } }
+      } catch (error: unknown) {
+        const err = error as { code?: string }
+        if (err?.code === 'P2002') {
+          return reply.code(400).send({ success: false, error: '昵称已被使用' })
+        }
+        return reply.code(400).send({ success: false, error: '更新失败，请稍后重试' })
+      }
+    }
+  )
 }

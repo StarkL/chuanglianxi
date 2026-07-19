@@ -31,3 +31,24 @@ coverage/
 
 # Prisma
 backend/prisma/migrations/
+
+# Claude tools
+.agents/
+.claude/
+.planning/
+
+# Database
+*.db
+backend/data.db
+
+# Test reports
+frontend/playwright-report/
+frontend/test-results/
+frontend/test-report-*.md
+
+# Design assets
+claude_design.png
+frontend/design-demos/
+
+# Skills lock
+skills-lock.json

@@ -66,3 +66,18 @@ export function register(params: RegisterParams) {
   })
 }
 
+export interface UpdateProfileParams {
+  nickname?: string
+  oldPassword?: string
+  newPassword?: string
+  confirmPassword?: string
+}
+
+export function updateProfile(params: UpdateProfileParams) {
+  return request<{ nickname: string }>({
+    url: '/auth/profile',
+    method: 'PUT',
+    data: params
+  })
+}
+
