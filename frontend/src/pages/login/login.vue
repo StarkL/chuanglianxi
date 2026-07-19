@@ -63,10 +63,13 @@ async function handleH5Submit() {
       setUserInfo(res.data.user)
       uni.switchTab({ url: '/pages/contacts/list' })
     } else {
-      error.value = res.error || '操作失败，请重试'
+      const actionText = activeTab.value === 'login' ? '登录' : '注册'
+      error.value = res.error || `${actionText}失败，请重试`
     }
   } catch (err: any) {
-    error.value = err.data?.error || '网络连接失败，请稍后重试'
+    const actionText = activeTab.value === 'login' ? '登录' : '注册'
+    const backendError = err?.data?.error || err?.data?.message || ''
+    error.value = backendError || `${actionText}失败，请检查网络后重试`
   } finally {
     loading.value = false
   }
@@ -246,8 +249,10 @@ async function handleLogin() {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
   background: linear-gradient(180deg, #F0EEFF 0%, #F8F9FA 30%);
-  padding: 100rpx 48rpx 64rpx;
+  padding: 60rpx 48rpx 40rpx;
   box-sizing: border-box;
 }
 
@@ -554,8 +559,8 @@ async function handleLogin() {
 .footer-text {
   font-size: 22rpx;
   color: #94A3B8;
-  margin-top: auto;
-  padding-top: 40rpx;
+  margin-top: 24rpx;
+  padding-bottom: 20rpx;
   text-align: center;
 }
 </style>

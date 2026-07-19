@@ -64,6 +64,8 @@ async function confirmDelete() {
   try {
     const { deleteContact } = await import('../../../api/contacts')
     await deleteContact(contact.value.id)
+    // 通知列表页刷新数据
+    emitDataChanged('contacts', 'delete')
     uni.showToast({ title: '已删除', icon: 'success' })
     setTimeout(() => uni.navigateBack(), 500)
   } catch {

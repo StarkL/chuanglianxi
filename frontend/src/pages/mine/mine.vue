@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getUserInfo } from '../../utils/auth'
+import { getUserInfo, setUserInfo } from '../../utils/auth'
+import { updateProfile } from '../../api/auth'
 
 const userInfo = ref<{ nickname: string | null; avatar: string | null } | null>(null)
 const version = 'v0.1.0'
+const showNicknameModal = ref(false)
+const newNickname = ref('')
+const nicknameModalError = ref('')
+const NICKNAME_REGEX = /^[一-龥a-zA-Z0-9$+_]+$/u
 
 onMounted(() => {
   const info = getUserInfo()
@@ -24,6 +29,45 @@ function goScan() {
 
 function goCards() {
   uni.navigateTo({ url: '/pages/ocr/cards/cards' })
+}
+
+function goChangePassword() {
+  uni.navigateTo({ url: '/pages/password/change/change' })
+}
+
+function showEditNickname() {
+  newNickname.value = userInfo.value?.nickname || ''
+  nicknameModalError.value = ''
+  showNicknameModal.value = true
+}
+
+function closeNicknameModal() {
+  showNicknameModal.value = false
+}
+
+async function confirmNickname() {
+  const nickname = newNickname.value.trim()
+  if (!nickname || nickname.length < 2 || nickname.length > 20) {
+    nicknameModalError.value = '昵称长度为 2-20 个字符'
+    return
+  }
+  if (!NICKNAME_REGEX.test(nickname)) {
+    nicknameModalError.value = '昵称只能包含中文、字母、数字和 $+_'
+    return
+  }
+  try {
+    const result = await updateProfile({ nickname })
+    if (result.success && result.data) {
+      setUserInfo({ nickname: result.data.nickname, avatar: userInfo.value?.avatar || null })
+      userInfo.value = { ...userInfo.value, nickname: result.data.nickname }
+      uni.showToast({ title: '修改成功', icon: 'success' })
+      showNicknameModal.value = false
+    } else {
+      nicknameModalError.value = result.error || '修改失败'
+    }
+  } catch (err: any) {
+    nicknameModalError.value = err?.data?.error || '网络错误'
+  }
 }
 
 async function handleLogout() {
@@ -67,7 +111,32 @@ function confirmLogout() {
         <text class="user-name">{{ userInfo?.nickname || '常联系用户' }}</text>
         <text class="user-role">你的人脉管理助手</text>
       </view>
+      <view class="edit-btn" @click="showEditNickname">
+        <wd-icon name="edit" size="20px" color="#FFFFFF" />
+      </view>
       <view class="card-decoration" />
+    </view>
+
+    <!-- 修改昵称弹窗 -->
+    <view v-if="showNicknameModal" class="modal-overlay" @click.self="closeNicknameModal">
+      <view class="modal-content">
+        <text class="modal-title">修改昵称</text>
+        <input
+          class="modal-input"
+          v-model="newNickname"
+          placeholder="请输入新昵称（2-20位）"
+          @input="nicknameModalError = ''"
+        />
+        <text v-if="nicknameModalError" class="modal-error">{{ nicknameModalError }}</text>
+        <view class="modal-actions">
+          <view class="modal-btn cancel-btn" @click="closeNicknameModal">
+            <text>取消</text>
+          </view>
+          <view class="modal-btn confirm-btn" @click="confirmNickname">
+            <text>确定</text>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 快捷操作 -->
@@ -88,6 +157,13 @@ function confirmLogout() {
 
     <!-- 设置分组 -->
     <view class="settings-card">
+      <view class="settings-item" @click="goChangePassword">
+        <view class="settings-icon-wrap password-icon">
+          <wd-icon name="lock-off" size="18px" />
+        </view>
+        <text class="settings-label">修改密码</text>
+        <text class="settings-arrow">›</text>
+      </view>
       <view class="settings-item" @click="goPrivacy">
         <view class="settings-icon-wrap privacy-icon">
           <wd-icon name="lock-on" size="18px" />
@@ -187,6 +263,20 @@ function confirmLogout() {
   color: rgba(255, 255, 255, 0.75);
 }
 
+.edit-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
 /* ---- 快捷操作 ---- */
 .quick-actions {
   display: flex;
@@ -263,6 +353,11 @@ function confirmLogout() {
   flex-shrink: 0;
 }
 
+.password-icon {
+  background: rgba(253, 121, 168, 0.1);
+  color: #FD79A8;
+}
+
 .privacy-icon {
   background: rgba(108, 92, 231, 0.1);
   color: #6C5CE7;
@@ -312,5 +407,84 @@ function confirmLogout() {
 
 .logout-btn::after {
   border: none;
+}
+
+/* ---- 修改昵称弹窗 ---- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  width: 80%;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx 32rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2D3436;
+  text-align: center;
+  margin-bottom: 28rpx;
+}
+
+.modal-input {
+  width: 100%;
+  height: 80rpx;
+  background: #F8FAFC;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #1E293B;
+  box-sizing: border-box;
+  margin-bottom: 16rpx;
+}
+
+.modal-error {
+  display: block;
+  font-size: 24rpx;
+  color: #EF4444;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 8rpx;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.cancel-btn {
+  background: #F1F2F6;
+  color: #636E72;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+  color: #FFFFFF;
 }
 </style>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { getContacts, type Contact } from '../../api/contacts'
 import { onDataChanged } from '../../utils/events'
 
@@ -18,6 +19,10 @@ onMounted(() => {
   onDataChanged('contacts', () => {
     loadContacts()
   })
+})
+
+onShow(() => {
+  loadContacts()
 })
 
 // 页面销毁时清理事件监听（uni-app 中用 onUnmounted 或页面栈管理）
