@@ -5,6 +5,7 @@ import { getToken } from './utils/auth'
 import { verifyToken } from './api/auth'
 // #ifdef H5
 import { initPwaManager } from './utils/pwa'
+import { initAppPermissions } from './utils/permissions'
 // #endif
 
 const themeVars: ConfigProviderThemeVars = {
@@ -48,6 +49,7 @@ function skipH5DevVerification(): boolean {
 onLaunch(async () => {
   // #ifdef H5
   initPwaManager()
+  initAppPermissions()
   // #endif
 
   const token = getToken()

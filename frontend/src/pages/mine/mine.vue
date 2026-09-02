@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { getUserInfo, setUserInfo, type UserInfo } from '../../utils/auth'
 import { updateProfile } from '../../api/auth'
 import { isPwaInstalled } from '../../utils/pwa'
+import { requestNotificationPermission, requestLocationPermission } from '../../utils/permissions'
 import PwaInstallModal from '../../components/pwa-install-modal.vue'
 
 const userInfo = ref<UserInfo | null>(null)
@@ -18,6 +19,18 @@ onMounted(() => {
   const info = getUserInfo()
   userInfo.value = info
 })
+
+async function handleCheckPermissions() {
+  const notif = await requestNotificationPermission()
+  const loc = await requestLocationPermission()
+  const notifText = notif === 'granted' ? '✅ 已允许' : notif === 'denied' ? '❌ 已拒绝' : '⚠️ 未授权'
+  const locText = loc ? `✅ 已获取定位 (${loc.latitude.toFixed(2)}, ${loc.longitude.toFixed(2)})` : '⚠️ 未授权/未开启'
+  uni.showModal({
+    title: '系统权限设置',
+    content: `🔔 消息推送通知：${notifText}\n📍 同城人脉定位：${locText}\n\n用于根据手机定位变化，自动感知同城人脉并推送关怀提醒。`,
+    showCancel: false
+  })
+}
 
 function goPrivacy() {
   uni.navigateTo({ url: '/pages/privacy/privacy' })
@@ -170,6 +183,13 @@ function confirmLogout() {
         <text class="settings-label">安装到手机桌面 (App)</text>
         <view class="pwa-status-tag" v-if="isInstalled">已安装</view>
         <text v-else class="settings-arrow">›</text>
+      </view>
+      <view class="settings-item" @click="handleCheckPermissions">
+        <view class="settings-icon-wrap location-icon">
+          <wd-icon name="location" size="18px" />
+        </view>
+        <text class="settings-label">系统权限 (通知 / 同城定位)</text>
+        <text class="settings-arrow">›</text>
       </view>
       <!-- #endif -->
       <view class="settings-item" @click="goChangePassword">
@@ -510,6 +530,10 @@ function confirmLogout() {
 
 .pwa-icon {
   background: #F0EEFF;
+}
+
+.location-icon {
+  background: #E6FFFA;
 }
 
 .pwa-status-tag {
