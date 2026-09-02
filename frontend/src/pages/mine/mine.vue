@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { getUserInfo, setUserInfo } from '../../utils/auth'
+import { ref, onMounted, computed } from 'vue'
+import { getUserInfo, setUserInfo, type UserInfo } from '../../utils/auth'
 import { updateProfile } from '../../api/auth'
+import { isPwaInstalled } from '../../utils/pwa'
+import PwaInstallModal from '../../components/pwa-install-modal.vue'
 
-const userInfo = ref<{ nickname: string | null; avatar: string | null } | null>(null)
+const userInfo = ref<UserInfo | null>(null)
 const version = 'v0.1.0'
 const showNicknameModal = ref(false)
+const showPwaModal = ref(false)
+const isInstalled = computed(() => isPwaInstalled.value)
 const newNickname = ref('')
 const nicknameModalError = ref('')
 const NICKNAME_REGEX = /^[一-龥a-zA-Z0-9$+_]+$/u
@@ -58,8 +62,9 @@ async function confirmNickname() {
   try {
     const result = await updateProfile({ nickname })
     if (result.success && result.data) {
-      setUserInfo({ nickname: result.data.nickname, avatar: userInfo.value?.avatar || null })
-      userInfo.value = { ...userInfo.value, nickname: result.data.nickname }
+      const updated: UserInfo = { id: userInfo.value?.id, nickname: result.data.nickname, avatar: userInfo.value?.avatar ?? null }
+      setUserInfo(updated)
+      userInfo.value = updated
       uni.showToast({ title: '修改成功', icon: 'success' })
       showNicknameModal.value = false
     } else {
@@ -157,6 +162,16 @@ function confirmLogout() {
 
     <!-- 设置分组 -->
     <view class="settings-card">
+      <!-- #ifdef H5 -->
+      <view class="settings-item pwa-item" @click="showPwaModal = true">
+        <view class="settings-icon-wrap pwa-icon">
+          <wd-icon name="mobile" size="18px" />
+        </view>
+        <text class="settings-label">安装到手机桌面 (App)</text>
+        <view class="pwa-status-tag" v-if="isInstalled">已安装</view>
+        <text v-else class="settings-arrow">›</text>
+      </view>
+      <!-- #endif -->
       <view class="settings-item" @click="goChangePassword">
         <view class="settings-icon-wrap password-icon">
           <wd-icon name="lock-off" size="18px" />
@@ -191,6 +206,11 @@ function confirmLogout() {
     <view class="logout-area">
       <button class="logout-btn" @click="confirmLogout">退出登录</button>
     </view>
+
+    <!-- PWA 安装模态框 -->
+    <!-- #ifdef H5 -->
+    <PwaInstallModal v-model="showPwaModal" />
+    <!-- #endif -->
   </view>
 </template>
 
@@ -486,5 +506,18 @@ function confirmLogout() {
 .confirm-btn {
   background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
   color: #FFFFFF;
+}
+
+.pwa-icon {
+  background: #F0EEFF;
+}
+
+.pwa-status-tag {
+  font-size: 22rpx;
+  color: #276749;
+  background: #EBFEEB;
+  padding: 4rpx 14rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
 }
 </style>

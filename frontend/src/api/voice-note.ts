@@ -51,21 +51,29 @@ export interface SaveVoiceNoteResponse {
 /**
  * 处理语音转录文本，提取结构化信息
  */
-export async function processVoiceNote(
+export function processVoiceNote(
   transcript: string,
   contactId?: string
-): Promise<ProcessVoiceNoteResponse> {
-  return request.post('/voice-note/process', {
-    transcript,
-    contactId,
+) {
+  return request<ProcessVoiceNoteResponse>({
+    url: '/voice-note/process',
+    method: 'POST',
+    data: {
+      transcript,
+      contactId,
+    },
   })
 }
 
 /**
  * 保存语音笔记交互记录
  */
-export async function saveVoiceNote(
+export function saveVoiceNote(
   data: SaveVoiceNoteData
-): Promise<SaveVoiceNoteResponse> {
-  return request.post('/voice-note/save', data)
+) {
+  return request<SaveVoiceNoteResponse>({
+    url: '/voice-note/save',
+    method: 'POST',
+    data,
+  })
 }

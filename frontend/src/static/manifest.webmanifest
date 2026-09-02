@@ -1,0 +1,56 @@
+{
+  "name": "常联系 - AI 个人人脉 CRM",
+  "short_name": "常联系",
+  "description": "记住你见过谁、聊了什么、该什么时候联系",
+  "start_url": "/crm/",
+  "scope": "/crm/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F8F9FA",
+  "theme_color": "#6C5CE7",
+  "lang": "zh-CN",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "/crm/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/crm/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/crm/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "语音速记",
+      "short_name": "语音速记",
+      "description": "快速记录人脉交互",
+      "url": "/crm/#/pages/voice-note/voice-note",
+      "icons": [{ "src": "/crm/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "扫描名片",
+      "short_name": "扫名片",
+      "description": "拍照或上传识别名片",
+      "url": "/crm/#/pages/ocr/scan/scan",
+      "icons": [{ "src": "/crm/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "添加联系人",
+      "short_name": "加联系人",
+      "description": "新建联系人档案",
+      "url": "/crm/#/pages/contacts/edit/edit",
+      "icons": [{ "src": "/crm/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

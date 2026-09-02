@@ -1,8 +1,8 @@
 const TOKEN_KEY = 'token'
 const USER_KEY = 'userInfo'
 
-interface UserInfo {
-  id: string
+export interface UserInfo {
+  id?: string
   nickname: string | null
   avatar: string | null
 }

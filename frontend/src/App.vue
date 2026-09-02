@@ -3,6 +3,9 @@ import { onLaunch } from '@dcloudio/uni-app'
 import type { ConfigProviderThemeVars } from 'wot-design-uni'
 import { getToken } from './utils/auth'
 import { verifyToken } from './api/auth'
+// #ifdef H5
+import { initPwaManager } from './utils/pwa'
+// #endif
 
 const themeVars: ConfigProviderThemeVars = {
   colorTheme: '#6C5CE7',
@@ -43,6 +46,10 @@ function skipH5DevVerification(): boolean {
 // #endif
 
 onLaunch(async () => {
+  // #ifdef H5
+  initPwaManager()
+  // #endif
+
   const token = getToken()
   if (!token) {
     uni.reLaunch({ url: '/pages/login/login' })

@@ -103,12 +103,16 @@ async function handleProcess() {
 
   try {
     const response = await processVoiceNote(transcript.value, selectedContactId.value || undefined)
-    extractedData.value = response.extracted
+    if (response.success && response.data) {
+      extractedData.value = response.data.extracted
 
-    // 如果 AI 识别到联系人姓名，尝试匹配现有联系人
-    if (response.extracted.contactName && !selectedContactId.value) {
-      // TODO: 实现联系人搜索和自动匹配
-      console.log('识别到联系人:', response.extracted.contactName)
+      // 如果 AI 识别到联系人姓名，尝试匹配现有联系人
+      if (response.data.extracted.contactName && !selectedContactId.value) {
+        // TODO: 实现联系人搜索和自动匹配
+        console.log('识别到联系人:', response.data.extracted.contactName)
+      }
+    } else {
+      errorMessage.value = response.error || '处理失败'
     }
   } catch (error: any) {
     errorMessage.value = `处理失败: ${error.message}`
@@ -135,7 +139,7 @@ async function handleSave() {
   errorMessage.value = ''
 
   try {
-    await saveVoiceNote({
+    const res = await saveVoiceNote({
       contactId: selectedContactId.value,
       transcript: transcript.value,
       summary: extractedData.value.summary,
@@ -144,14 +148,18 @@ async function handleSave() {
       reminderDays: extractedData.value.reminder?.daysLater,
     })
 
-    emitDataChanged('interactions', 'create')
-    uni.showToast({ title: '已保存', icon: 'success' })
+    if (res.success) {
+      emitDataChanged('interactions', 'create')
+      uni.showToast({ title: '已保存', icon: 'success' })
 
-    // 重置状态
-    setTimeout(() => {
-      resetState()
-      uni.navigateBack()
-    }, 500)
+      // 重置状态
+      setTimeout(() => {
+        resetState()
+        uni.navigateBack()
+      }, 500)
+    } else {
+      errorMessage.value = res.error || '保存失败'
+    }
   } catch (error: any) {
     errorMessage.value = `保存失败: ${error.message}`
   } finally {
