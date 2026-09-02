@@ -50,12 +50,19 @@ export function scanBusinessCard(imagePath: string): Promise<ScanResult> {
 }
 
 function getServerInfo(): { protocol: string; host: string } {
-  // In production, use env config
-  const url = (import.meta as any).env?.VITE_API_URL || ''
-  if (url) {
+  // #ifdef H5
+  // H5 uses Vite proxy, so relative path is fine. Use localhost as fallback.
+  return { protocol: 'http', host: 'localhost:5000' }
+  // #endif
+  // #ifdef MP-WEIXIN
+  // Mini program needs full URL to backend
+  const url = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api'
+  try {
     const parsed = new URL(url)
-    return { protocol: parsed.protocol.replace(':', ''), host: parsed.host }
+    const host = parsed.port ? parsed.host : `${parsed.hostname}:5000`
+    return { protocol: parsed.protocol.replace(':', ''), host }
+  } catch {
+    return { protocol: 'http', host: 'localhost:5000' }
   }
-  // Fallback for development
-  return { protocol: 'http', host: 'localhost:3000' }
+  // #endif
 }

@@ -10,10 +10,14 @@ dist/
 .env.local
 .env.*.local
 
-# Logs
+# Logs & Debug
 *.log
 npm-debug.log*
 pnpm-debug.log*
+build_log.txt
+*build_log.txt
+runtime_info.json
+viewport_error.json
 
 # Turbo
 .turbo/

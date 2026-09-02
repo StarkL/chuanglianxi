@@ -1,0 +1,7 @@
+﻿
+Name       InterfaceAlias NetworkCategory
+----       -------------- ---------------
+CJY-A1     以太网                     Public
+aTrustVNIC aTrustVNIC              Public
+
+

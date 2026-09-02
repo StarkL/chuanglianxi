@@ -55,9 +55,10 @@ export async function processVoiceNote(
   transcript: string,
   contactId?: string
 ): Promise<ProcessVoiceNoteResponse> {
-  return request.post('/voice-note/process', {
-    transcript,
-    contactId,
+  return request<ProcessVoiceNoteResponse>({
+    url: '/voice-note/process',
+    method: 'POST',
+    data: { transcript, contactId },
   })
 }
 
@@ -67,5 +68,9 @@ export async function processVoiceNote(
 export async function saveVoiceNote(
   data: SaveVoiceNoteData
 ): Promise<SaveVoiceNoteResponse> {
-  return request.post('/voice-note/save', data)
+  return request<SaveVoiceNoteResponse>({
+    url: '/voice-note/save',
+    method: 'POST',
+    data,
+  })
 }

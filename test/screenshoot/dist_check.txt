@@ -1,0 +1,6 @@
+﻿
+frontend\dist\dev\mp-weixin\utils\request.js:7:    if (platform === "devtools") return "http://localhost:5000/api"
+;
+frontend\dist\dev\mp-weixin\utils\request.js:10:  return "http://192.168.3.84:5000/api";
+
+

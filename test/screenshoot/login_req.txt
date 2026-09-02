@@ -1,0 +1,9 @@
+﻿
+{"level":30,"time":1785373137370,"pid":39816,"hostname":"LAPTOP-EC2U3KR9","reqId":"req-1","req":{"method":"GET","u
+rl":"/api/contacts","host":"localhost:5000","remoteAddress":"127.0.0.1","remotePort":5832},"msg":"incoming request
+"}
+{"level":30,"time":1785373137443,"pid":39816,"hostname":"LAPTOP-EC2U3KR9","reqId":"req-2","req":{"method":"GET","u
+rl":"/api/contacts","host":"localhost:5000","remoteAddress":"127.0.0.1","remotePort":5832},"msg":"incoming request
+"}
+
+

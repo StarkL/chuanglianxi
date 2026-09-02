@@ -3,7 +3,7 @@ import { env } from '../config/env.js'
 
 const qwen = new OpenAI({
   apiKey: env.QWEN_API_KEY,
-  baseURL: 'https://coding.dashscope.aliyuncs.com/v1',
+  baseURL: env.QWEN_BASE_URL,
 })
 
 export interface VoiceNoteExtractResult {

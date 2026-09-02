@@ -18,13 +18,15 @@ interface WechatError {
 const importing = ref(false)
 
 async function handleImport() {
+  console.log('[import] ==== 点击导入 ====', { importing: importing.value })
   if (importing.value) return
   try {
+    console.log('[import] ==== uni.login ====')
     const loginRes = await new Promise<LoginRes>((resolve, reject) => {
       uni.login({
         provider: 'weixin',
-        success: resolve,
-        fail: reject,
+        success: (res) => { console.log('[import] uni.login success', res); resolve(res) },
+        fail: (err) => { console.log('[import] uni.login fail', err); reject(err) },
       })
     })
 
@@ -33,11 +35,14 @@ async function handleImport() {
       uni.showToast({ title: '获取登录凭证失败', icon: 'none' })
       return
     }
+    console.log('[import] code=', code)
 
     uni.chooseContact({
       success: async (res: unknown) => {
+        console.log('[import] chooseContact success', res)
         const contactRes = res as ContactChooseRes
         if (!contactRes.encryptedData || !contactRes.iv) {
+          console.log('[import] 缺少 encryptedData/iv，原始返回:', JSON.stringify(res))
           uni.hideLoading()
           uni.showToast({ title: '无法获取联系人数据', icon: 'none' })
           return
@@ -45,7 +50,9 @@ async function handleImport() {
         importing.value = true
         uni.showLoading({ title: '导入中...' })
         try {
+          console.log('[import] ==== 请求 import-from-phone ====')
           const result = await importContactFromPhone(code, contactRes.encryptedData, contactRes.iv)
+          console.log('[import] import-from-phone 返回', result)
           uni.hideLoading()
           if (result.success && result.data) {
             if (result.data.duplicate) {
@@ -62,7 +69,8 @@ async function handleImport() {
           } else {
             uni.showToast({ title: result.error || '导入失败', icon: 'none' })
           }
-        } catch {
+        } catch (e) {
+          console.error('[import] 请求异常', e)
           uni.hideLoading()
           uni.showToast({ title: '导入失败', icon: 'none' })
         } finally {
@@ -70,6 +78,7 @@ async function handleImport() {
         }
       },
       fail: (err: unknown) => {
+        console.error('[import] chooseContact fail', err)
         const wechatErr = err as WechatError
         if (wechatErr.errMsg && wechatErr.errMsg.includes('permission')) {
           uni.showToast({ title: '需要通讯录权限', icon: 'none' })
@@ -78,7 +87,8 @@ async function handleImport() {
         }
       },
     })
-  } catch {
+  } catch (e) {
+    console.error('[import] 外层异常', e)
     uni.showToast({ title: '获取登录凭证失败', icon: 'none' })
   }
 }
@@ -112,7 +122,7 @@ async function handleImport() {
         </view>
         <view class="tip-item">
           <text class="tip-icon">🔒</text>
-          <text class="tip-text">通讯录数据仅用于导入，不会上传</text>
+          <text class="tip-text">联系人数据全程端到端加密传输</text>
         </view>
       </view>
 

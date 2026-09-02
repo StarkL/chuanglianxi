@@ -98,6 +98,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error'
+        request.log.error({ message }, 'WeChat login failed')
         return reply.code(400).send({
           success: false,
           error: message.includes('code2Session') ? '微信授权失败' : '登录失败，请重试',

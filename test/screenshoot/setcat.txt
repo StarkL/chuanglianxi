@@ -1,0 +1,10 @@
+﻿Set-NetConnectionProfile : Unable to set the NetworkCategory due to one of the following possible reasons: not running Powe
+rShell elevated; the NetworkCategory cannot be changed from 'DomainAuthenticated'; user initiated changes to NetworkCategor
+y are being prevented due to the Group Policy setting 'Network List Manager Policies'.
+所在位置 行:1 字符: 1
++ Set-NetConnectionProfile -InterfaceAlias "以太网" -NetworkCategory Priva ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (MSFT_NetConnect...70E6F3F14632}"):root/StandardCi...nnectionProfile) [Set 
+   -NetConnectionProfile], CimException
+    + FullyQualifiedErrorId : MI RESULT 2,Set-NetConnectionProfile
+ 

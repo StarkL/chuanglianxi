@@ -78,25 +78,34 @@ async function handleH5Submit() {
 
 // #ifdef MP-WEIXIN
 async function handleLogin() {
-  if (loading.value || !agreedToPolicies.value) return
+  console.log('[login] ==== 点击微信登录 ====', { loading: loading.value, agreed: agreedToPolicies.value })
+  if (loading.value || !agreedToPolicies.value) {
+    console.log('[login] 已返回(loading 或 未勾选协议)')
+    return
+  }
   loading.value = true
   error.value = ''
 
   try {
+    console.log('[login] ==== 调用 uni.login ====')
     const loginResult = await new Promise<UniApp.LoginRes>((resolve, reject) => {
       uni.login({
         provider: 'weixin',
-        success: resolve,
-        fail: reject,
+        success: (res) => { console.log('[login] uni.login success', res); resolve(res) },
+        fail: (err) => { console.log('[login] uni.login fail', err); reject(err) },
       })
     })
 
+    console.log('[login] loginResult', loginResult)
     if (!loginResult.code) {
+      console.log('[login] 没有拿到 code，返回授权失败')
       error.value = '微信授权失败'
       return
     }
 
+    console.log('[login] ==== 请求 wechat-login, code=', loginResult.code)
     const res = await login({ code: loginResult.code })
+    console.log('[login] wechat-login 返回', res)
 
     if (res.success && res.data) {
       setToken(res.data.token)
@@ -106,7 +115,9 @@ async function handleLogin() {
       error.value = res.error || '登录失败，请重试'
     }
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : ''
+    console.error('[login] ==== 登录异常 ====', err)
+    const message = err instanceof Error ? err.message : String(err)
+    console.log('[login] 异常 message =', message)
     if (message.includes('cancel') || message.includes('fail')) {
       error.value = '登录已取消'
     } else if (message.includes('network') || message.includes('request')) {
@@ -116,6 +127,7 @@ async function handleLogin() {
     }
   } finally {
     loading.value = false
+    console.log('[login] ==== 结束 ====')
   }
 }
 // #endif

@@ -1,12 +1,12 @@
 #!/bin/bash
-# 轻量级部署脚本 - 从本地推送构建好的文件到 VPS
+# 轻量级部署脚本 - 从本地推送构建好的后端到 VPS（免 Docker，纯 node 进程）
 # 用法: bash deploy-lite.sh <VPS_IP> [SSH_USER]
 
 set -e
 
 SERVER_IP="${1:?请提供 VPS IP: bash deploy-lite.sh <VPS_IP> [SSH_USER]}"
 SSH_USER="${2:-root}"
-REMOTE_DIR="/opt/chuanglianxi"
+REMOTE_DIR="/home/admin/chuanglianxi/backend"
 
 echo "🚀 开始轻量级部署到 ${SERVER_IP}..."
 echo ""
@@ -34,7 +34,7 @@ scp /tmp/backend-dist.tar.gz ${SSH_USER}@${SERVER_IP}:/tmp/
 # 4. 解压并安装依赖
 echo "🔧 在 VPS 上解压并安装..."
 ssh ${SSH_USER}@${SERVER_IP} << 'EOF'
-  cd /opt/chuanglianxi
+  cd /home/admin/chuanglianxi/backend
 
   # 停止旧服务
   pkill -f "node dist/index.js" 2>/dev/null || true
@@ -86,10 +86,10 @@ echo "========================================="
 echo "  ✅ 部署完成！"
 echo "========================================="
 echo ""
-echo "📍 后端 API: http://${SERVER_IP}:5000/api"
+echo "📍 后端 API: http://${SERVER_IP}/crm/api"
 echo "📍 H5 页面:  http://${SERVER_IP}/crm/"
 echo "📍 语音速记: http://${SERVER_IP}/crm/pages/voice-note/voice-note"
 echo ""
-echo "查看日志: ssh ${SSH_USER}@${SERVER_IP} 'tail -f /opt/chuanglianxi/app.log'"
+echo "查看日志: ssh ${SSH_USER}@${SERVER_IP} 'tail -f /home/admin/chuanglianxi/backend/app.log'"
 echo "停止服务: ssh ${SSH_USER}@${SERVER_IP} 'pkill -f \"node dist/index.js\"'"
 echo ""
