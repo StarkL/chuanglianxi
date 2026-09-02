@@ -41,7 +41,8 @@ backend/prisma/migrations/
 *.db
 backend/data.db
 
-# Test reports
+# Test reports & screenshots (local verification)
+test/
 frontend/playwright-report/
 frontend/test-results/
 frontend/test-report-*.md
