@@ -43,8 +43,13 @@ backend/data.db
 
 # Test reports & screenshots (local verification)
 test/
+test-*/
+frontend/test/
 frontend/playwright-report/
 frontend/test-results/
+frontend/test-results.json
+frontend/test-results.*
+frontend/tests/e2e/screenshots/
 frontend/test-report-*.md
 
 # Design assets

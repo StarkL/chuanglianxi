@@ -1,9 +1,9 @@
 /**
  * 常联系 (ChangLianXi) PWA Service Worker
- * Version: 1.0.0
+ * Version: 1.0.1
  */
 
-const CACHE_NAME = 'changlianxi-pwa-v1'
+const CACHE_NAME = 'changlianxi-pwa-v2'
 const BASE_PATH = '/crm/'
 
 // 预缓存核心静态资产
@@ -22,7 +22,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-        console.warn('[SW] Pre-cache some assets failed:', err)
+        console.warn('[SW] Pre-cache assets failed:', err)
       })
     }).then(() => self.skipWaiting())
   )
@@ -44,20 +44,18 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// 请求拦截策略：
-// - API 请求 (/api/ 或 /crm/api/)：网络优先 (Network First)
-// - 静态资源 (JS, CSS, 图片, 字体)：缓存优先或网络回退 (StaleWhileRevalidate)
+// 请求拦截策略
 self.addEventListener('fetch', (event) => {
   const request = event.request
 
-  // 只拦截 GET 请求与 HTTP/HTTPS 请求
+  // 只拦截 GET 请求
   if (request.method !== 'GET' || !request.url.startsWith('http')) {
     return
   }
 
   const url = new URL(request.url)
 
-  // API 路由：网络优先，失败时不缓存错误
+  // API 路由：网络优先
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(request).catch(() => {
@@ -70,7 +68,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // 页面导航请求（HTML）：网络优先，回退到离线 index.html
+  // 页面导航请求
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(() => {
@@ -80,20 +78,19 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // 其他静态资产：Stale While Revalidate
+  // 静态资产：优先缓存，缓存未命中则回退网络
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      const fetchPromise = fetch(request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone()
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache)
-          })
-        }
-        return networkResponse
-      }).catch(() => cachedResponse)
-
-      return cachedResponse || fetchPromise
+      if (cachedResponse) {
+        // 后台静默刷新缓存
+        fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse))
+          }
+        }).catch(() => {})
+        return cachedResponse
+      }
+      return fetch(request)
     })
   )
 })
