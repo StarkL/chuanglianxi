@@ -84,3 +84,32 @@ export function importContactFromPhone(code: string, encryptedData: string, iv: 
     data: { code, encryptedData, iv } as Record<string, unknown>
   })
 }
+
+export interface BatchImportParams {
+  contacts: Array<{
+    name: string
+    phone?: string
+    company?: string
+    title?: string
+    email?: string
+    wechatId?: string
+    source?: string
+    tags?: string[]
+  }>
+  defaultTag?: string
+}
+
+export interface BatchImportResult {
+  total: number
+  imported: number
+  skipped: number
+}
+
+export function batchImportContacts(data: BatchImportParams) {
+  return request<BatchImportResult>({
+    url: '/contacts/batch',
+    method: 'POST',
+    data: data as Record<string, unknown>
+  })
+}
+

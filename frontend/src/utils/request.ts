@@ -12,7 +12,12 @@ interface RequestOptions {
   data?: any
 }
 
-const BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api'
+const BASE_URL =
+  (import.meta as any).env?.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.pathname.startsWith('/crm')
+    ? '/crm/api'
+    : '/api')
+
 
 export function request<T>(options: RequestOptions): Promise<ApiResponse<T>> {
   const token = getToken()
