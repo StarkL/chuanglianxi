@@ -169,7 +169,11 @@ import {
   migrateCloudToLocal,
   exportLocalBackupString,
   importLocalBackupString,
-  type StorageMode
+  getLocalBackupMeta,
+  downloadLocalBackupFile,
+  BACKUP_JSON_EXAMPLE,
+  type StorageMode,
+  type LocalBackupMeta
 } from '../../utils/storage-mode'
 
 const currentStorageMode = ref<StorageMode>('cloud')
@@ -178,11 +182,16 @@ const migrating = ref(false)
 const migrationProgress = ref('')
 const deleteCloudAfterMigration = ref(false)
 const showBackupRestoreModal = ref(false)
+const showJsonSchemaModal = ref(false)
+const backupMeta = ref<LocalBackupMeta | null>(null)
 const backupJsonInput = ref('')
 
-function handleOpenStorageModal() {
+async function handleOpenStorageModal() {
   currentStorageMode.value = getStorageMode()
   showStorageModal.value = true
+  if (currentStorageMode.value === 'local') {
+    backupMeta.value = await getLocalBackupMeta()
+  }
 }
 
 async function handleSwitchToLocal() {
@@ -204,6 +213,7 @@ async function handleSwitchToLocal() {
         migrating.value = false
         if (result.success) {
           currentStorageMode.value = 'local'
+          backupMeta.value = await getLocalBackupMeta()
           uni.showToast({ title: `已切换！本地保存${result.count}条`, icon: 'success' })
         } else {
           uni.showToast({ title: result.error || '切换失败', icon: 'none' })
@@ -240,20 +250,92 @@ async function handleSwitchToCloud() {
 
 async function handleExportBackup() {
   try {
-    const json = await exportLocalBackupString()
-    uni.setClipboardData({
-      data: json,
-      success: () => {
-        uni.showModal({
-          title: '备份导出成功',
-          content: '全部通讯录及交互记录 JSON 已复制到剪贴板。请妥善粘贴保存至备忘录或文件传输助手中！',
-          showCancel: false
-        })
-      }
-    })
+    const meta = backupMeta.value || (await getLocalBackupMeta())
+    backupMeta.value = meta
+    if (meta.isOversized) {
+      uni.showModal({
+        title: '⚠️ 数据量较大警告',
+        content: `当前本地备份数据量为 ${meta.sizeFormatted}（>= 1MB）。直接写入剪贴板极易引发界面或浏览器假死！强烈建议改用【下载备份文件】。\n\n是否仍坚持复制到剪贴板？`,
+        confirmText: '坚持复制',
+        confirmColor: '#E17055',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            doCopyBackup(meta.jsonString)
+          }
+        }
+      })
+    } else {
+      doCopyBackup(meta.jsonString)
+    }
   } catch (err: any) {
     uni.showToast({ title: '导出失败: ' + err.message, icon: 'none' })
   }
+}
+
+function doCopyBackup(json: string) {
+  uni.setClipboardData({
+    data: json,
+    success: () => {
+      uni.showModal({
+        title: '备份导出成功',
+        content: '数据已复制到剪贴板。数据量较小 (< 1MB)，您可粘贴至记事本查验底层字段是否已完成 AES-256-GCM 强加密密文落盘。',
+        showCancel: false
+      })
+    }
+  })
+}
+
+async function handleDownloadBackup() {
+  try {
+    const meta = backupMeta.value || (await getLocalBackupMeta())
+    backupMeta.value = meta
+    const res = await downloadLocalBackupFile(meta.jsonString)
+    if (res.success) {
+      uni.showToast({ title: '备份文件下载中', icon: 'success' })
+    }
+  } catch (err: any) {
+    uni.showToast({ title: '下载失败: ' + err.message, icon: 'none' })
+  }
+}
+
+function triggerFilePicker() {
+  // #ifdef H5
+  if (typeof document !== 'undefined') {
+    const input = document.getElementById('backup-file-input') as HTMLInputElement
+    if (input) {
+      input.value = ''
+      input.click()
+    }
+  }
+  // #endif
+}
+
+async function onFileSelected(event: any) {
+  const file = event.target?.files?.[0]
+  if (!file) return
+  try {
+    const text = await file.text()
+    const res = await importLocalBackupString(text)
+    if (res.success) {
+      uni.showToast({ title: `成功从文件恢复 ${res.count} 位联系人`, icon: 'success' })
+      showBackupRestoreModal.value = false
+      backupMeta.value = await getLocalBackupMeta()
+    } else {
+      uni.showToast({ title: res.error || '恢复失败', icon: 'none' })
+    }
+  } catch (err: any) {
+    uni.showToast({ title: '读取文件失败: ' + err.message, icon: 'none' })
+  }
+}
+
+function copySchemaExample() {
+  uni.setClipboardData({
+    data: BACKUP_JSON_EXAMPLE,
+    success: () => {
+      uni.showToast({ title: '示例已复制', icon: 'success' })
+    }
+  })
 }
 
 async function handleImportBackup() {
@@ -267,6 +349,7 @@ async function handleImportBackup() {
       uni.showToast({ title: `成功恢复 ${res.count} 位联系人`, icon: 'success' })
       showBackupRestoreModal.value = false
       backupJsonInput.value = ''
+      backupMeta.value = await getLocalBackupMeta()
     } else {
       uni.showToast({ title: res.error || '恢复失败', icon: 'none' })
     }
@@ -509,14 +592,62 @@ async function handleImportBackup() {
 
         <!-- 本地模式专属：备份与恢复 -->
         <view v-if="currentStorageMode === 'local'" class="local-backup-section">
-          <text class="crypto-label">本地数据备份：</text>
-          <view class="backup-actions">
-            <view class="backup-btn export-btn" @click="handleExportBackup">
-              <text>📦 导出备份到剪贴板</text>
+          <view class="local-backup-header">
+            <text class="crypto-label">本地数据量与备份：</text>
+            <text v-if="backupMeta" class="backup-meta-tag">
+              {{ backupMeta.contactsCount }}联系人 · {{ backupMeta.interactionsCount }}互动 ({{ backupMeta.sizeFormatted }})
+            </text>
+          </view>
+
+          <!-- 容量评估与建议卡片 -->
+          <view v-if="backupMeta" class="size-hint-box" :class="backupMeta.isOversized ? 'oversized' : 'compact'">
+            <view class="size-hint-title-row">
+              <text class="size-hint-icon">{{ backupMeta.isOversized ? '⚠️' : '💡' }}</text>
+              <text class="size-hint-title">
+                {{ backupMeta.isOversized ? '数据量较大 (>= 1MB)' : '数据量较小 (< 1MB) · 适合查验' }}
+              </text>
             </view>
-            <view class="backup-btn import-btn" @click="showBackupRestoreModal = true">
-              <text>📥 恢复/导入备份</text>
+            <text class="size-hint-desc">
+              {{
+                backupMeta.isOversized
+                  ? `当前备份数据量为 ${backupMeta.sizeFormatted}。复制超大文本到剪贴板易导致手机或浏览器卡死，强烈建议直接点击【下载备份文件】。`
+                  : `当前数据量为 ${backupMeta.sizeFormatted}。支持一键导出至剪贴板，方便您粘贴到记事本中查验底层字段是否确实为 AES-256-GCM 加密密文。`
+              }}
+            </text>
+          </view>
+
+          <!-- 导出按钮区 -->
+          <view class="backup-actions-grid">
+            <view class="backup-btn download-btn" @click="handleDownloadBackup">
+              <text>💾 下载备份文件 (.json)</text>
             </view>
+            <view class="backup-btn copy-export-btn" @click="handleExportBackup">
+              <text>📋 导出至剪贴板</text>
+            </view>
+          </view>
+
+          <!-- 恢复与导入区 -->
+          <view class="backup-actions-grid secondary-actions">
+            <!-- #ifdef H5 -->
+            <input
+              id="backup-file-input"
+              type="file"
+              accept=".json"
+              style="display: none;"
+              @change="onFileSelected"
+            />
+            <view class="backup-btn file-pick-btn" @click="triggerFilePicker">
+              <text>📁 文件恢复</text>
+            </view>
+            <!-- #endif -->
+            <view class="backup-btn paste-import-btn" @click="showBackupRestoreModal = true">
+              <text>📝 文本恢复</text>
+            </view>
+          </view>
+
+          <!-- 规范格式链接 -->
+          <view class="schema-guide-link" @click="showJsonSchemaModal = true">
+            <text>📖 查看标准 JSON 导入格式规范</text>
           </view>
         </view>
 
@@ -532,6 +663,9 @@ async function handleImportBackup() {
     <view v-if="showBackupRestoreModal" class="modal-overlay" @click.self="showBackupRestoreModal = false">
       <view class="modal-content">
         <text class="modal-title">📥 恢复本地备份数据</text>
+        <view class="schema-hint-line" @click="showJsonSchemaModal = true">
+          <text>❓ 不确定格式？点击查看标准 JSON 格式示例</text>
+        </view>
         <textarea
           class="backup-textarea"
           v-model="backupJsonInput"
@@ -543,6 +677,27 @@ async function handleImportBackup() {
           </view>
           <view class="modal-btn confirm-btn" @click="handleImportBackup">
             <text>确认恢复</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- JSON 规范格式预览弹窗 -->
+    <view v-if="showJsonSchemaModal" class="modal-overlay" @click.self="showJsonSchemaModal = false">
+      <view class="modal-content schema-modal-content">
+        <text class="modal-title">📖 JSON 备份恢复规范格式</text>
+        <text class="crypto-desc">
+          系统支持标准 JSON 结构直接导入与导出。以下为格式示例：
+        </text>
+        <view class="schema-code-box">
+          <text class="schema-code-text">{{ BACKUP_JSON_EXAMPLE }}</text>
+        </view>
+        <view class="modal-actions schema-actions">
+          <view class="modal-btn cancel-btn" @click="copySchemaExample">
+            <text>📋 复制示例</text>
+          </view>
+          <view class="modal-btn confirm-btn" @click="showJsonSchemaModal = false">
+            <text>我知道了</text>
           </view>
         </view>
       </view>
@@ -1074,10 +1229,77 @@ async function handleImportBackup() {
   border-radius: 12rpx;
 }
 
-.backup-actions {
+.local-backup-header {
   display: flex;
-  gap: 16rpx;
-  margin-top: 12rpx;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.backup-meta-tag {
+  font-size: 20rpx;
+  color: #00B894;
+  background: #E6FFFA;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.size-hint-box {
+  border-radius: 12rpx;
+  padding: 14rpx 16rpx;
+  margin-bottom: 16rpx;
+  font-size: 22rpx;
+}
+
+.size-hint-box.compact {
+  background: #ECFDF5;
+  border: 1rpx solid #A7F3D0;
+}
+
+.size-hint-box.oversized {
+  background: #FFF7ED;
+  border: 1rpx solid #FED7AA;
+}
+
+.size-hint-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 6rpx;
+}
+
+.size-hint-title {
+  font-weight: 600;
+  font-size: 22rpx;
+}
+
+.size-hint-box.compact .size-hint-title {
+  color: #047857;
+}
+
+.size-hint-box.oversized .size-hint-title {
+  color: #C2410C;
+}
+
+.size-hint-desc {
+  font-size: 20rpx;
+  line-height: 1.4;
+  display: block;
+}
+
+.size-hint-box.compact .size-hint-desc {
+  color: #065F46;
+}
+
+.size-hint-box.oversized .size-hint-desc {
+  color: #9A3412;
+}
+
+.backup-actions-grid {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
 }
 
 .backup-btn {
@@ -1089,16 +1311,76 @@ async function handleImportBackup() {
   border-radius: 10rpx;
   font-size: 22rpx;
   font-weight: 500;
+  cursor: pointer;
 }
 
-.export-btn {
+.download-btn {
+  background: #00B894;
+  color: #FFFFFF;
+}
+
+.copy-export-btn {
   background: #E2E8F0;
   color: #334155;
 }
 
-.import-btn {
-  background: #E0E7FF;
+.file-pick-btn {
+  background: #EEF2FF;
   color: #4F46E5;
+}
+
+.paste-import-btn {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.schema-guide-link {
+  text-align: center;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #6C5CE7;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.schema-hint-line {
+  margin-bottom: 16rpx;
+  font-size: 22rpx;
+  color: #6C5CE7;
+  text-align: center;
+  cursor: pointer;
+}
+
+.schema-modal-content {
+  width: 92%;
+  max-width: 720rpx;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.schema-code-box {
+  background: #1E293B;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  max-height: 380rpx;
+  overflow-y: auto;
+  margin: 16rpx 0;
+}
+
+.schema-code-text {
+  font-family: monospace;
+  font-size: 20rpx;
+  color: #A5F3FC;
+  white-space: pre;
+  display: block;
+  line-height: 1.4;
+}
+
+.schema-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 8rpx;
 }
 
 .backup-textarea {

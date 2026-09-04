@@ -243,6 +243,39 @@ export async function migrateCloudToLocal(options?: {
 // 本地备份与恢复导出 (Backup & Restore)
 // -------------------------------------------------------------
 
+export interface LocalBackupMeta {
+  contactsCount: number
+  interactionsCount: number
+  sizeBytes: number
+  sizeFormatted: string
+  isOversized: boolean // >= 1MB
+  jsonString: string
+}
+
+/**
+ * 获取本地数据体积与统计信息
+ */
+export async function getLocalBackupMeta(): Promise<LocalBackupMeta> {
+  const data = await localExportAllData()
+  const jsonString = JSON.stringify(data, null, 2)
+  const sizeBytes = new Blob([jsonString]).size
+  let sizeFormatted = `${sizeBytes} B`
+  if (sizeBytes >= 1024 * 1024) {
+    sizeFormatted = `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`
+  } else if (sizeBytes >= 1024) {
+    sizeFormatted = `${(sizeBytes / 1024).toFixed(1)} KB`
+  }
+
+  return {
+    contactsCount: data.contacts.length,
+    interactionsCount: data.interactions.length,
+    sizeBytes,
+    sizeFormatted,
+    isOversized: sizeBytes >= 1024 * 1024,
+    jsonString
+  }
+}
+
 /**
  * 导出本地备份为 JSON 字符串
  */
@@ -252,13 +285,66 @@ export async function exportLocalBackupString(): Promise<string> {
 }
 
 /**
+ * 下载本地备份文件为 .json
+ */
+export async function downloadLocalBackupFile(jsonContent?: string): Promise<{ success: boolean; filename: string }> {
+  const content = jsonContent || (await exportLocalBackupString())
+  const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
+  const now = new Date()
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0')
+  const filename = `changlianxi_backup_${dateStr}.json`
+
+  // #ifdef H5
+  if (typeof window !== 'undefined') {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 2000)
+    return { success: true, filename }
+  }
+  // #endif
+
+  return { success: false, filename }
+}
+
+/**
+ * 标准导入 JSON 格式示例
+ */
+export const BACKUP_JSON_EXAMPLE = `{
+  "version": 1,
+  "exportedAt": "2026-09-04T12:00:00.000Z",
+  "contacts": [
+    {
+      "name": "张三 (必填)",
+      "phone": "13800138000",
+      "company": "常联系科技",
+      "title": "总监",
+      "email": "zhangsan@example.com",
+      "wechatId": "zhangsan_wx",
+      "tags": ["工作", "VIP"]
+    }
+  ],
+  "interactions": [
+    {
+      "type": "manual_note",
+      "content": "跟进纪要内容",
+      "occurredAt": "2026-09-04T10:00:00.000Z"
+    }
+  ]
+}`
+
+/**
  * 从 JSON 备份字符串中恢复本地数据
  */
 export async function importLocalBackupString(jsonString: string): Promise<{ success: boolean; count: number; error?: string }> {
   try {
     const parsed = JSON.parse(jsonString.trim()) as LocalExportPayload
     if (!parsed || !Array.isArray(parsed.contacts)) {
-      return { success: false, count: 0, error: '备份文件格式不正确，缺少 contacts 数组' }
+      return { success: false, count: 0, error: '备份格式不正确：必须包含 contacts 数组' }
     }
 
     const res = await localRestoreData(parsed)
