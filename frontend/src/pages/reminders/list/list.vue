@@ -124,7 +124,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <view class="reminder-page">
+  <view class="reminder-page" :class="{ 'has-items': reminders.length > 0 }">
     <!-- 统计概览卡片 -->
     <view class="stats-card">
       <view class="stat-item">
@@ -258,10 +258,17 @@ onMounted(() => {
 
 <style scoped>
 .reminder-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #F8F9FA;
   padding: 32rpx;
-  padding-bottom: 160rpx;
+  padding-bottom: 32rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.reminder-page.has-items {
+  padding-bottom: calc(var(--window-bottom, 50px) + 120rpx);
 }
 
 /* ---- 统计概览卡片 ---- */
@@ -465,10 +472,12 @@ onMounted(() => {
 
 /* ---- 空状态 ---- */
 .empty-state {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 120rpx 0;
+  justify-content: center;
+  padding: 48rpx 0;
 }
 
 .empty-icon {

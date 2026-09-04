@@ -79,6 +79,23 @@ function goImport() {
   uni.navigateTo({ url: '/pages/contacts/import-phone' })
 }
 
+const showFabMenu = ref(false)
+
+function toggleFabMenu() {
+  showFabMenu.value = !showFabMenu.value
+}
+
+function handleMenuSelect(type: 'import' | 'create' | 'scan') {
+  showFabMenu.value = false
+  if (type === 'import') {
+    goImport()
+  } else if (type === 'create') {
+    goCreate()
+  } else if (type === 'scan') {
+    uni.navigateTo({ url: '/pages/ocr/scan/scan' })
+  }
+}
+
 // 计算关系温度环颜色（基于 tags）
 function getTempClass(contact: Contact): string {
   if (contact.tags.includes('家人')) return 'warm'
@@ -104,7 +121,7 @@ function getFreqClass(contact: Contact): string {
 </script>
 
 <template>
-  <view class="contact-list-page">
+  <view class="contact-list-page" :class="{ 'has-items': contacts.length > 0 }">
     <!-- 搜索栏 -->
     <view class="search-bar">
       <wd-search
@@ -122,7 +139,7 @@ function getFreqClass(contact: Contact): string {
     </view>
 
     <!-- 标签筛选 - 胶囊式横向滚动 -->
-    <scroll-view scroll-x class="tag-filter-scroll">
+    <scroll-view scroll-x :show-scrollbar="false" class="tag-filter-scroll">
       <view class="tag-filter">
         <view
           class="tag-item"
@@ -187,19 +204,50 @@ function getFreqClass(contact: Contact): string {
       <view class="empty-icon">📇</view>
       <text class="empty-title">暂无联系人</text>
       <text class="empty-hint">添加你的第一个联系人，开始管理你的人际关系吧</text>
+      <view class="empty-actions">
+        <view class="empty-btn primary" @click="goImport">
+          <text class="btn-icon">📥</text>
+          <text class="btn-text">批量导入通讯录</text>
+        </view>
+        <view class="empty-btn secondary" @click="goCreate">
+          <text class="btn-icon">➕</text>
+          <text class="btn-text">手动添加联系人</text>
+        </view>
+      </view>
     </view>
 
-    <!-- 底部操作区 -->
-    <view class="bottom-actions">
-      <!-- #ifndef H5 -->
-      <view class="import-btn-wrap">
-        <wd-button block plain @click="goImport" custom-class="import-btn">从通讯录导入</wd-button>
+    <!-- 浮动操作浮窗遮罩 -->
+    <view v-if="showFabMenu" class="fab-mask" @click="showFabMenu = false" />
+
+    <!-- 浮动操作卡片浮窗 -->
+    <view v-if="showFabMenu" class="fab-popover">
+      <view class="fab-menu-item" @click="handleMenuSelect('import')">
+        <view class="fab-menu-icon icon-import">📥</view>
+        <view class="fab-menu-info">
+          <text class="fab-menu-title">通讯录导入</text>
+          <text class="fab-menu-desc">手机通讯录 vcf 文件一键导入</text>
+        </view>
       </view>
-      <!-- #endif -->
+      <view class="fab-menu-divider" />
+      <view class="fab-menu-item" @click="handleMenuSelect('create')">
+        <view class="fab-menu-icon icon-create">➕</view>
+        <view class="fab-menu-info">
+          <text class="fab-menu-title">手动新增</text>
+          <text class="fab-menu-desc">逐项录入姓名、电话、公司等</text>
+        </view>
+      </view>
+      <view class="fab-menu-divider" />
+      <view class="fab-menu-item" @click="handleMenuSelect('scan')">
+        <view class="fab-menu-icon icon-scan">📷</view>
+        <view class="fab-menu-info">
+          <text class="fab-menu-title">扫描名片</text>
+          <text class="fab-menu-desc">拍照上传名片智能识别</text>
+        </view>
+      </view>
     </view>
 
     <!-- 浮动添加按钮 -->
-    <view class="fab" @click="goCreate">
+    <view class="fab" :class="{ 'is-active': showFabMenu }" @click="toggleFabMenu">
       <text class="fab-icon">+</text>
     </view>
   </view>
@@ -207,14 +255,21 @@ function getFreqClass(contact: Contact): string {
 
 <style scoped>
 .contact-list-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #F8F9FA;
-  padding-bottom: 160rpx;
+  padding-bottom: 32rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-list-page.has-items {
+  padding-bottom: calc(var(--window-bottom, 50px) + 120rpx);
 }
 
 /* ---- 搜索栏 ---- */
 .search-bar {
-  padding: 24rpx 32rpx 16rpx;
+  padding: 20rpx 32rpx 16rpx;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -225,7 +280,16 @@ function getFreqClass(contact: Contact): string {
 /* ---- 标签筛选 - 胶囊式横向滚动 ---- */
 .tag-filter-scroll {
   white-space: nowrap;
-  padding: 0 32rpx 24rpx;
+  padding: 0 32rpx 20rpx;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.tag-filter-scroll ::-webkit-scrollbar,
+.tag-filter-scroll::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .tag-filter {
@@ -379,35 +443,184 @@ function getFreqClass(contact: Contact): string {
 
 /* ---- 空状态 ---- */
 .empty-state {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 128rpx 64rpx;
+  justify-content: center;
+  padding: 40rpx 48rpx;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .empty-icon {
-  font-size: 128rpx;
-  margin-bottom: 32rpx;
-  opacity: 0.5;
+  font-size: 88rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
 }
 
 .empty-title {
   font-size: 32rpx;
   font-weight: 600;
   color: #2D3436;
-  margin-bottom: 12rpx;
+  margin-bottom: 10rpx;
 }
 
 .empty-hint {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: #B2BEC3;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
-/* ---- 底部操作区 ---- */
-.bottom-actions {
-  padding: 24rpx 32rpx;
+.empty-actions {
+  margin-top: 36rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  width: 100%;
+  max-width: 440rpx;
+}
+
+.empty-btn {
+  height: 80rpx;
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.empty-btn:active {
+  transform: scale(0.98);
+}
+
+.empty-btn.primary {
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 24rpx rgba(108, 92, 231, 0.25);
+}
+
+.empty-btn.secondary {
+  background: #FFFFFF;
+  color: #6C5CE7;
+  border: 2rpx solid #E2E8F0;
+}
+
+/* ---- 浮动操作浮窗遮罩 ---- */
+.fab-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fabFadeIn 0.2s ease-out;
+}
+
+@keyframes fabFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- 浮动操作浮窗卡片 ---- */
+.fab-popover {
+  position: fixed;
+  bottom: 250rpx;
+  right: 48rpx;
+  width: 440rpx;
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  padding: 16rpx 18rpx;
+  box-shadow: 0 20rpx 60rpx rgba(108, 92, 231, 0.2), 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  z-index: 1000;
+  transform-origin: bottom right;
+  animation: fabPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fabPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 16rpx 16rpx;
+  border-radius: 18rpx;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.fab-menu-item:active {
+  background: #F4F3FF;
+}
+
+.fab-menu-icon {
+  width: 68rpx;
+  height: 68rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.fab-menu-icon.icon-import {
+  background: rgba(108, 92, 231, 0.12);
+  color: #6C5CE7;
+}
+
+.fab-menu-icon.icon-create {
+  background: rgba(0, 184, 148, 0.12);
+  color: #00B894;
+}
+
+.fab-menu-icon.icon-scan {
+  background: rgba(9, 132, 227, 0.12);
+  color: #0984E3;
+}
+
+.fab-menu-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.fab-menu-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2D3436;
+  line-height: 1.2;
+}
+
+.fab-menu-desc {
+  font-size: 20rpx;
+  color: #8C99A6;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fab-menu-divider {
+  height: 1rpx;
+  background: #F1F2F6;
+  margin: 4rpx 12rpx;
 }
 
 /* ---- 浮动添加按钮 (FAB) ---- */
@@ -422,13 +635,24 @@ function getFreqClass(contact: Contact): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 16rpx 64rpx rgba(108, 92, 231, 0.3);
-  z-index: 100;
+  box-shadow: 0 16rpx 48rpx rgba(108, 92, 231, 0.35);
+  z-index: 1001;
+  cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.fab.is-active {
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #636E72, #2D3436);
+  box-shadow: 0 16rpx 48rpx rgba(45, 52, 54, 0.3);
+}
+
 .fab:active {
-  transform: scale(0.9) rotate(90deg);
+  transform: scale(0.92);
+}
+
+.fab.is-active:active {
+  transform: scale(0.92) rotate(45deg);
 }
 
 .fab-icon {

@@ -73,11 +73,48 @@ onLaunch(async () => {
 </template>
 
 <style>
+/* 全局盒模型统一与默认重置 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 page {
   background-color: #F8F9FA;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 /* #ifdef H5 */
+/* 消除 uni-app 在有 tabbar 时给 uni-page-wrapper 插入的多余 50px ::after 幽灵占位块 */
+.uni-app--showtabbar uni-page-wrapper::after {
+  display: none !important;
+}
+
+/* 让 TabBar 页面允许根据内容自然伸展滚动，同时无内容时刚好占满单屏视口 */
+.uni-app--showtabbar uni-page {
+  min-height: 100% !important;
+  height: auto !important;
+}
+
+.uni-app--showtabbar uni-page-head[uni-page-head-type="default"] ~ uni-page-wrapper {
+  min-height: calc(100% - 44px) !important;
+  height: auto !important;
+}
+
+uni-page-body {
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+uni-page-body > uni-view,
+uni-page-body > view {
+  flex: 1 0 auto;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
 .uni-swiper-navigation {
   display: none !important;
 }
@@ -117,28 +154,27 @@ page {
     width: 100% !important;
   }
 
-  /* 顶部导航头（NavBar）精确定位与居中 */
+  /* 顶部导航头（NavBar）：保留正常文档流（44px 占位），仅内部固定栏居中 */
   uni-page-head {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  uni-page-head .uni-page-head {
     position: fixed !important;
     max-width: 440px !important;
     width: 100% !important;
     left: 50% !important;
-    transform: translateX(-50%) !important;
     right: auto !important;
     top: 0 !important;
+    transform: translateX(-50%) !important;
+    margin: 0 auto !important;
     z-index: 998 !important;
   }
 
-  uni-page-head .uni-page-head {
-    position: relative !important;
-    max-width: 440px !important;
-    width: 100% !important;
-    left: 0 !important;
-    transform: none !important;
-    margin: 0 auto !important;
-  }
-
-  /* 底部 TabBar 精确定位与居中 */
+  /* 底部 TabBar：居中并去除多余 placeholder 堆叠 */
   uni-tabbar {
     position: fixed !important;
     max-width: 440px !important;
@@ -158,15 +194,35 @@ page {
     transform: none !important;
   }
 
+  uni-tabbar .uni-placeholder {
+    display: none !important;
+  }
+
   .fab {
     right: calc(50% - 220px + 32rpx) !important;
   }
 
+  .fab-popover {
+    right: calc(50% - 220px + 32rpx) !important;
+  }
+
+  .float-btn {
+    right: calc(50% - 220px + 48rpx) !important;
+  }
+
+  .scan-fab {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
   .pwa-modal-mask,
   .modal-mask,
-  .delete-confirm-mask {
+  .delete-confirm-mask,
+  .fab-mask {
+    width: 100% !important;
     max-width: 440px !important;
     left: 50% !important;
+    right: auto !important;
     transform: translateX(-50%) !important;
   }
 

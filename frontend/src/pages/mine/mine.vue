@@ -115,6 +115,10 @@ function confirmLogout() {
     },
   })
 }
+
+function goImport() {
+  uni.navigateTo({ url: '/pages/contacts/import-phone' })
+}
 </script>
 
 <template>
@@ -171,10 +175,23 @@ function confirmLogout() {
         </view>
         <text class="action-label">名片墙</text>
       </view>
+      <view class="action-item" @click="goImport">
+        <view class="action-icon import-icon">
+          <text class="quick-emoji">📥</text>
+        </view>
+        <text class="action-label">导入通讯录</text>
+      </view>
     </view>
 
     <!-- 设置分组 -->
     <view class="settings-card">
+      <view class="settings-item" @click="goImport">
+        <view class="settings-icon-wrap import-setting-icon">
+          <text class="setting-emoji">📇</text>
+        </view>
+        <text class="settings-label">批量导入手机通讯录</text>
+        <text class="settings-arrow">›</text>
+      </view>
       <!-- #ifdef H5 -->
       <view class="settings-item pwa-item" @click="showPwaModal = true">
         <view class="settings-icon-wrap pwa-icon">
@@ -236,9 +253,12 @@ function confirmLogout() {
 
 <style scoped>
 .mine {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #F8F9FA;
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---- 用户信息卡片 ---- */
@@ -356,6 +376,15 @@ function confirmLogout() {
   background: linear-gradient(135deg, #FD79A8, #FDCB6E);
 }
 
+.import-icon {
+  background: linear-gradient(135deg, #00B894, #55EFC4);
+}
+
+.quick-emoji {
+  font-size: 38rpx;
+  line-height: 1;
+}
+
 .action-label {
   font-size: 26rpx;
   font-weight: 500;
@@ -431,7 +460,7 @@ function confirmLogout() {
 
 /* ---- 退出按钮 ---- */
 .logout-area {
-  padding: 0 32rpx 48rpx;
+  padding: 0 32rpx calc(var(--window-bottom, 50px) + 64rpx);
 }
 
 .logout-btn {
@@ -530,6 +559,15 @@ function confirmLogout() {
 
 .pwa-icon {
   background: #F0EEFF;
+}
+
+.import-setting-icon {
+  background: #E8F8F5;
+}
+
+.setting-emoji {
+  font-size: 32rpx;
+  line-height: 1;
 }
 
 .location-icon {
