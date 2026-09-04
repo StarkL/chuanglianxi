@@ -515,7 +515,8 @@ function handleConfirmDuplicate() {
 
 <style scoped>
 .edit-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #F8F9FA;
   padding: 24rpx 32rpx;
   padding-bottom: 160rpx;

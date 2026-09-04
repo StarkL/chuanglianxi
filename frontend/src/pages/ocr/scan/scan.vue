@@ -142,7 +142,8 @@ async function handleScan() {
 
 <style scoped>
 .scan-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background: linear-gradient(160deg, #F8F9FA 0%, #EDE7FF 50%, #F8F9FA 100%);
   display: flex;
   flex-direction: column;

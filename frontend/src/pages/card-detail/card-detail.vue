@@ -196,7 +196,8 @@ function getInitial(name: string): string {
 
 <style scoped>
 .card-detail-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background: $bg-main;
   padding-bottom: 200rpx;
 }

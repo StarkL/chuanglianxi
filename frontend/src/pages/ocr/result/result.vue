@@ -462,7 +462,7 @@ function handleRetake() {
 
 <style scoped lang="scss">
 .result-page {
-  min-height: 100vh;
+  min-height: 100%;
   background: $bg-main;
   padding: $space-md;
   padding-bottom: calc(220rpx + env(safe-area-inset-bottom));

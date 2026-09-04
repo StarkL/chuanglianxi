@@ -278,7 +278,8 @@ function formatDate(dateStr: string): string {
 
 <style scoped>
 .detail-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #F8F9FA;
 }
 

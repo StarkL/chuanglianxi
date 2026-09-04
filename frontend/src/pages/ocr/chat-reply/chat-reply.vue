@@ -277,7 +277,8 @@ async function copyToClipboard(text: string, style: string) {
 
 <style scoped lang="scss">
 .reply-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #F8F9FA;
   padding-bottom: 80rpx;
 }

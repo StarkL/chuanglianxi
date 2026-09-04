@@ -72,7 +72,8 @@
 
 <style scoped>
 .policy-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #f6f5f4;
 }
 

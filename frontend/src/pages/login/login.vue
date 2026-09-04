@@ -248,9 +248,7 @@ async function handleLogin() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto;
+  min-height: 100%;
   background: linear-gradient(180deg, #F0EEFF 0%, #F8F9FA 30%);
   padding: 60rpx 48rpx 40rpx;
   box-sizing: border-box;

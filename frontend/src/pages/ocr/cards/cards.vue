@@ -66,7 +66,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <view class="card-wall">
+  <view class="card-wall" :class="{ 'has-items': cards.length > 0 }">
     <view v-if="cards.length > 0" class="cards-grid">
       <view
         v-for="(card, index) in cards"
@@ -112,11 +112,18 @@ onMounted(() => {
   </view>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .card-wall {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background: linear-gradient(180deg, $bg-main 0%, #EDE7FF 100%);
   padding: $space-md;
+  padding-bottom: 32rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-wall.has-items {
   padding-bottom: 200rpx;
 }
 
@@ -225,12 +232,13 @@ onMounted(() => {
 
 /* 空状态 */
 .empty-state {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
   padding: $space-xl;
+  box-sizing: border-box;
 }
 
 .empty-state__icon {
@@ -265,22 +273,22 @@ onMounted(() => {
 /* 浮动扫描按钮 */
 .scan-fab {
   position: fixed;
-  bottom: calc($space-xl + env(safe-area-inset-bottom));
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: 100;
 }
 
 .scan-fab__inner {
   height: 88rpx;
-  padding: 0 $space-lg;
-  border-radius: $radius-full;
-  background: linear-gradient(135deg, $primary 0%, $temp-warm 100%);
-  box-shadow: $shadow-float;
+  padding: 0 48rpx;
+  border-radius: 9999rpx;
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+  box-shadow: 0 16rpx 48rpx rgba(108, 92, 231, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-xs;
+  gap: 12rpx;
   transition: transform 0.2s ease;
 }
 
@@ -290,14 +298,14 @@ onMounted(() => {
 
 .scan-fab__icon {
   color: #fff;
-  font-size: $font-lg;
+  font-size: 36rpx;
   font-weight: 700;
   line-height: 1;
 }
 
 .scan-fab__text {
   color: #fff;
-  font-size: $font-sm;
+  font-size: 28rpx;
   font-weight: 500;
   letter-spacing: 1rpx;
 }

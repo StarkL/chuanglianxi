@@ -112,7 +112,8 @@ async function handleChange() {
 
 <style scoped>
 .password-change {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background-color: #F8F9FA;
   padding: 32rpx;
 }
