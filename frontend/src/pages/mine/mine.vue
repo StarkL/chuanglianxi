@@ -116,8 +116,49 @@ function confirmLogout() {
   })
 }
 
+import { exportUserKey, importUserKey } from '../../utils/crypto'
+
 function goImport() {
   uni.navigateTo({ url: '/pages/contacts/import-phone' })
+}
+
+const showCryptoModal = ref(false)
+const currentKey = ref('')
+const importKeyInput = ref('')
+
+async function handleOpenCryptoModal() {
+  try {
+    currentKey.value = await exportUserKey(userInfo.value?.id)
+  } catch (err) {
+    console.error('获取端到端密钥失败:', err)
+  }
+  showCryptoModal.value = true
+}
+
+function copyKey() {
+  if (!currentKey.value) return
+  uni.setClipboardData({
+    data: currentKey.value,
+    success: () => {
+      uni.showToast({ title: '密钥已复制', icon: 'success' })
+    }
+  })
+}
+
+async function handleImportKey() {
+  const k = importKeyInput.value.trim()
+  if (!k) {
+    uni.showToast({ title: '请输入有效密钥', icon: 'none' })
+    return
+  }
+  try {
+    await importUserKey(k, userInfo.value?.id)
+    currentKey.value = k
+    importKeyInput.value = ''
+    uni.showToast({ title: '密钥已更新', icon: 'success' })
+  } catch {
+    uni.showToast({ title: '密钥格式错误', icon: 'none' })
+  }
 }
 </script>
 
@@ -192,6 +233,13 @@ function goImport() {
         <text class="settings-label">批量导入手机通讯录</text>
         <text class="settings-arrow">›</text>
       </view>
+      <view class="settings-item" @click="handleOpenCryptoModal">
+        <view class="settings-icon-wrap crypto-icon">
+          <text class="setting-emoji">🛡️</text>
+        </view>
+        <text class="settings-label">端到端加密与密钥管理</text>
+        <text class="settings-arrow">›</text>
+      </view>
       <!-- #ifdef H5 -->
       <view class="settings-item pwa-item" @click="showPwaModal = true">
         <view class="settings-icon-wrap pwa-icon">
@@ -248,6 +296,43 @@ function goImport() {
     <!-- #ifdef H5 -->
     <PwaInstallModal v-model="showPwaModal" />
     <!-- #endif -->
+
+    <!-- 端到端加密密钥管理弹窗 -->
+    <view v-if="showCryptoModal" class="modal-overlay" @click.self="showCryptoModal = false">
+      <view class="modal-content crypto-modal-content">
+        <text class="modal-title">🛡️ 端到端隐私加密 (E2EE)</text>
+        <text class="crypto-desc">
+          您的手机号等隐私数据在离开设备前均通过 AES-256-GCM 本地加密，云端仅存储不可逆密文，实现零知识隐私保护。
+        </text>
+
+        <view class="crypto-key-section">
+          <text class="crypto-label">当前设备本地密钥：</text>
+          <view class="crypto-key-box" @click="copyKey">
+            <text class="crypto-key-text">{{ currentKey || '正在获取...' }}</text>
+            <view class="crypto-copy-btn">复制</view>
+          </view>
+          <text class="crypto-subhint">⚠️ 密钥仅保存在当前设备本地。若换新手机或更换浏览器，可复制此密钥并在新设备上导入恢复。</text>
+        </view>
+
+        <view class="crypto-import-section">
+          <text class="crypto-label">导入换机密钥：</text>
+          <input
+            class="modal-input"
+            v-model="importKeyInput"
+            placeholder="粘贴来自其他设备的密钥"
+          />
+          <view class="crypto-import-btn" @click="handleImportKey">
+            <text>导入并替换当前密钥</text>
+          </view>
+        </view>
+
+        <view class="modal-actions">
+          <view class="modal-btn confirm-btn" @click="showCryptoModal = false">
+            <text>完成</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -581,5 +666,87 @@ function goImport() {
   padding: 4rpx 14rpx;
   border-radius: 12rpx;
   font-weight: 500;
+}
+
+.crypto-icon {
+  background: rgba(0, 184, 148, 0.1);
+  color: #00B894;
+}
+
+.crypto-modal-content {
+  width: 88%;
+  max-width: 680rpx;
+  box-sizing: border-box;
+}
+
+.crypto-desc {
+  font-size: 24rpx;
+  color: #64748B;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 24rpx;
+  text-align: justify;
+}
+
+.crypto-key-section,
+.crypto-import-section {
+  margin-bottom: 24rpx;
+}
+
+.crypto-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #334155;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.crypto-key-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F1F5F9;
+  border: 1rpx dashed #94A3B8;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  gap: 16rpx;
+}
+
+.crypto-key-text {
+  font-size: 20rpx;
+  font-family: monospace;
+  color: #475569;
+  word-break: break-all;
+  flex: 1;
+}
+
+.crypto-copy-btn {
+  background: #6C5CE7;
+  color: #FFFFFF;
+  font-size: 22rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.crypto-subhint {
+  font-size: 20rpx;
+  color: #E17055;
+  display: block;
+  margin-top: 10rpx;
+  line-height: 1.4;
+}
+
+.crypto-import-btn {
+  background: #00B894;
+  color: #FFFFFF;
+  height: 68rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  margin-top: 8rpx;
 }
 </style>

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { createContact, type Contact } from '../../../api/contacts'
 import { emitDataChanged } from '../../../utils/events'
+import { encryptField, decryptField } from '../../../utils/crypto'
 
 const saving = ref(false)
 
@@ -42,11 +43,13 @@ onMounted(() => {
 async function executeSave(ignoreDuplicate = false) {
   saving.value = true
   try {
+    const rawPhone = phone.value.trim()
+    const encryptedPhone = rawPhone ? await encryptField(rawPhone) : undefined
     const data = {
       name: name.value.trim(),
       company: company.value.trim() || undefined,
       title: title.value.trim() || undefined,
-      phone: phone.value.trim() || undefined,
+      phone: encryptedPhone,
       email: email.value.trim() || undefined,
       wechatId: wechatId.value.trim() || undefined,
       source: 'business-card',
@@ -56,7 +59,11 @@ async function executeSave(ignoreDuplicate = false) {
 
     const res = await createContact(data)
     if (!res.success && res.error === 'duplicate') {
-      duplicateContact.value = res.data || null
+      const dup = res.data || null
+      if (dup && dup.phone) {
+        dup.phone = await decryptField(dup.phone)
+      }
+      duplicateContact.value = dup
       showDuplicateModal.value = true
       saving.value = false
       return

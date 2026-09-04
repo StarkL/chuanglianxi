@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { createContact, updateContact, getContact, type Contact } from '../../../api/contacts'
 import TagInput from '../../../components/tag-input.vue'
 import { emitDataChanged } from '../../../utils/events'
+import { encryptField, decryptField } from '../../../utils/crypto'
 
 const contactId = ref('')
 const name = ref('')
@@ -53,7 +54,7 @@ onMounted(async () => {
       name.value = res.data.name
       company.value = res.data.company || ''
       title.value = res.data.title || ''
-      phone.value = res.data.phone || ''
+      phone.value = res.data.phone ? await decryptField(res.data.phone) : ''
       email.value = res.data.email || ''
       wechatId.value = res.data.wechatId || ''
       selectedTags.value = res.data.tags || []
@@ -82,11 +83,14 @@ const duplicateContact = ref<Contact | null>(null)
 async function executeSave(ignoreDuplicate = false) {
   saving.value = true
   try {
+    const rawPhone = phone.value.trim()
+    const encryptedPhone = rawPhone ? await encryptField(rawPhone) : undefined
+
     const data = {
       name: name.value.trim(),
       company: company.value.trim() || undefined,
       title: title.value.trim() || undefined,
-      phone: phone.value.trim() || undefined,
+      phone: encryptedPhone,
       email: email.value.trim() || undefined,
       wechatId: wechatId.value.trim() || undefined,
       tags: selectedTags.value,
@@ -111,7 +115,11 @@ async function executeSave(ignoreDuplicate = false) {
     } else {
       const res = await createContact(data)
       if (!res.success && res.error === 'duplicate') {
-        duplicateContact.value = res.data || null
+        const dup = res.data || null
+        if (dup && dup.phone) {
+          dup.phone = await decryptField(dup.phone)
+        }
+        duplicateContact.value = dup
         showDuplicateModal.value = true
         saving.value = false
         return
@@ -208,9 +216,12 @@ function handleConfirmDuplicate() {
       </text>
       <view class="form-card">
         <view class="form-item">
-          <text class="form-label">
-            电话
-          </text>
+          <view class="form-label-wrap">
+            <text class="form-label">
+              电话
+            </text>
+            <text class="e2ee-subtag">🛡️ 加密</text>
+          </view>
           <input
             v-model="phone"
             class="form-input"
@@ -549,6 +560,21 @@ function handleConfirmDuplicate() {
   align-items: center;
   padding: 24rpx 32rpx;
   min-height: 96rpx;
+}
+
+.form-label-wrap {
+  width: 120rpx;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.e2ee-subtag {
+  font-size: 18rpx;
+  color: #00B894;
+  line-height: 1.2;
+  margin-top: 2rpx;
+  font-weight: 500;
 }
 
 .form-label {

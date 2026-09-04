@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { getContact, type ContactDetail } from '../../../api/contacts'
 import { deleteInteraction, updateInteraction } from '../../../api/interactions'
 import { emitDataChanged, onDataChanged } from '../../../utils/events'
+import { decryptField } from '../../../utils/crypto'
 
 const contact = ref<ContactDetail | null>(null)
 const loading = ref(false)
@@ -29,7 +30,11 @@ async function loadContact(id: string) {
   try {
     const res = await getContact(id)
     if (res.success && res.data) {
-      contact.value = res.data
+      const data = res.data
+      if (data.phone) {
+        data.phone = await decryptField(data.phone)
+      }
+      contact.value = data
     }
   } catch {
     uni.showToast({ title: '加载失败', icon: 'none' })
@@ -215,7 +220,10 @@ function formatDate(dateStr: string): string {
         >
           <view class="method-icon phone-icon">📞</view>
           <view class="method-info">
-            <text class="method-label">电话</text>
+            <view class="method-label-row">
+              <text class="method-label">电话</text>
+              <text class="e2ee-tag">🛡️ 端到端加密</text>
+            </view>
             <text class="method-value">{{ contact.phone }}</text>
           </view>
           <text class="method-arrow">›</text>
@@ -428,6 +436,22 @@ function formatDate(dateStr: string): string {
 .method-info {
   flex: 1;
   min-width: 0;
+}
+
+.method-label-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 4rpx;
+}
+
+.e2ee-tag {
+  font-size: 20rpx;
+  color: #00B894;
+  background: rgba(0, 184, 148, 0.1);
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
 }
 
 .method-label {

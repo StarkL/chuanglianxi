@@ -136,7 +136,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
             name: { type: 'string', minLength: 1, maxLength: 200 },
             company: { type: 'string', maxLength: 200 },
             title: { type: 'string', maxLength: 200 },
-            phone: { type: 'string', maxLength: 50 },
+            phone: { type: 'string', maxLength: 255 },
             wechatId: { type: 'string', maxLength: 100 },
             email: { type: 'string', maxLength: 200 },
             avatar: { type: 'string', maxLength: 2000 },
@@ -346,7 +346,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
                 required: ['name'],
                 properties: {
                   name: { type: 'string', minLength: 1, maxLength: 200 },
-                  phone: { type: 'string', maxLength: 50 },
+                  phone: { type: 'string', maxLength: 255 },
                   company: { type: 'string', maxLength: 200 },
                   title: { type: 'string', maxLength: 200 },
                   email: { type: 'string', maxLength: 200 },
@@ -381,6 +381,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
       const existingNames = new Set(existing.map((c) => c.name.trim()))
 
       const toInsert: Array<{
+        id: string
         userId: string
         name: string
         phone: string | null
@@ -402,19 +403,26 @@ export async function contactRoutes(fastify: FastifyInstance) {
           continue
         }
 
-        const trimmedPhone = item.phone ? item.phone.replace(/[\s-]/g, '').trim() : undefined
+        const trimmedPhone = item.phone
+          ? item.phone.startsWith('enc:v1:')
+            ? item.phone.trim()
+            : item.phone.replace(/[\s-]/g, '').trim()
+          : undefined
 
+        const isEncryptedPhone = trimmedPhone?.startsWith('enc:v1:')
         const isDuplicatePhone =
-          trimmedPhone && (existingPhones.has(trimmedPhone) || seenPhonesInBatch.has(trimmedPhone))
-        const isDuplicateNameNoPhone =
-          !trimmedPhone && (existingNames.has(trimmedName) || seenNamesInBatch.has(trimmedName))
+          !isEncryptedPhone &&
+          trimmedPhone &&
+          (existingPhones.has(trimmedPhone) || seenPhonesInBatch.has(trimmedPhone))
+        const isDuplicateName =
+          existingNames.has(trimmedName) || seenNamesInBatch.has(trimmedName)
 
-        if (isDuplicatePhone || isDuplicateNameNoPhone) {
+        if ((isEncryptedPhone && isDuplicateName) || isDuplicatePhone || (!trimmedPhone && isDuplicateName)) {
           skipped++
           continue
         }
 
-        if (trimmedPhone) seenPhonesInBatch.add(trimmedPhone)
+        if (trimmedPhone && !isEncryptedPhone) seenPhonesInBatch.add(trimmedPhone)
         seenNamesInBatch.add(trimmedName)
 
         const tags =

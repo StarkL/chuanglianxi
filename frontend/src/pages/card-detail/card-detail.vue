@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { request } from '../../utils/request'
 import { createContact, type Contact } from '../../api/contacts'
 import { emitDataChanged } from '../../utils/events'
+import { encryptField } from '../../utils/crypto'
 
 interface OcrData {
   name: string
@@ -43,11 +44,12 @@ async function saveAsContact() {
 
   saving.value = true
   try {
+    const rawPhone = ocrData.value.phone?.trim()
     const data: Partial<Contact> = {
       name: ocrData.value.name,
       company: ocrData.value.company || undefined,
       title: ocrData.value.title || undefined,
-      phone: ocrData.value.phone || undefined,
+      phone: rawPhone ? await encryptField(rawPhone) : undefined,
       email: ocrData.value.email || undefined,
       wechatId: ocrData.value.wechatId || undefined,
       source: 'ocr',

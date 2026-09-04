@@ -9,6 +9,7 @@ import {
 } from '../../utils/vcf-parser'
 import { batchImportContacts, importContactFromPhone } from '../../api/contacts'
 import { emitDataChanged } from '../../utils/events'
+import { encryptField, getOrCreateUserKey } from '../../utils/crypto'
 
 // 指引系统切换: 'ios' | 'android'
 const activeGuideTab = ref<'ios' | 'android'>('ios')
@@ -149,15 +150,21 @@ async function confirmBatchImport() {
   uni.showLoading({ title: '正在导入中...' })
 
   try {
-    const res = await batchImportContacts({
-      contacts: toImport.map((c) => ({
+    // 端到端加密：在本地对所有选中的手机号使用 AES-256-GCM 密匙逐个加密
+    const userKey = await getOrCreateUserKey()
+    const encryptedContacts = await Promise.all(
+      toImport.map(async (c) => ({
         name: c.name,
-        phone: c.phone,
+        phone: c.phone ? await encryptField(c.phone, userKey) : undefined,
         company: c.company,
         title: c.title,
         email: c.email,
         source: 'phone-import',
-      })),
+      }))
+    )
+
+    const res = await batchImportContacts({
+      contacts: encryptedContacts,
       defaultTag: selectedTag.value,
     })
 
@@ -340,8 +347,8 @@ async function handleWeChatImport() {
 
       <!-- 隐私声明 -->
       <view class="privacy-note">
-        <text class="lock-icon">🔒</text>
-        <text class="privacy-text">所有文件均在手机本地即时解析，无任何中间文件上传存储，保护人脉隐私。</text>
+        <text class="lock-icon">🛡️</text>
+        <text class="privacy-text">端到端零知识加密保护：文件仅在手机本地即时解析，号码在离开手机前经 AES-256-GCM 强加密，云端仅存储密文，彻底杜绝泄露风险。</text>
       </view>
     </view>
 
@@ -404,6 +411,12 @@ async function handleWeChatImport() {
           </view>
         </view>
       </scroll-view>
+
+      <!-- 端到端加密保护提示条 -->
+      <view class="e2ee-tip-bar">
+        <text class="e2ee-tip-icon">🛡️</text>
+        <text class="e2ee-tip-text">端到端加密保护：手机号将在设备本地加密后上传，云端无法查看真实号码</text>
+      </view>
 
       <!-- 底部固定操作栏 -->
       <view class="preview-footer">
@@ -930,4 +943,27 @@ async function handleWeChatImport() {
   pointer-events: none;
 }
 
+.e2ee-tip-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background: rgba(0, 184, 148, 0.08);
+  border: 1.5rpx solid rgba(0, 184, 148, 0.2);
+  border-radius: 16rpx;
+  padding: 12rpx 20rpx;
+  margin: 12rpx 32rpx 0;
+  box-sizing: border-box;
+}
+
+.e2ee-tip-icon {
+  font-size: 26rpx;
+  flex-shrink: 0;
+}
+
+.e2ee-tip-text {
+  font-size: 22rpx;
+  color: #00B894;
+  font-weight: 500;
+  line-height: 1.4;
+}
 </style>
