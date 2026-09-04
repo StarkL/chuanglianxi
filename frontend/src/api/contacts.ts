@@ -1,4 +1,13 @@
 import { request } from '../utils/request'
+import { getStorageMode } from '../utils/storage-mode'
+import {
+  localGetContacts,
+  localGetContact,
+  localCreateContact,
+  localUpdateContact,
+  localDeleteContact,
+  localBatchImportContacts
+} from '../db/indexeddb'
 
 export interface Contact {
   id: string
@@ -29,7 +38,10 @@ export interface ContactDetail extends Contact {
   }>
 }
 
-export function getContacts(params?: { search?: string; tag?: string }) {
+export async function getContacts(params?: { search?: string; tag?: string }) {
+  if (getStorageMode() === 'local') {
+    return localGetContacts(params)
+  }
   return request<Contact[]>({
     url: '/contacts',
     method: 'GET',
@@ -37,7 +49,10 @@ export function getContacts(params?: { search?: string; tag?: string }) {
   })
 }
 
-export function getContact(id: string) {
+export async function getContact(id: string) {
+  if (getStorageMode() === 'local') {
+    return localGetContact(id)
+  }
   return request<ContactDetail>({
     url: `/contacts/${id}`,
     method: 'GET'
@@ -48,7 +63,10 @@ export interface CreateContactParams extends Partial<Contact> {
   ignoreDuplicate?: boolean
 }
 
-export function createContact(data: CreateContactParams) {
+export async function createContact(data: CreateContactParams) {
+  if (getStorageMode() === 'local') {
+    return localCreateContact(data)
+  }
   return request<Contact>({
     url: '/contacts',
     method: 'POST',
@@ -56,7 +74,10 @@ export function createContact(data: CreateContactParams) {
   })
 }
 
-export function updateContact(id: string, data: Partial<Contact>) {
+export async function updateContact(id: string, data: Partial<Contact>) {
+  if (getStorageMode() === 'local') {
+    return localUpdateContact(id, data)
+  }
   return request<Contact>({
     url: `/contacts/${id}`,
     method: 'PUT',
@@ -64,7 +85,10 @@ export function updateContact(id: string, data: Partial<Contact>) {
   })
 }
 
-export function deleteContact(id: string) {
+export async function deleteContact(id: string) {
+  if (getStorageMode() === 'local') {
+    return localDeleteContact(id)
+  }
   return request({
     url: `/contacts/${id}`,
     method: 'DELETE'
@@ -105,11 +129,21 @@ export interface BatchImportResult {
   skipped: number
 }
 
-export function batchImportContacts(data: BatchImportParams) {
+export async function batchImportContacts(data: BatchImportParams) {
+  if (getStorageMode() === 'local') {
+    const res = await localBatchImportContacts(data)
+    return {
+      success: true,
+      data: {
+        total: data.contacts.length,
+        imported: res.data.imported,
+        skipped: res.data.duplicates
+      }
+    }
+  }
   return request<BatchImportResult>({
     url: '/contacts/batch',
     method: 'POST',
     data: data as Record<string, unknown>
   })
 }
-

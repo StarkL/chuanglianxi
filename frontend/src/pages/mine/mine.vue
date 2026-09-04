@@ -18,6 +18,7 @@ const NICKNAME_REGEX = /^[一-龥a-zA-Z0-9$+_]+$/u
 onMounted(() => {
   const info = getUserInfo()
   userInfo.value = info
+  currentStorageMode.value = getStorageMode()
 })
 
 async function handleCheckPermissions() {
@@ -160,6 +161,119 @@ async function handleImportKey() {
     uni.showToast({ title: '密钥格式错误', icon: 'none' })
   }
 }
+
+import {
+  getStorageMode,
+  setStorageMode,
+  migrateLocalToCloud,
+  migrateCloudToLocal,
+  exportLocalBackupString,
+  importLocalBackupString,
+  type StorageMode
+} from '../../utils/storage-mode'
+
+const currentStorageMode = ref<StorageMode>('cloud')
+const showStorageModal = ref(false)
+const migrating = ref(false)
+const migrationProgress = ref('')
+const deleteCloudAfterMigration = ref(false)
+const showBackupRestoreModal = ref(false)
+const backupJsonInput = ref('')
+
+function handleOpenStorageModal() {
+  currentStorageMode.value = getStorageMode()
+  showStorageModal.value = true
+}
+
+async function handleSwitchToLocal() {
+  uni.showModal({
+    title: '切换至本地加密存储？',
+    content: '将从云端拉取现有数据并经 AES-256-GCM 强加密存入本地 IndexedDB。未来数据将仅保留在当前设备中。',
+    confirmText: '确认切换',
+    cancelText: '取消',
+    success: async (res) => {
+      if (res.confirm) {
+        migrating.value = true
+        migrationProgress.value = '正在从云端拉取数据...'
+        const result = await migrateCloudToLocal({
+          deleteCloudData: deleteCloudAfterMigration.value,
+          onProgress: (curr, total) => {
+            migrationProgress.value = `正在拉取并加密本地落盘 (${curr}/${total})...`
+          }
+        })
+        migrating.value = false
+        if (result.success) {
+          currentStorageMode.value = 'local'
+          uni.showToast({ title: `已切换！本地保存${result.count}条`, icon: 'success' })
+        } else {
+          uni.showToast({ title: result.error || '切换失败', icon: 'none' })
+        }
+      }
+    }
+  })
+}
+
+async function handleSwitchToCloud() {
+  uni.showModal({
+    title: '切换至云端加密同步？',
+    content: '将把当前本地 IndexedDB 中保存的数据加密同步至云端，实现跨设备登录互通。',
+    confirmText: '确认切换',
+    cancelText: '取消',
+    success: async (res) => {
+      if (res.confirm) {
+        migrating.value = true
+        migrationProgress.value = '正在上传数据至云端...'
+        const result = await migrateLocalToCloud((curr, total) => {
+          migrationProgress.value = `正在加密上传 (${curr}/${total})...`
+        })
+        migrating.value = false
+        if (result.success) {
+          currentStorageMode.value = 'cloud'
+          uni.showToast({ title: `已切换！上传${result.count}条`, icon: 'success' })
+        } else {
+          uni.showToast({ title: result.error || '切换失败', icon: 'none' })
+        }
+      }
+    }
+  })
+}
+
+async function handleExportBackup() {
+  try {
+    const json = await exportLocalBackupString()
+    uni.setClipboardData({
+      data: json,
+      success: () => {
+        uni.showModal({
+          title: '备份导出成功',
+          content: '全部通讯录及交互记录 JSON 已复制到剪贴板。请妥善粘贴保存至备忘录或文件传输助手中！',
+          showCancel: false
+        })
+      }
+    })
+  } catch (err: any) {
+    uni.showToast({ title: '导出失败: ' + err.message, icon: 'none' })
+  }
+}
+
+async function handleImportBackup() {
+  if (!backupJsonInput.value.trim()) {
+    uni.showToast({ title: '请粘贴备份 JSON', icon: 'none' })
+    return
+  }
+  try {
+    const res = await importLocalBackupString(backupJsonInput.value)
+    if (res.success) {
+      uni.showToast({ title: `成功恢复 ${res.count} 位联系人`, icon: 'success' })
+      showBackupRestoreModal.value = false
+      backupJsonInput.value = ''
+    } else {
+      uni.showToast({ title: res.error || '恢复失败', icon: 'none' })
+    }
+  } catch {
+    uni.showToast({ title: '导入失败', icon: 'none' })
+  }
+}
 </script>
 
 <template>
@@ -238,6 +352,16 @@ async function handleImportKey() {
           <text class="setting-emoji">🛡️</text>
         </view>
         <text class="settings-label">端到端加密与密钥管理</text>
+        <text class="settings-arrow">›</text>
+      </view>
+      <view class="settings-item" @click="handleOpenStorageModal">
+        <view class="settings-icon-wrap storage-setting-icon">
+          <text class="setting-emoji">💾</text>
+        </view>
+        <text class="settings-label">数据存储模式与备份</text>
+        <view class="storage-mode-tag" :class="currentStorageMode">
+          {{ currentStorageMode === 'local' ? '🛡️ 本地加密' : '☁️ 云端同步' }}
+        </view>
         <text class="settings-arrow">›</text>
       </view>
       <!-- #ifdef H5 -->
@@ -329,6 +453,96 @@ async function handleImportKey() {
         <view class="modal-actions">
           <view class="modal-btn confirm-btn" @click="showCryptoModal = false">
             <text>完成</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据存储模式与备份管理弹窗 -->
+    <view v-if="showStorageModal" class="modal-overlay" @click.self="showStorageModal = false">
+      <view class="modal-content storage-modal-content">
+        <text class="modal-title">💾 数据存储模式与迁移</text>
+        <text class="crypto-desc">
+          自由选择数据保管位置。纯本地存储将数据保存在手机 IndexedDB 且全程落盘加密；云端模式支持多设备同步。
+        </text>
+
+        <!-- 模式选择卡片 -->
+        <view class="storage-cards">
+          <view
+            class="storage-card"
+            :class="{ active: currentStorageMode === 'local' }"
+            @click="currentStorageMode !== 'local' && handleSwitchToLocal()"
+          >
+            <view class="storage-card-header">
+              <text class="storage-card-title">🛡️ 纯本地加密存储 (Local)</text>
+              <view v-if="currentStorageMode === 'local'" class="current-badge">当前生效</view>
+            </view>
+            <text class="storage-card-desc">
+              数据保留在当前设备，落盘前自动执行 AES-256-GCM 强加密，零云端上传，极致安全。
+            </text>
+            <view v-if="currentStorageMode !== 'local'" class="switch-action-btn">
+              一键迁往本地
+            </view>
+          </view>
+
+          <view
+            class="storage-card"
+            :class="{ active: currentStorageMode === 'cloud' }"
+            @click="currentStorageMode !== 'cloud' && handleSwitchToCloud()"
+          >
+            <view class="storage-card-header">
+              <text class="storage-card-title">☁️ 云端加密同步 (Cloud)</text>
+              <view v-if="currentStorageMode === 'cloud'" class="current-badge">当前生效</view>
+            </view>
+            <text class="storage-card-desc">
+              数据经端到端加密后同步至云端服务器，支持更换手机登录及多端同步。
+            </text>
+            <view v-if="currentStorageMode !== 'cloud'" class="switch-action-btn">
+              一键上传至云端
+            </view>
+          </view>
+        </view>
+
+        <view v-if="migrating" class="migration-banner">
+          <text class="migration-text">{{ migrationProgress || '正在迁移数据，请稍候...' }}</text>
+        </view>
+
+        <!-- 本地模式专属：备份与恢复 -->
+        <view v-if="currentStorageMode === 'local'" class="local-backup-section">
+          <text class="crypto-label">本地数据备份：</text>
+          <view class="backup-actions">
+            <view class="backup-btn export-btn" @click="handleExportBackup">
+              <text>📦 导出备份到剪贴板</text>
+            </view>
+            <view class="backup-btn import-btn" @click="showBackupRestoreModal = true">
+              <text>📥 恢复/导入备份</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="modal-actions">
+          <view class="modal-btn confirm-btn" @click="showStorageModal = false">
+            <text>完成</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 恢复备份弹窗 -->
+    <view v-if="showBackupRestoreModal" class="modal-overlay" @click.self="showBackupRestoreModal = false">
+      <view class="modal-content">
+        <text class="modal-title">📥 恢复本地备份数据</text>
+        <textarea
+          class="backup-textarea"
+          v-model="backupJsonInput"
+          placeholder="粘贴此前导出的备份 JSON 内容..."
+        />
+        <view class="modal-actions">
+          <view class="modal-btn cancel-btn" @click="showBackupRestoreModal = false">
+            <text>取消</text>
+          </view>
+          <view class="modal-btn confirm-btn" @click="handleImportBackup">
+            <text>确认恢复</text>
           </view>
         </view>
       </view>
@@ -748,5 +962,155 @@ async function handleImportKey() {
   font-size: 24rpx;
   font-weight: 500;
   margin-top: 8rpx;
+}
+
+.storage-setting-icon {
+  background: rgba(108, 92, 231, 0.1);
+  color: #6C5CE7;
+}
+
+.storage-mode-tag {
+  font-size: 22rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
+}
+
+.storage-mode-tag.local {
+  color: #00B894;
+  background: rgba(0, 184, 148, 0.1);
+}
+
+.storage-mode-tag.cloud {
+  color: #6C5CE7;
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.storage-modal-content {
+  width: 90%;
+  max-width: 700rpx;
+  box-sizing: border-box;
+}
+
+.storage-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.storage-card {
+  background: #F8FAFC;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  transition: all 0.2s ease;
+}
+
+.storage-card.active {
+  background: #F0FDF4;
+  border-color: #00B894;
+}
+
+.storage-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.storage-card-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.current-badge {
+  font-size: 20rpx;
+  color: #FFFFFF;
+  background: #00B894;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.storage-card-desc {
+  font-size: 22rpx;
+  color: #64748B;
+  line-height: 1.4;
+  display: block;
+}
+
+.switch-action-btn {
+  margin-top: 12rpx;
+  background: #6C5CE7;
+  color: #FFFFFF;
+  font-size: 22rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  text-align: center;
+  width: fit-content;
+}
+
+.migration-banner {
+  background: #FFFBEB;
+  border: 1rpx solid #FDE68A;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.migration-text {
+  font-size: 24rpx;
+  color: #D97706;
+  font-weight: 500;
+}
+
+.local-backup-section {
+  margin-bottom: 24rpx;
+  background: #F1F5F9;
+  padding: 16rpx;
+  border-radius: 12rpx;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+
+.backup-btn {
+  flex: 1;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.export-btn {
+  background: #E2E8F0;
+  color: #334155;
+}
+
+.import-btn {
+  background: #E0E7FF;
+  color: #4F46E5;
+}
+
+.backup-textarea {
+  width: 100%;
+  height: 200rpx;
+  background: #F8FAFC;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  font-size: 24rpx;
+  color: #1E293B;
+  box-sizing: border-box;
+  margin-bottom: 20rpx;
 }
 </style>
