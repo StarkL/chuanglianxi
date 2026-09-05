@@ -58,3 +58,6 @@ frontend/design-demos/
 
 # Skills lock
 skills-lock.json
+
+# 本地私有开发与部署知识库（包含私有IP与部署凭据，严禁推送到公开仓库）
+AGENTS.md
