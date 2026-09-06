@@ -44,7 +44,7 @@ export interface DataChangeEvent {
  */
 export function emitDataChanged(
   key: DataChangeKey,
-  action: DataChangeEvent['action'],
+  action: DataChangeEvent['action'] = 'update',
   id?: string
 ) {
   const event: DataChangeEvent = {

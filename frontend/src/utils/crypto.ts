@@ -52,7 +52,7 @@ export async function getOrCreateUserKey(userId?: string): Promise<CryptoKey> {
       const rawBytes = base64ToBuffer(savedBase64Key)
       return await crypto.subtle.importKey(
         'raw',
-        rawBytes,
+        rawBytes as unknown as BufferSource,
         { name: 'AES-GCM' },
         true,
         ['encrypt', 'decrypt']
@@ -99,7 +99,7 @@ export async function importUserKey(base64Key: string, userId?: string): Promise
   const rawBytes = base64ToBuffer(trimmed)
   const key = await crypto.subtle.importKey(
     'raw',
-    rawBytes,
+    rawBytes as unknown as BufferSource,
     { name: 'AES-GCM' },
     true,
     ['encrypt', 'decrypt']
@@ -166,9 +166,9 @@ export async function decryptField(encryptedStr: string | undefined | null, key?
     const ciphertext = base64ToBuffer(parts[3])
 
     const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
       activeKey,
-      ciphertext
+      ciphertext as unknown as BufferSource
     )
 
     return new TextDecoder().decode(decrypted)

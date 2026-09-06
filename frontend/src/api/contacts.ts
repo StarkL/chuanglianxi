@@ -144,6 +144,6 @@ export async function batchImportContacts(data: BatchImportParams) {
   return request<BatchImportResult>({
     url: '/contacts/batch',
     method: 'POST',
-    data: data as Record<string, unknown>
+    data: data as unknown as Record<string, unknown>
   })
 }
