@@ -85,7 +85,7 @@ function toggleFabMenu() {
   showFabMenu.value = !showFabMenu.value
 }
 
-function handleMenuSelect(type: 'import' | 'create' | 'scan') {
+function handleMenuSelect(type: 'import' | 'create' | 'scan' | 'voice') {
   showFabMenu.value = false
   if (type === 'import') {
     goImport()
@@ -93,6 +93,8 @@ function handleMenuSelect(type: 'import' | 'create' | 'scan') {
     goCreate()
   } else if (type === 'scan') {
     uni.navigateTo({ url: '/pages/ocr/scan/scan' })
+  } else if (type === 'voice') {
+    uni.navigateTo({ url: '/pages/voice-note/voice-note' })
   }
 }
 
@@ -242,6 +244,14 @@ function getFreqClass(contact: Contact): string {
         <view class="fab-menu-info">
           <text class="fab-menu-title">扫描名片</text>
           <text class="fab-menu-desc">拍照上传名片智能识别</text>
+        </view>
+      </view>
+      <view class="fab-menu-divider" />
+      <view class="fab-menu-item" @click="handleMenuSelect('voice')">
+        <view class="fab-menu-icon icon-voice">🎙️</view>
+        <view class="fab-menu-info">
+          <text class="fab-menu-title">语音速记</text>
+          <text class="fab-menu-desc">离线语音转写并自动提取记录</text>
         </view>
       </view>
     </view>
@@ -591,6 +601,11 @@ function getFreqClass(contact: Contact): string {
 .fab-menu-icon.icon-scan {
   background: rgba(9, 132, 227, 0.12);
   color: #0984E3;
+}
+
+.fab-menu-icon.icon-voice {
+  background: rgba(253, 121, 168, 0.15);
+  color: #FD79A8;
 }
 
 .fab-menu-info {

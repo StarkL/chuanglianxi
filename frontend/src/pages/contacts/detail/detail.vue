@@ -55,6 +55,12 @@ function addInteraction() {
   }
 }
 
+function goVoiceNote() {
+  if (contact.value) {
+    uni.navigateTo({ url: `/pages/voice-note/voice-note?contactId=${contact.value.id}` })
+  }
+}
+
 interface PickerCallback {
   confirm: boolean
   content?: string
@@ -250,7 +256,10 @@ function formatDate(dateStr: string): string {
       <view class="timeline-card">
         <view class="timeline-header">
           <text class="section-title">交互记录</text>
-          <view class="add-btn" @click="addInteraction">+ 添加</view>
+          <view class="timeline-actions">
+            <view class="voice-btn" @click="goVoiceNote">🎙️ 语音速记</view>
+            <view class="add-btn" @click="addInteraction">+ 添加</view>
+          </view>
         </view>
 
         <view v-if="contact.interactions.length > 0" class="timeline">
@@ -485,6 +494,28 @@ function formatDate(dateStr: string): string {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24rpx;
+}
+
+.timeline-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.voice-btn {
+  font-size: 24rpx;
+  color: #00B894;
+  padding: 8rpx 20rpx;
+  border-radius: 9999rpx;
+  border: 1rpx solid #55EFC4;
+  background: rgba(0, 184, 148, 0.08);
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.voice-btn:active {
+  background: #00B894;
+  color: #FFFFFF;
 }
 
 .add-btn {

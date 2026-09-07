@@ -26,6 +26,15 @@ onMounted(() => {
 
 function selectType(value: string) {
   selectedType.value = value
+  if (value === 'voice_note') {
+    goToVoiceNote()
+  }
+}
+
+function goToVoiceNote() {
+  uni.navigateTo({
+    url: `/pages/voice-note/voice-note${contactId.value ? '?contactId=' + contactId.value : ''}`
+  })
 }
 
 async function handleSave() {
@@ -83,6 +92,18 @@ async function handleSave() {
             :style="{ color: selectedType === type.value ? type.color : '#636E72' }"
           >{{ type.label }}</text>
         </view>
+      </view>
+
+      <!-- 语音速记专属入口横幅 -->
+      <view v-if="selectedType === 'voice_note'" class="voice-entry-banner" @click="goToVoiceNote">
+        <view class="voice-banner-left">
+          <text class="voice-banner-icon">🎙️</text>
+          <view class="voice-banner-texts">
+            <text class="voice-banner-title">点击进入端侧离线语音速记</text>
+            <text class="voice-banner-desc">说出沟通内容，自动转写并提取要点，100% 离线隐私保护</text>
+          </view>
+        </view>
+        <text class="voice-banner-arrow">立即录音 ➔</text>
       </view>
     </view>
 
@@ -247,5 +268,61 @@ async function handleSave() {
 
 .submit-btn::after {
   border: none;
+}
+
+/* ---- 语音速记引导卡片 ---- */
+.voice-entry-banner {
+  margin-top: 24rpx;
+  background: linear-gradient(135deg, #E8F8F5 0%, #D1F2EB 100%);
+  border: 1rpx solid #A3E4D7;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voice-entry-banner:active {
+  transform: scale(0.98);
+}
+
+.voice-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex: 1;
+}
+
+.voice-banner-icon {
+  font-size: 44rpx;
+}
+
+.voice-banner-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  flex: 1;
+}
+
+.voice-banner-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #00B894;
+}
+
+.voice-banner-desc {
+  font-size: 22rpx;
+  color: #00876C;
+  line-height: 1.4;
+}
+
+.voice-banner-arrow {
+  font-size: 24rpx;
+  color: #00B894;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: 16rpx;
 }
 </style>

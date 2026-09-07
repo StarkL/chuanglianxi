@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { SpeechRecognizer, type SpeechEngineMode } from '../../utils/speech-recognition'
 import { modelManager, type ModelStatus, type ModelProgressEvent } from '../../utils/offline-asr/model-manager'
 import { extractVoiceNoteLocally } from '../../utils/offline-asr/local-extractor'
@@ -59,7 +60,20 @@ const formattedDuration = computed(() => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 })
 
+onLoad((options: any) => {
+  if (options && options.contactId) {
+    selectedContactId.value = options.contactId
+  }
+})
+
 onMounted(async () => {
+  // 检查页面路由参数
+  const pages = getCurrentPages()
+  const currentPage = pages[pages.length - 1] as { $page?: { options?: { contactId?: string } } }
+  const cid = currentPage?.$page?.options?.contactId
+  if (cid && !selectedContactId.value) {
+    selectedContactId.value = cid
+  }
   // 1. 检查离线模型缓存
   isModelCached.value = await modelManager.isModelCached()
   modelManager.onStatusChange((s) => {
