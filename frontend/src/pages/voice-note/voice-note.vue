@@ -184,6 +184,10 @@ async function startRecording() {
       } else {
         errorMessage.value = '未检测到有效语音，请重试'
       }
+    } else {
+      startPromise.catch((err) => {
+        console.warn('离线录音流程挂起等待结束:', err)
+      })
     }
   } catch (error: any) {
     isRecording.value = false
