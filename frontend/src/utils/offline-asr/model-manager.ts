@@ -59,14 +59,28 @@ class AsrModelManager {
   }
 
   /**
-   * 检查模型是否已离线持久化
+   * 检查模型是否已离线持久化 (严格校验二进制大小与非 HTML)
    */
   public async isModelCached(modelUrl: string = DEFAULT_MODEL_URL): Promise<boolean> {
     if (!this.isCacheSupported()) return false
     try {
       const cache = await caches.open(CACHE_NAME)
       const matched = await cache.match(modelUrl)
-      return !!matched
+      if (!matched) return false
+
+      const contentType = matched.headers.get('content-type') || ''
+      if (contentType.includes('text/html')) {
+        await cache.delete(modelUrl)
+        return false
+      }
+
+      const blob = await matched.blob()
+      // 真实 SenseVoice INT8 模型约为 112MB，若低于 10MB 显然是无效文件或 404 回退页
+      if (blob.size < 10 * 1024 * 1024) {
+        await cache.delete(modelUrl)
+        return false
+      }
+      return true
     } catch (e) {
       console.warn('检查 CacheStorage 失败:', e)
       return false
@@ -151,6 +165,11 @@ class AsrModelManager {
       const response = await fetch(modelUrl)
       if (!response.ok && response.status !== 200) {
         throw new Error(`下载模型文件失败 (HTTP ${response.status})`)
+      }
+
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('text/html')) {
+        throw new Error('未找到离线模型权重文件，建议使用【原生极速模式】以获得最佳体验')
       }
 
       const contentLengthHeader = response.headers.get('content-length')

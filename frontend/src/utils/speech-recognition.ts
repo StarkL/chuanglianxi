@@ -20,6 +20,7 @@ export interface SpeechRecognitionResult {
   transcript: string
   confidence: number
   isOffline?: boolean
+  isModelLoaded?: boolean
   duration?: number
   emotion?: string
 }
@@ -261,6 +262,7 @@ export class SpeechRecognizer {
           transcript: formatCjkText(text),
           confidence: asrResult.confidence || 0.92,
           isOffline: true,
+          isModelLoaded: asrResult.isModelLoaded !== false,
           duration: asrResult.duration,
           emotion: asrResult.emotion
         }

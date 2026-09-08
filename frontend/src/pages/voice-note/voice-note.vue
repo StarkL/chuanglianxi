@@ -178,6 +178,22 @@ async function startRecording() {
   recordSeconds.value = 0
   volumeLevel.value = 0
 
+  // 若处于离线模式但本地无有效权重文件
+  if (engineMode.value === 'offline' && !isModelCached.value) {
+    uni.showModal({
+      title: '离线模型未就绪',
+      content: '端侧纯离线 ASR 需要预先下载 SenseVoice 模型权重 (~112MB)。推荐切换至【原生极速模式】，无需下载且支持边说边实时出字。',
+      confirmText: '切换极速',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          toggleEngineMode()
+        }
+      }
+    })
+    return
+  }
+
   if (!recognizer) {
     initRecognizer()
   } else {
@@ -221,7 +237,10 @@ async function stopRecording() {
       const result = await recognizer.stop()
       const finalContent = (result && result.transcript) ? result.transcript : (liveTranscript.value || '')
       
-      if (finalContent.trim()) {
+      if (result?.isModelLoaded === false && !finalContent.trim()) {
+        hasRecorded.value = true
+        errorMessage.value = '未加载端侧离线模型权重文件（约 112MB），建议切换至【原生极速模式】体验高精度实时转写。'
+      } else if (finalContent.trim()) {
         transcript.value = finalContent.trim()
         hasRecorded.value = true
         await handleAutoExtract()

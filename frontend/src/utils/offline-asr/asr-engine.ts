@@ -13,6 +13,7 @@ export interface TranscribeResult {
   duration: number
   emotion?: string
   confidence?: number
+  isModelLoaded?: boolean
 }
 
 /**
@@ -256,10 +257,8 @@ self.onmessage = async (e) => {
       }
       const avgEnergy = samplesCount > 0 ? speechEnergy / samplesCount : 0;
 
+      // 若尚未载入真正的 112MB ONNX 声学模型权重，绝不伪造转写结果
       let recognizedText = '';
-      if (avgEnergy >= 0.002 && fbank.length > 5) {
-        recognizedText = '今天下午和王总讨论了项目合作进度，下周需要跟进落实合同细节。';
-      }
 
       self.postMessage({
         id,
@@ -269,7 +268,8 @@ self.onmessage = async (e) => {
           duration,
           fbankFrames: fbank.length,
           emotion: 'neutral',
-          confidence: 0.96
+          confidence: 0,
+          isModelLoaded: false
         }
       });
     } catch (err) {
