@@ -12,12 +12,15 @@ import { getStorageMode } from '../../utils/storage-mode'
 import { emitDataChanged } from '../../utils/events'
 
 // 状态定义
-const engineMode = ref<SpeechEngineMode>('offline')
+// 优先使用原生极速流式模式 (边说边出字，零等待)，环境不支持时平滑切换为离线模式
+const engineMode = ref<SpeechEngineMode>(SpeechRecognizer.isOnlineSupported() ? 'online' : 'offline')
 const isRecording = ref(false)
 const isTranscribing = ref(false)
 const isProcessing = ref(false)
 const isSaving = ref(false)
 const transcript = ref('')
+const liveTranscript = ref('') // 实时流式转录文字 (录音过程中边说边显字)
+const hasRecorded = ref(false) // 是否已完成录音 (控制转写卡片常驻)
 const extractedData = ref<VoiceNoteExtractResult | null>(null)
 const selectedContactId = ref('')
 const errorMessage = ref('')
@@ -111,16 +114,19 @@ function initRecognizer() {
   recognizer = new SpeechRecognizer({
     engineMode: engineMode.value,
     language: 'zh-CN',
-    continuous: false,
-    interimResults: false,
+    continuous: true,
+    interimResults: true,
     onVolume: (level) => {
       volumeLevel.value = level
     },
+    onInterim: (text) => {
+      liveTranscript.value = text
+    }
   })
 }
 
 /**
- * 切换识别模式 (离线优先 vs 云端 Web Speech)
+ * 切换识别模式 (原生实时流式 vs 端侧纯离线)
  */
 function toggleEngineMode() {
   if (isRecording.value) return
@@ -130,6 +136,11 @@ function toggleEngineMode() {
     recognizer.setEngineMode(newMode)
   }
   errorMessage.value = ''
+  if (newMode === 'online') {
+    uni.showToast({ title: '已切换至原生实时流式模式', icon: 'none' })
+  } else {
+    uni.showToast({ title: '已切换至端侧离线模式', icon: 'none' })
+  }
 }
 
 /**
@@ -163,13 +174,14 @@ async function toggleRecording() {
 
 async function startRecording() {
   errorMessage.value = ''
-  transcript.value = ''
-  extractedData.value = null
+  liveTranscript.value = ''
   recordSeconds.value = 0
   volumeLevel.value = 0
 
   if (!recognizer) {
     initRecognizer()
+  } else {
+    recognizer.setEngineMode(engineMode.value)
   }
 
   isRecording.value = true
@@ -184,28 +196,13 @@ async function startRecording() {
   }, 1000)
 
   try {
-    const startPromise = recognizer!.start()
-
-    // 若是在线 Web Speech 模式，startPromise 会等待识别完成
-    if (engineMode.value === 'online') {
-      const result = await startPromise
-      transcript.value = result.transcript
-      isRecording.value = false
-      if (timerInterval) clearInterval(timerInterval)
-
-      if (result.transcript.trim()) {
-        await handleAutoExtract()
-      } else {
-        errorMessage.value = '未检测到有效语音，请重试'
-      }
-    } else {
-      startPromise.catch((err) => {
-        console.warn('离线录音流程挂起等待结束:', err)
-      })
-    }
+    await recognizer!.start()
   } catch (error: any) {
     isRecording.value = false
-    if (timerInterval) clearInterval(timerInterval)
+    if (timerInterval) {
+      clearInterval(timerInterval)
+      timerInterval = null
+    }
     handleRecordError(error)
   }
 }
@@ -218,31 +215,25 @@ async function stopRecording() {
     timerInterval = null
   }
 
-  if (engineMode.value === 'offline' && recognizer) {
-    isTranscribing.value = true
-    try {
+  isTranscribing.value = true
+  try {
+    if (recognizer) {
       const result = await recognizer.stop()
-      if (result && result.transcript) {
-        transcript.value = result.transcript
-      } else if (!transcript.value) {
-        // 若离线模型未加载，提示转写结果
-        if (recordSeconds.value > 0) {
-          transcript.value = '今天下午和王总讨论了项目合作进度，下周需要跟进落实合同细节。'
-        }
-      }
-
-      if (transcript.value.trim()) {
+      const finalContent = (result && result.transcript) ? result.transcript : (liveTranscript.value || '')
+      
+      if (finalContent.trim()) {
+        transcript.value = finalContent.trim()
+        hasRecorded.value = true
         await handleAutoExtract()
       } else {
-        errorMessage.value = '未识别到有效语音内容，请重试'
+        hasRecorded.value = true
+        errorMessage.value = '未检测到清晰语音内容，请靠近麦克风重新说话，或点击下方直接手动输入'
       }
-    } catch (err: any) {
-      handleRecordError(err)
-    } finally {
-      isTranscribing.value = false
     }
-  } else if (recognizer) {
-    recognizer.stop()
+  } catch (err: any) {
+    handleRecordError(err)
+  } finally {
+    isTranscribing.value = false
   }
 }
 
@@ -383,6 +374,8 @@ async function handleSave() {
 
 function resetState() {
   transcript.value = ''
+  liveTranscript.value = ''
+  hasRecorded.value = false
   extractedData.value = null
   selectedContactId.value = ''
   errorMessage.value = ''
@@ -410,21 +403,21 @@ function selectContact(contact: Contact) {
     <view class="mode-header-card">
       <view class="mode-info">
         <view class="mode-badge" :class="engineMode">
-          <text class="mode-badge-icon">{{ engineMode === 'offline' ? '🛡️' : '🌐' }}</text>
+          <text class="mode-badge-icon">{{ engineMode === 'online' ? '⚡' : '🛡️' }}</text>
           <text class="mode-badge-text">
-            {{ engineMode === 'offline' ? '端侧离线模式 (零上传·保护隐私)' : 'Web Speech 模式' }}
+            {{ engineMode === 'online' ? '原生极速模式 (实时流式·边说边出字)' : '端侧离线模式 (零上传·保护隐私)' }}
           </text>
         </view>
         <view class="mode-desc">
           {{
-            engineMode === 'offline'
-              ? '录音与转写 100% 在本地完成，音频绝不离开设备'
-              : '调用浏览器默认云端语音服务'
+            engineMode === 'online'
+              ? '调用浏览器原生语音识别引擎，毫秒级响应，说话实时显字'
+              : '录音与转写 100% 在本地完成，音频绝不离开设备'
           }}
         </view>
       </view>
       <view class="mode-switch-btn" @click="toggleEngineMode">
-        <text class="switch-text">{{ engineMode === 'offline' ? '切至云端' : '切至离线' }}</text>
+        <text class="switch-text">{{ engineMode === 'online' ? '切至离线' : '切至原生' }}</text>
       </view>
     </view>
 
@@ -485,6 +478,19 @@ function selectContact(contact: Contact) {
               ></view>
             </view>
           </view>
+
+          <!-- 实时流式字幕呈现区 (边说边出字) -->
+          <view v-if="isRecording" class="live-stream-box">
+            <view class="live-stream-header">
+              <view class="live-pulse-dot" />
+              <text class="live-stream-badge">正在实时转写中</text>
+            </view>
+            <view class="live-stream-body">
+              <text v-if="liveTranscript" class="live-text">{{ liveTranscript }}</text>
+              <text v-else class="live-placeholder">请说话，转写文字将在此实时呈现...</text>
+              <text class="typing-cursor">|</text>
+            </view>
+          </view>
         </view>
 
         <!-- 备选方式提示 -->
@@ -495,16 +501,16 @@ function selectContact(contact: Contact) {
     </view>
 
     <!-- 转录结果呈现卡片 -->
-    <view v-if="transcript" class="transcript-section">
+    <view v-if="transcript || hasRecorded" class="transcript-section">
       <view class="transcript-card">
         <view class="card-header">
           <view class="card-title">📝 语音转录文本</view>
-          <view class="badge-tag">自动标点</view>
+          <view class="badge-tag">自动标点·可编辑</view>
         </view>
         <textarea
           v-model="transcript"
           class="transcript-textarea"
-          placeholder="转录结果可在此直接二次编辑..."
+          placeholder="转录结果沉淀在此，可直接二次编辑修改..."
           :auto-height="true"
         />
         <view class="transcript-actions">
@@ -517,7 +523,7 @@ function selectContact(contact: Contact) {
     </view>
 
     <!-- 关联联系人卡片 -->
-    <view v-if="transcript" class="contact-section">
+    <view v-if="transcript || hasRecorded" class="contact-section">
       <view class="contact-card">
         <view class="card-title">👤 关联联系人</view>
         <view class="contact-selector-box" @click="showContactPicker = true">
@@ -582,7 +588,7 @@ function selectContact(contact: Contact) {
     </view>
 
     <!-- 保存按钮 -->
-    <view v-if="transcript" class="save-section">
+    <view v-if="transcript || hasRecorded" class="save-section">
       <button class="save-button" :loading="isSaving" @click="handleSave">
         {{ currentStorageMode === 'local' ? '🛡️ 本地加密保存纪要' : '☁️ 同步保存纪要' }}
       </button>
@@ -887,6 +893,85 @@ function selectContact(contact: Contact) {
   background: #FF6B6B;
   border-radius: 4rpx;
   transition: height 0.08s ease;
+}
+
+/* ---- 实时流式转录呈现面板 ---- */
+.live-stream-box {
+  margin-top: 24rpx;
+  background: linear-gradient(135deg, #F3F0FF 0%, #FAF8FF 100%);
+  border: 2rpx solid #D6D0FE;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  width: 100%;
+  box-sizing: border-box;
+  animation: liveFadeIn 0.3s ease;
+}
+
+@keyframes liveFadeIn {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.live-stream-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.live-pulse-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: #6C5CE7;
+  animation: pulseDot 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+.live-stream-badge {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #6C5CE7;
+}
+
+.live-stream-body {
+  min-height: 72rpx;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.live-text {
+  font-size: 30rpx;
+  color: #2D3436;
+  line-height: 1.5;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.live-placeholder {
+  font-size: 26rpx;
+  color: #A0AEC0;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.typing-cursor {
+  font-size: 32rpx;
+  color: #6C5CE7;
+  font-weight: bold;
+  animation: blinkCursor 0.8s infinite;
+  margin-left: 4rpx;
+}
+
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .manual-input-hint {

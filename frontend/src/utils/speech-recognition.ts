@@ -25,42 +25,39 @@ export interface SpeechRecognitionResult {
 }
 
 export interface SpeechRecognizerOptions {
-  engineMode?: SpeechEngineMode     // 识别引擎模式，默认 'offline' (本地优先)
+  engineMode?: SpeechEngineMode     // 识别引擎模式，默认 'online' (原生流式优先)
   language?: string                 // 语言，默认 'zh-CN'
   continuous?: boolean              // 是否连续识别
   interimResults?: boolean          // 是否输出临时结果
   maxAlternatives?: number          // 最大候选数
   onVolume?: (level: number) => void // 实时音量回调 (0 ~ 100)
+  onInterim?: (text: string) => void // 实时流式文字转写回调 (边说边显字)
 }
 
 export class SpeechRecognizer {
-  private engineMode: SpeechEngineMode = 'offline'
+  private engineMode: SpeechEngineMode = 'online'
   private audioProcessor: AudioProcessor | null = null
   private onlineRecognition: any = null
   private isListening = false
-  private options: Required<Omit<SpeechRecognizerOptions, 'onVolume'>> & { onVolume?: (level: number) => void }
+  private accumulatedFinalText = ''
+  private currentInterimText = ''
+  private _offlineResolver?: (res: SpeechRecognitionResult) => void
+  private _offlineRejecter?: (err: any) => void
+  private options: Required<Omit<SpeechRecognizerOptions, 'onVolume' | 'onInterim'>> & {
+    onVolume?: (level: number) => void
+    onInterim?: (text: string) => void
+  }
 
   constructor(options: SpeechRecognizerOptions = {}) {
-    this.engineMode = options.engineMode || 'offline'
+    this.engineMode = options.engineMode || (SpeechRecognizer.isOnlineSupported() ? 'online' : 'offline')
     this.options = {
       engineMode: this.engineMode,
       language: options.language || 'zh-CN',
-      continuous: options.continuous || false,
-      interimResults: options.interimResults || false,
+      continuous: options.continuous ?? true,
+      interimResults: options.interimResults ?? true,
       maxAlternatives: options.maxAlternatives || 1,
-      onVolume: options.onVolume
-    }
-
-    // 初始化云端 Web Speech API (若可用)
-    if (typeof window !== 'undefined') {
-      const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-      if (SpeechRecognitionAPI) {
-        this.onlineRecognition = new SpeechRecognitionAPI()
-        this.onlineRecognition.lang = this.options.language
-        this.onlineRecognition.continuous = this.options.continuous
-        this.onlineRecognition.interimResults = this.options.interimResults
-        this.onlineRecognition.maxAlternatives = this.options.maxAlternatives
-      }
+      onVolume: options.onVolume,
+      onInterim: options.onInterim
     }
   }
 
@@ -72,7 +69,7 @@ export class SpeechRecognizer {
   }
 
   /**
-   * 检查当前浏览器是否支持云端 Web Speech API
+   * 检查当前浏览器是否支持原生 Web Speech API
    */
   static isOnlineSupported(): boolean {
     return !!(
@@ -106,129 +103,176 @@ export class SpeechRecognizer {
   /**
    * 开始录音并进行语音识别
    */
-  public async start(): Promise<SpeechRecognitionResult> {
+  public async start(): Promise<void> {
     if (this.isListening) {
       throw new Error('正在录音中')
     }
 
-    // 优先执行端侧本地离线模式
-    if (this.engineMode === 'offline') {
-      return this.startOfflineRecognition()
-    } else {
-      return this.startOnlineRecognition()
-    }
-  }
-
-  /**
-   * 端侧离线录音与推理流程
-   */
-  private async startOfflineRecognition(): Promise<SpeechRecognitionResult> {
-    if (!AudioProcessor.isSupported()) {
-      // 若不支持 Web Audio，尝试降级到云端 Web Speech
-      if (SpeechRecognizer.isOnlineSupported()) {
-        console.warn('设备不支持本地音频采集，自动降级至 Web Speech API')
-        this.engineMode = 'online'
-        return this.startOnlineRecognition()
-      }
-      throw new Error('当前浏览器不支持录音功能，请使用现代浏览器')
-    }
-
-    this.audioProcessor = new AudioProcessor({
-      sampleRate: 16000,
-      onVolume: this.options.onVolume
-    })
-
     this.isListening = true
-    await this.audioProcessor.start()
+    this.accumulatedFinalText = ''
+    this.currentInterimText = ''
 
-    // 返回一个由外部主动调用 stop() 解决的 Promise
-    return new Promise((resolve, reject) => {
-      this._offlineResolver = resolve
-      this._offlineRejecter = reject
-    })
+    // 无论在线还是离线模式，都启动 AudioProcessor 以驱动实时声波动画 (RMS 音量)
+    if (AudioProcessor.isSupported()) {
+      try {
+        this.audioProcessor = new AudioProcessor({
+          sampleRate: 16000,
+          onVolume: this.options.onVolume
+        })
+        await this.audioProcessor.start()
+      } catch (err) {
+        console.warn('启动音量监控 AudioProcessor 失败:', err)
+      }
+    }
+
+    if (this.engineMode === 'online' && SpeechRecognizer.isOnlineSupported()) {
+      await this.startOnlineRecognition()
+    } else {
+      await this.startOfflineRecognition()
+    }
   }
 
-  private _offlineResolver?: (res: SpeechRecognitionResult) => void
-  private _offlineRejecter?: (err: any) => void
+  /**
+   * 端侧离线录音流程准备
+   */
+  private async startOfflineRecognition(): Promise<void> {
+    // 基础采集已由 AudioProcessor 处理，等待调用 stop() 提交 Worker 推理
+  }
 
   /**
-   * 云端 Web Speech API 录音流程
+   * 原生 Web Speech API 实时流式录音识别流程
    */
-  private async startOnlineRecognition(): Promise<SpeechRecognitionResult> {
-    return new Promise((resolve, reject) => {
-      if (!this.onlineRecognition) {
-        reject(new Error('当前浏览器不支持 Web Speech API，可切换为端侧离线模式'))
-        return
-      }
+  private async startOnlineRecognition(): Promise<void> {
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 
-      this.isListening = true
+    if (!SpeechRecognitionAPI) {
+      console.warn('当前浏览器未搭载 Web Speech API，降级至离线模式')
+      this.engineMode = 'offline'
+      return
+    }
+
+    try {
+      this.onlineRecognition = new SpeechRecognitionAPI()
+      this.onlineRecognition.lang = this.options.language
+      this.onlineRecognition.continuous = true
+      this.onlineRecognition.interimResults = true
+      this.onlineRecognition.maxAlternatives = this.options.maxAlternatives
 
       this.onlineRecognition.onresult = (event: any) => {
-        const result = event.results[event.results.length - 1]
-        if (result.isFinal) {
-          const rawTranscript = result[0].transcript
-          const confidence = result[0].confidence || 0.9
-          const formatted = formatCjkText(rawTranscript)
+        let interim = ''
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const item = event.results[i]
+          if (item.isFinal) {
+            this.accumulatedFinalText += item[0].transcript
+          } else {
+            interim += item[0].transcript
+          }
+        }
+        this.currentInterimText = interim
+        const currentTotal = (this.accumulatedFinalText + this.currentInterimText).trim()
 
-          this.isListening = false
-          resolve({
-            transcript: formatted,
-            confidence,
-            isOffline: false
-          })
+        if (this.options.onInterim) {
+          this.options.onInterim(currentTotal)
         }
       }
 
       this.onlineRecognition.onerror = (event: any) => {
-        this.isListening = false
-        reject(new Error(`语音识别错误: ${event.error}`))
+        console.warn('Web Speech API 事件异常:', event.error)
       }
 
       this.onlineRecognition.onend = () => {
-        this.isListening = false
+        // 若外部仍在录音状态且发生正常切片结束，自动保持重启
+        if (this.isListening && this.onlineRecognition) {
+          try {
+            this.onlineRecognition.start()
+          } catch {}
+        }
       }
 
-      try {
-        this.onlineRecognition.start()
-      } catch (error) {
-        this.isListening = false
-        reject(new Error('启动在线语音识别失败'))
-      }
-    })
+      this.onlineRecognition.start()
+    } catch (error) {
+      console.warn('启动 Web Speech 识别引擎失败，降级为离线模式:', error)
+      this.engineMode = 'offline'
+    }
   }
 
   /**
-   * 停止录音并触发转写计算
+   * 停止录音并返回整合后的文本转写结果
    */
-  public async stop(): Promise<SpeechRecognitionResult | void> {
-    if (!this.isListening) return
+  public async stop(): Promise<SpeechRecognitionResult> {
+    if (!this.isListening) {
+      return {
+        transcript: formatCjkText(this.accumulatedFinalText || this.currentInterimText),
+        confidence: 0.9
+      }
+    }
 
-    if (this.engineMode === 'offline' && this.audioProcessor) {
+    this.isListening = false
+
+    // 1. 停止音频采样与音量计量
+    let pcm: Float32Array | null = null
+    if (this.audioProcessor) {
       try {
-        // 1. 停止采集并提取 16kHz PCM
-        const pcm = await this.audioProcessor.stop()
-        this.isListening = false
+        pcm = await this.audioProcessor.stop()
+      } catch (e) {
+        console.warn('停止 AudioProcessor 发生异常:', e)
+      }
+      this.audioProcessor = null
+    }
 
-        // 2. 送入离线 ASR 调度引擎
+    // 2. 原生在线模式处理
+    if (this.engineMode === 'online') {
+      if (this.onlineRecognition) {
+        try {
+          this.onlineRecognition.stop()
+        } catch {}
+        this.onlineRecognition = null
+      }
+
+      let combined = (this.accumulatedFinalText + this.currentInterimText).trim()
+      combined = formatCjkText(combined)
+
+      const result: SpeechRecognitionResult = {
+        transcript: combined,
+        confidence: 0.95,
+        isOffline: false
+      }
+
+      if (this._offlineResolver) {
+        this._offlineResolver(result)
+        this._offlineResolver = undefined
+        this._offlineRejecter = undefined
+      }
+
+      return result
+    }
+
+    // 3. 离线模式处理
+    if (this.engineMode === 'offline' && pcm) {
+      try {
         const asrResult = await offlineAsrEngine.transcribe(pcm)
+        let text = asrResult.text
+        if (!text && (this.accumulatedFinalText || this.currentInterimText)) {
+          text = (this.accumulatedFinalText + this.currentInterimText).trim()
+        }
 
-        const finalResult: SpeechRecognitionResult = {
-          transcript: asrResult.text,
-          confidence: asrResult.confidence || 0.95,
+        const result: SpeechRecognitionResult = {
+          transcript: formatCjkText(text),
+          confidence: asrResult.confidence || 0.92,
           isOffline: true,
           duration: asrResult.duration,
           emotion: asrResult.emotion
         }
 
         if (this._offlineResolver) {
-          this._offlineResolver(finalResult)
+          this._offlineResolver(result)
           this._offlineResolver = undefined
           this._offlineRejecter = undefined
         }
 
-        return finalResult
+        return result
       } catch (err) {
-        this.isListening = false
         if (this._offlineRejecter) {
           this._offlineRejecter(err)
           this._offlineResolver = undefined
@@ -236,10 +280,13 @@ export class SpeechRecognizer {
         }
         throw err
       }
-    } else if (this.onlineRecognition) {
-      this.onlineRecognition.stop()
-      this.isListening = false
     }
+
+    const fallbackResult: SpeechRecognitionResult = {
+      transcript: formatCjkText(this.accumulatedFinalText || this.currentInterimText),
+      confidence: 0.9
+    }
+    return fallbackResult
   }
 
   /**
@@ -257,6 +304,6 @@ export async function recognizeSpeech(
   options?: SpeechRecognizerOptions
 ): Promise<SpeechRecognitionResult> {
   const recognizer = new SpeechRecognizer(options)
-  const startPromise = recognizer.start()
-  return startPromise
+  await recognizer.start()
+  return recognizer.stop()
 }
