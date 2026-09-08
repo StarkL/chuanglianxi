@@ -126,21 +126,24 @@ function initRecognizer() {
 }
 
 /**
- * 切换识别模式 (原生实时流式 vs 端侧纯离线)
+ * 切换识别模式 (原生极速 vs 端侧离线)
  */
-function toggleEngineMode() {
-  if (isRecording.value) return
-  const newMode: SpeechEngineMode = engineMode.value === 'offline' ? 'online' : 'offline'
-  engineMode.value = newMode
+function setEngineMode(mode: SpeechEngineMode) {
+  if (isRecording.value || engineMode.value === mode) return
+  engineMode.value = mode
   if (recognizer) {
-    recognizer.setEngineMode(newMode)
+    recognizer.setEngineMode(mode)
   }
   errorMessage.value = ''
-  if (newMode === 'online') {
-    uni.showToast({ title: '已切换至原生实时流式模式', icon: 'none' })
+  if (mode === 'online') {
+    uni.showToast({ title: '已启用原生极速 (实时显字)', icon: 'none' })
   } else {
     uni.showToast({ title: '已切换至端侧离线模式', icon: 'none' })
   }
+}
+
+function toggleEngineMode() {
+  setEngineMode(engineMode.value === 'offline' ? 'online' : 'offline')
 }
 
 /**
@@ -418,25 +421,36 @@ function selectContact(contact: Contact) {
 
 <template>
   <view class="voice-note-page">
-    <!-- 顶部隐私与引擎模式状态卡片 -->
-    <view class="mode-header-card">
-      <view class="mode-info">
-        <view class="mode-badge" :class="engineMode">
-          <text class="mode-badge-icon">{{ engineMode === 'online' ? '⚡' : '🛡️' }}</text>
-          <text class="mode-badge-text">
-            {{ engineMode === 'online' ? '原生极速模式 (实时流式·边说边出字)' : '端侧离线模式 (零上传·保护隐私)' }}
-          </text>
+    <!-- 顶部模式分段切换卡片 -->
+    <view class="engine-switch-card">
+      <view class="segment-tabs">
+        <view
+          class="segment-tab"
+          :class="{ active: engineMode === 'online' }"
+          @click="setEngineMode('online')"
+        >
+          <text class="tab-icon">⚡</text>
+          <text class="tab-title">原生极速</text>
+          <text class="tab-sub-tag">推荐</text>
         </view>
-        <view class="mode-desc">
-          {{
-            engineMode === 'online'
-              ? '调用浏览器原生语音识别引擎，毫秒级响应，说话实时显字'
-              : '录音与转写 100% 在本地完成，音频绝不离开设备'
-          }}
+        <view
+          class="segment-tab"
+          :class="{ active: engineMode === 'offline' }"
+          @click="setEngineMode('offline')"
+        >
+          <text class="tab-icon">🛡️</text>
+          <text class="tab-title">端侧离线</text>
+          <text class="tab-sub-tag">零上传</text>
         </view>
       </view>
-      <view class="mode-switch-btn" @click="toggleEngineMode">
-        <text class="switch-text">{{ engineMode === 'online' ? '切至离线' : '切至原生' }}</text>
+
+      <view class="mode-detail-row">
+        <view class="mode-feature-tag" :class="engineMode">
+          <text class="feature-icon">{{ engineMode === 'online' ? '✨' : '🔒' }}</text>
+          <text class="feature-text">
+            {{ engineMode === 'online' ? '系统级毫秒响应 · 边说边出字 · 0MB免下载' : '100% 端侧计算 · 音频绝不离开设备 · 物理隐私' }}
+          </text>
+        </view>
       </view>
     </view>
 
@@ -659,65 +673,123 @@ function selectContact(contact: Contact) {
   padding-bottom: 220rpx;
 }
 
-/* ---- 顶部隐私与引擎模式卡片 ---- */
-.mode-header-card {
+/* ---- 顶部引擎模式分段切换卡片 ---- */
+.engine-switch-card {
   background: #FFFFFF;
+  border-radius: 28rpx;
+  padding: 16rpx 18rpx 18rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(108, 92, 231, 0.07);
+}
+
+.segment-tabs {
+  display: flex;
+  background: #F1F3F9;
   border-radius: 20rpx;
-  padding: 24rpx 28rpx;
+  padding: 6rpx;
+  gap: 8rpx;
+}
+
+.segment-tab {
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(108, 92, 231, 0.06);
+  justify-content: center;
+  gap: 10rpx;
+  padding: 14rpx 12rpx;
+  border-radius: 16rpx;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
-.mode-info {
-  flex: 1;
+.segment-tab .tab-icon {
+  font-size: 28rpx;
+  line-height: 1;
 }
 
-.mode-badge {
+.segment-tab .tab-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #636E72;
+}
+
+.segment-tab .tab-sub-tag {
+  font-size: 18rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  background: rgba(99, 110, 114, 0.12);
+  color: #636E72;
+  font-weight: 500;
+}
+
+/* 激活态：原生极速 (品牌紫主题) */
+.segment-tab.active:first-child {
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.18);
+}
+
+.segment-tab.active:first-child .tab-title {
+  color: #6C5CE7;
+}
+
+.segment-tab.active:first-child .tab-sub-tag {
+  background: rgba(108, 92, 231, 0.12);
+  color: #6C5CE7;
+}
+
+/* 激活态：端侧离线 (翡翠绿主题) */
+.segment-tab.active:last-child {
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 16rpx rgba(0, 184, 148, 0.18);
+}
+
+.segment-tab.active:last-child .tab-title {
+  color: #00B894;
+}
+
+.segment-tab.active:last-child .tab-sub-tag {
+  background: rgba(0, 184, 148, 0.12);
+  color: #00B894;
+}
+
+.mode-detail-row {
+  margin-top: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mode-feature-tag {
   display: inline-flex;
   align-items: center;
   gap: 8rpx;
-  padding: 6rpx 16rpx;
+  padding: 8rpx 18rpx;
   border-radius: 12rpx;
-  margin-bottom: 8rpx;
+  max-width: 100%;
 }
 
-.mode-badge.offline {
-  background: #E8F8F5;
+.mode-feature-tag.online {
+  background: rgba(108, 92, 231, 0.06);
 }
 
-.mode-badge.offline .mode-badge-text {
-  color: #00B894;
-  font-weight: 600;
-  font-size: 24rpx;
-}
-
-.mode-badge.online {
-  background: #EFF6FF;
-}
-
-.mode-badge.online .mode-badge-text {
-  color: #3B82F6;
-  font-weight: 600;
-  font-size: 24rpx;
-}
-
-.mode-desc {
+.mode-feature-tag.online .feature-text {
+  color: #6C5CE7;
   font-size: 22rpx;
-  color: #8395A7;
+  font-weight: 500;
 }
 
-.mode-switch-btn {
-  padding: 10rpx 20rpx;
-  background: #F1F2F6;
-  border-radius: 20rpx;
+.mode-feature-tag.offline {
+  background: rgba(0, 184, 148, 0.06);
 }
 
-.switch-text {
-  font-size: 24rpx;
-  color: #576574;
+.mode-feature-tag.offline .feature-text {
+  color: #00876C;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.feature-icon {
+  font-size: 22rpx;
 }
 
 /* ---- 离线模型状态条 ---- */
