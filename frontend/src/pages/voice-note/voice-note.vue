@@ -471,12 +471,12 @@ function selectContact(contact: Contact) {
         <view class="prompt-main">
           <view class="prompt-header">
             <text class="prompt-icon">💡</text>
-            <text class="prompt-title">预载离线 ASR 模型 (~110MB)</text>
+            <text class="prompt-title">预载离线模型 (110MB)</text>
           </view>
-          <text class="prompt-desc">缓存后断网亦可秒速识别，无需依赖网络</text>
+          <text class="prompt-desc">缓存后断网可用 · 零数据外发</text>
         </view>
         <view class="prompt-btn">
-          <text class="prompt-btn-text">立即预载</text>
+          <text class="prompt-btn-text">下载</text>
         </view>
       </view>
     </view>
@@ -890,7 +890,7 @@ function selectContact(contact: Contact) {
 }
 
 .prompt-btn {
-  padding: 10rpx 20rpx;
+  padding: 8rpx 18rpx;
   background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
   border-radius: 24rpx;
   flex-shrink: 0;
