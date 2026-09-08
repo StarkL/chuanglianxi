@@ -468,9 +468,16 @@ function selectContact(contact: Contact) {
         </view>
       </view>
       <view v-else class="status-prompt" @click="triggerModelDownload">
-        <text class="prompt-icon">💡</text>
-        <text class="prompt-text">点击预载 SenseVoice 离线模型 (~110MB)，断网亦可秒速识别</text>
-        <text class="prompt-action">立即预载 ➔</text>
+        <view class="prompt-main">
+          <view class="prompt-header">
+            <text class="prompt-icon">💡</text>
+            <text class="prompt-title">预载离线 ASR 模型 (~110MB)</text>
+          </view>
+          <text class="prompt-desc">缓存后断网亦可秒速识别，无需依赖网络</text>
+        </view>
+        <view class="prompt-btn">
+          <text class="prompt-btn-text">立即预载</text>
+        </view>
       </view>
     </view>
 
@@ -838,29 +845,63 @@ function selectContact(contact: Contact) {
 }
 
 .status-prompt {
-  background: #FFF9E6;
-  border-radius: 16rpx;
-  padding: 16rpx 24rpx;
+  background: #FFFDF0;
+  border: 2rpx solid #FEEBC8;
+  border-radius: 20rpx;
+  padding: 18rpx 22rpx;
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  justify-content: space-between;
+  gap: 16rpx;
   cursor: pointer;
+  box-shadow: 0 2rpx 10rpx rgba(217, 119, 6, 0.06);
+}
+
+.prompt-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.prompt-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .prompt-icon {
-  font-size: 28rpx;
+  font-size: 26rpx;
+  flex-shrink: 0;
 }
 
-.prompt-text {
+.prompt-title {
   font-size: 24rpx;
-  color: #D97706;
-  flex: 1;
-}
-
-.prompt-action {
-  font-size: 24rpx;
-  color: #D97706;
   font-weight: 600;
+  color: #B45309;
+  white-space: nowrap;
+}
+
+.prompt-desc {
+  font-size: 21rpx;
+  color: #D97706;
+  white-space: nowrap;
+}
+
+.prompt-btn {
+  padding: 10rpx 20rpx;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  border-radius: 24rpx;
+  flex-shrink: 0;
+  box-shadow: 0 2rpx 8rpx rgba(217, 119, 6, 0.2);
+}
+
+.prompt-btn-text {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  white-space: nowrap;
 }
 
 /* ---- 录音卡片 ---- */
