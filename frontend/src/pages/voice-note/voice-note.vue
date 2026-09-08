@@ -431,7 +431,6 @@ function selectContact(contact: Contact) {
         >
           <text class="tab-icon">⚡</text>
           <text class="tab-title">原生极速</text>
-          <text class="tab-sub-tag">推荐</text>
         </view>
         <view
           class="segment-tab"
@@ -440,7 +439,6 @@ function selectContact(contact: Contact) {
         >
           <text class="tab-icon">🛡️</text>
           <text class="tab-title">端侧离线</text>
-          <text class="tab-sub-tag">零上传</text>
         </view>
       </view>
 
@@ -448,7 +446,7 @@ function selectContact(contact: Contact) {
         <view class="mode-feature-tag" :class="engineMode">
           <text class="feature-icon">{{ engineMode === 'online' ? '✨' : '🔒' }}</text>
           <text class="feature-text">
-            {{ engineMode === 'online' ? '系统级毫秒响应 · 边说边出字 · 0MB免下载' : '100% 端侧计算 · 音频绝不离开设备 · 物理隐私' }}
+            {{ engineMode === 'online' ? '原生引擎 · 毫秒响应 · 边说边出字' : '端侧本地运行 · 音频零上传 · 保护隐私' }}
           </text>
         </view>
       </view>
@@ -528,7 +526,7 @@ function selectContact(contact: Contact) {
 
         <!-- 备选方式提示 -->
         <view class="manual-input-hint" @click="handleManualInput">
-          <text class="hint-text">💡 环境不便说话？点击手动输入或粘贴纪要</text>
+          <text class="hint-text">💡 不便说话？点击手动输入或粘贴纪要</text>
         </view>
       </view>
     </view>
@@ -695,60 +693,44 @@ function selectContact(contact: Contact) {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10rpx;
-  padding: 14rpx 12rpx;
+  gap: 12rpx;
+  padding: 16rpx 16rpx;
   border-radius: 16rpx;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .segment-tab .tab-icon {
   font-size: 28rpx;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .segment-tab .tab-title {
-  font-size: 26rpx;
+  font-size: 27rpx;
   font-weight: 600;
   color: #636E72;
-}
-
-.segment-tab .tab-sub-tag {
-  font-size: 18rpx;
-  padding: 2rpx 10rpx;
-  border-radius: 8rpx;
-  background: rgba(99, 110, 114, 0.12);
-  color: #636E72;
-  font-weight: 500;
+  white-space: nowrap;
 }
 
 /* 激活态：原生极速 (品牌紫主题) */
 .segment-tab.active:first-child {
   background: #FFFFFF;
-  box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.18);
+  box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.16);
 }
 
 .segment-tab.active:first-child .tab-title {
   color: #6C5CE7;
 }
 
-.segment-tab.active:first-child .tab-sub-tag {
-  background: rgba(108, 92, 231, 0.12);
-  color: #6C5CE7;
-}
-
 /* 激活态：端侧离线 (翡翠绿主题) */
 .segment-tab.active:last-child {
   background: #FFFFFF;
-  box-shadow: 0 4rpx 16rpx rgba(0, 184, 148, 0.18);
+  box-shadow: 0 4rpx 16rpx rgba(0, 184, 148, 0.16);
 }
 
 .segment-tab.active:last-child .tab-title {
-  color: #00B894;
-}
-
-.segment-tab.active:last-child .tab-sub-tag {
-  background: rgba(0, 184, 148, 0.12);
   color: #00B894;
 }
 
@@ -763,33 +745,36 @@ function selectContact(contact: Contact) {
   display: inline-flex;
   align-items: center;
   gap: 8rpx;
-  padding: 8rpx 18rpx;
+  padding: 8rpx 20rpx;
   border-radius: 12rpx;
-  max-width: 100%;
+  white-space: nowrap;
 }
 
 .mode-feature-tag.online {
-  background: rgba(108, 92, 231, 0.06);
+  background: rgba(108, 92, 231, 0.08);
 }
 
 .mode-feature-tag.online .feature-text {
   color: #6C5CE7;
   font-size: 22rpx;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .mode-feature-tag.offline {
-  background: rgba(0, 184, 148, 0.06);
+  background: rgba(0, 184, 148, 0.08);
 }
 
 .mode-feature-tag.offline .feature-text {
   color: #00876C;
   font-size: 22rpx;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .feature-icon {
   font-size: 22rpx;
+  flex-shrink: 0;
 }
 
 /* ---- 离线模型状态条 ---- */
@@ -1066,7 +1051,7 @@ function selectContact(contact: Contact) {
 }
 
 .manual-input-hint {
-  padding: 18rpx 28rpx;
+  padding: 16rpx 20rpx;
   background: #F8F9FA;
   border-radius: 16rpx;
   text-align: center;
@@ -1074,8 +1059,9 @@ function selectContact(contact: Contact) {
 }
 
 .hint-text {
-  font-size: 25rpx;
+  font-size: 24rpx;
   color: #6C5CE7;
+  white-space: nowrap;
 }
 
 /* ---- 转录结果卡片 ---- */
