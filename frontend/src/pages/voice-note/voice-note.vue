@@ -628,7 +628,7 @@ function selectContact(contact: Contact) {
     <!-- 保存按钮 -->
     <view v-if="transcript || hasRecorded" class="save-section">
       <button class="save-button" :loading="isSaving" @click="handleSave">
-        {{ currentStorageMode === 'local' ? '🛡️ 本地加密保存纪要' : '☁️ 同步保存纪要' }}
+        {{ currentStorageMode === 'local' ? '🛡️ 本地加密保存' : '☁️ 云端同步保存' }}
       </button>
     </view>
 
