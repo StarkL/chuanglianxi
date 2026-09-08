@@ -543,8 +543,22 @@ export async function localRestoreData(payload: LocalExportPayload): Promise<{ c
   const db = await openLocalDB()
   await localClearAllData()
 
-  const encryptedContacts = await Promise.all((payload.contacts || []).map(c => encryptContactForStorage(c)))
-  const encryptedInteractions = await Promise.all((payload.interactions || []).map(i => encryptInteractionForStorage(i)))
+  const safeContacts = (payload.contacts || []).map(c => ({
+    ...c,
+    id: c.id || generateUUID(),
+    createdAt: c.createdAt || new Date().toISOString(),
+    updatedAt: c.updatedAt || new Date().toISOString()
+  }))
+
+  const safeInteractions = (payload.interactions || []).map(i => ({
+    ...i,
+    id: i.id || generateUUID(),
+    occurredAt: i.occurredAt || new Date().toISOString(),
+    createdAt: i.createdAt || new Date().toISOString()
+  }))
+
+  const encryptedContacts = await Promise.all(safeContacts.map(c => encryptContactForStorage(c)))
+  const encryptedInteractions = await Promise.all(safeInteractions.map(i => encryptInteractionForStorage(i)))
 
   return new Promise((resolve, reject) => {
     const tx = db.transaction([STORE_CONTACTS, STORE_INTERACTIONS], 'readwrite')

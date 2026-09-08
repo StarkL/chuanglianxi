@@ -687,7 +687,7 @@ async function handleImportBackup() {
       <view class="modal-content schema-modal-content">
         <text class="modal-title">📖 JSON 备份恢复规范格式</text>
         <text class="crypto-desc">
-          系统支持标准 JSON 结构直接导入与导出。以下为格式示例：
+          系统支持标准 JSON 结构直接导入与导出，包含联系人列表与关联跟进纪要。格式示例如下：
         </text>
         <view class="schema-code-box">
           <text class="schema-code-text">{{ BACKUP_JSON_EXAMPLE }}</text>
@@ -1363,7 +1363,7 @@ async function handleImportBackup() {
   background: #1E293B;
   border-radius: 12rpx;
   padding: 16rpx;
-  max-height: 380rpx;
+  max-height: 520rpx;
   overflow-y: auto;
   margin: 16rpx 0;
 }

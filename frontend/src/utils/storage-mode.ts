@@ -312,27 +312,34 @@ export async function downloadLocalBackupFile(jsonContent?: string): Promise<{ s
 }
 
 /**
- * 标准导入 JSON 格式示例
+ * 标准导入 JSON 格式示例（包含联系人与关联交互记录）
  */
 export const BACKUP_JSON_EXAMPLE = `{
   "version": 1,
-  "exportedAt": "2026-09-04T12:00:00.000Z",
+  "exportedAt": "2026-09-08T00:33:35.435Z",
   "contacts": [
     {
-      "name": "张三 (必填)",
-      "phone": "13800138000",
+      "id": "98c34f18-6470-4934-bdc7-77b4ee33dd9d",
+      "name": "王总",
       "company": "常联系科技",
       "title": "总监",
-      "email": "zhangsan@example.com",
-      "wechatId": "zhangsan_wx",
-      "tags": ["工作", "VIP"]
+      "phone": "13800138000",
+      "email": "wang@example.com",
+      "wechatId": "wang_wx",
+      "tags": ["核心客户", "VIP"],
+      "createdAt": "2026-09-04T04:45:41.910Z",
+      "updatedAt": "2026-09-04T04:47:32.126Z"
     }
   ],
   "interactions": [
     {
-      "type": "manual_note",
-      "content": "跟进纪要内容",
-      "occurredAt": "2026-09-04T10:00:00.000Z"
+      "id": "1a221af8-7ff1-4997-9806-2a2375fb35c2",
+      "contactId": "98c34f18-6470-4934-bdc7-77b4ee33dd9d",
+      "type": "meeting",
+      "content": "今天下午和王总讨论了项目合作进度，下周需要跟进落实合同细节。\\n\\n要点：\\n• 今天下午和王总讨论了项目合作进度\\n• 下周需要跟进落实合同细节",
+      "duration": 5,
+      "occurredAt": "2026-09-07T00:48:43.329Z",
+      "createdAt": "2026-09-07T00:48:43.329Z"
     }
   ]
 }`
