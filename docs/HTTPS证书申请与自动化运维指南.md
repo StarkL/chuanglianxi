@@ -21,8 +21,8 @@
 
 ### 2.1 域名解析规范（双记录绑定）
 在云解析控制台（如腾讯云 DNSPod、阿里云云解析等）为域名添加两条 A 记录指向服务器公网 IP：
-- **主机记录 `@`** ➔ 解析根域名（例如 `666666.monster`）
-- **主机记录 `www`** ➔ 解析二级域（例如 `www.666666.monster`）
+- **主机记录 `@`** ➔ 解析根域名（例如 `yourdomain.com`）
+- **主机记录 `www`** ➔ 解析二级域（例如 `www.yourdomain.com`）
 
 > **⚠️ 注意**：务必同时绑定 `@` 与 `www`，防止用户输入习惯差异导致解析失败或证书域名不匹配（Hostname Mismatch）。
 
@@ -32,7 +32,7 @@
 - **`443/TCP`**：HTTPS 端口。用于承载 TLS 加密流量。
 
 ### 2.3 大陆机房网络合规（ICP 备案约束）
-- 若服务器节点位于中国大陆机房，域名必须先完成 ICP 备案，且域名顶级后缀须在工信部批复列表内（如 `.monster` 已在批复资质库中）；
+- 若服务器节点位于中国大陆机房，域名必须先完成 ICP 备案，且域名顶级后缀须在工信部批复牌照列表中；
 - 若请求返回 `403 Non-compliance ICP Filing`，说明阻断是由骨干网拦截引起，需待备案通过后生效。
 
 ---
@@ -55,9 +55,9 @@
 在本地或 VPS 上执行预检命令，确保域名已生效且能够访问服务器：
 
 ```bash
-# 验证解析 IP
-curl -I -s http://www.666666.monster/crm/
-curl -I -s http://666666.monster/crm/
+# 验证解析与 80 端口连通性
+curl -I -s http://yourdomain.com/crm/
+curl -I -s http://www.yourdomain.com/crm/
 ```
 若能正常返回 `200 OK`，说明网络和反代链路通畅。
 
@@ -86,7 +86,7 @@ server {
     }
 
     # 自动重定向域名 HTTP 请求至 HTTPS (保持 IP 直连不重定向)
-    if ($host ~* ^(www\.)?666666\.monster$) {
+    if ($host ~* ^(www\.)?yourdomain\.com$) {
         return 301 https://$host$request_uri;
     }
 
@@ -106,9 +106,9 @@ server {
 ```bash
 sudo certbot certonly --webroot \
     -w /usr/share/nginx/html \
-    -d 666666.monster \
-    -d www.666666.monster \
-    --email 290930511@qq.com \
+    -d yourdomain.com \
+    -d www.yourdomain.com \
+    --email admin@yourdomain.com \
     --agree-tos \
     --no-eff-email \
     --non-interactive \
@@ -122,17 +122,17 @@ sudo certbot certonly --webroot \
 ```bash
 sudo certbot certonly --webroot \
     -w /usr/share/nginx/html \
-    -d 666666.monster \
-    -d www.666666.monster \
-    --email 290930511@qq.com \
+    -d yourdomain.com \
+    -d www.yourdomain.com \
+    --email admin@yourdomain.com \
     --agree-tos \
     --no-eff-email \
     --non-interactive
 ```
 
 签发成功后，证书与私钥将安全存储于：
-- **完整证书链 (Fullchain)**：`/etc/letsencrypt/live/666666.monster/fullchain.pem`
-- **私钥文件 (Privkey)**：`/etc/letsencrypt/live/666666.monster/privkey.pem`
+- **完整证书链 (Fullchain)**：`/etc/letsencrypt/live/yourdomain.com/fullchain.pem`
+- **私钥文件 (Privkey)**：`/etc/letsencrypt/live/yourdomain.com/privkey.pem`
 
 ---
 
@@ -159,11 +159,11 @@ types {
 server {
     listen 443 ssl default_server;
     listen [::]:443 ssl default_server;
-    server_name 666666.monster www.666666.monster _;
+    server_name yourdomain.com www.yourdomain.com _;
 
     # Let's Encrypt 证书路径
-    ssl_certificate /etc/letsencrypt/live/666666.monster/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/666666.monster/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
 
     # TLS 协议与现代加密套件优化
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -244,7 +244,7 @@ sudo certbot renew --dry-run
 ### 方式 A：Windows 图形界面清除（推荐）
 1. 按快捷键 <kbd>Win</kbd> + <kbd>R</kbd>，输入 `certmgr.msc` 并回车；
 2. 展开 **【受信任的根证书颁发机构】 ➔ 【证书】**；
-3. 找到目标自建证书（例如 `ChangLianXi Root CA` 或临时 IP 证书）；
+3. 找到目标自建证书（例如 `ChangLianXi Root CA` 或临时 IP 自签名证书）；
 4. 右键点击 ➔ 选择 **【删除】** 并确认；
 5. 在左侧 **【中级证书颁发机构】 ➔ 【证书】** 中做同样检查与清理。
 
@@ -252,8 +252,8 @@ sudo certbot renew --dry-run
 ```powershell
 # 清理当前用户证书库
 certutil -user -delstore Root "ChangLianXi Root CA"
-certutil -user -delstore Root "182.92.95.136"
-certutil -user -delstore CA "182.92.95.136"
+certutil -user -delstore Root "<历史测试IP>"
+certutil -user -delstore CA "<历史测试IP>"
 
 # 清理本地计算机根证书库
 certutil -delstore Root "ChangLianXi Root CA"

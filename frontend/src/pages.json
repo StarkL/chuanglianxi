@@ -122,6 +122,9 @@
     }
   ],
   "globalStyle": {
+    "rpxCalcMaxDeviceWidth": 440,
+    "rpxCalcBaseDeviceWidth": 440,
+    "rpxCalcIncludeWidth": 0,
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "常联系",
     "navigationBarBackgroundColor": "#FFFFFF",

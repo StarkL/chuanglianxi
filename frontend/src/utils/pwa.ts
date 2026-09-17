@@ -13,13 +13,16 @@ export function initPwaManager() {
   if (typeof window === 'undefined') return
 
   // 1. 检查是否已经在 Standalone（已添加到主屏幕）模式下运行
-  checkStandalone()
+  if (checkStandalone()) {
+    tryOptimizeStandaloneWindow()
+  }
 
   // 2. 监听 display-mode 变化
   window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
     isPwaInstalled.value = e.matches
     if (e.matches) {
       isPwaInstallable.value = false
+      tryOptimizeStandaloneWindow()
     }
   })
 
@@ -88,6 +91,26 @@ export function checkStandalone(): boolean {
 
   isPwaInstalled.value = isStandalone
   return isStandalone
+}
+
+/**
+ * 针对桌面 PWA 初次启动尝试调整为优雅的手机窗体比例
+ */
+export function tryOptimizeStandaloneWindow() {
+  if (typeof window === 'undefined') return
+  try {
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as any).standalone === true
+
+    if (isStandalone && window.outerWidth > 520) {
+      const targetWidth = 480
+      const targetHeight = Math.min(window.screen.availHeight ? window.screen.availHeight - 80 : 860, 880)
+      window.resizeTo(targetWidth, targetHeight)
+    }
+  } catch (err) {
+    // 部分浏览器可能因安全策略忽略非手势触发的 resizeTo，静默忽略
+  }
 }
 
 /**
