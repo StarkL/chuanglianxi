@@ -9,7 +9,8 @@
     {
       "path": "pages/login/login",
       "style": {
-        "navigationBarTitleText": "登录"
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -21,7 +22,8 @@
     {
       "path": "pages/contacts/list",
       "style": {
-        "navigationBarTitleText": "联系人"
+        "navigationBarTitleText": "联系人",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -33,7 +35,8 @@
     {
       "path": "pages/contacts/edit/edit",
       "style": {
-        "navigationBarTitleText": "添加联系人"
+        "navigationBarTitleText": "联系人",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -87,19 +90,22 @@
     {
       "path": "pages/reminders/list/list",
       "style": {
-        "navigationBarTitleText": "提醒"
+        "navigationBarTitleText": "提醒",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/reminders/add/add",
       "style": {
-        "navigationBarTitleText": "添加提醒"
+        "navigationBarTitleText": "提醒",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/mine/mine",
       "style": {
-        "navigationBarTitleText": "我的"
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom"
       }
     },
     {
