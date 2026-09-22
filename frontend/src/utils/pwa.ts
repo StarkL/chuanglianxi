@@ -123,6 +123,33 @@ export function isIos(): boolean {
 }
 
 /**
+ * 判断是否为国内安卓浏览器（对 PWA 支持差）
+ */
+export function isChineseAndroidBrowser(): boolean {
+  if (typeof window === 'undefined') return false
+  const userAgent = window.navigator.userAgent.toLowerCase()
+  // 华为、小米、OPPO、vivo、三星等国内常见浏览器
+  const chineseBrowsers = [
+    'huawei', 'honor', 'xiaomi', 'miui', 'oppo', 'vivo', 'samsung',
+    'ucbrowser', 'qqbrowser', 'baidubrowser', '2345browser', 'sogou',
+    '360browser', 'liebaofast', 'maxthon', 'uc browser'
+  ]
+  return chineseBrowsers.some(browser => userAgent.includes(browser))
+}
+
+/**
+ * 判断浏览器是否支持 PWA 自动安装
+ */
+export function isPwaAutoInstallSupported(): boolean {
+  // iOS 不支持 beforeinstallprompt
+  if (isIos()) return false
+  // 国内安卓浏览器对 PWA 支持差
+  if (isChineseAndroidBrowser()) return false
+  // 检查是否有 beforeinstallprompt 事件支持
+  return 'BeforeInstallPromptEvent' in window || 'onbeforeinstallprompt' in window
+}
+
+/**
  * 触发 PWA 安装
  * @returns 'accepted' | 'dismissed' | 'manual-ios' | 'unsupported'
  */
