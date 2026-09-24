@@ -121,6 +121,25 @@ function initRecognizer() {
     },
     onInterim: (text) => {
       liveTranscript.value = text
+      console.log('实时流式转写:', text)
+    },
+    onError: (err) => {
+      // 在线模式遇到网络/服务错误时，实时展示提示并触发降级
+      if (err.code === 'network' || err.code === 'service-not-allowed') {
+        errorMessage.value = '原生语音服务不可达，已自动切换至端侧离线模式'
+        engineMode.value = 'offline'
+        // 如果正在录音，停止录音并提示用户
+        if (isRecording.value) {
+          stopRecording()
+          uni.showToast({
+            title: '已切换至离线模式，请重新录音',
+            icon: 'none',
+            duration: 3000
+          })
+        }
+      } else if (err.code !== 'aborted' && err.code !== 'no-speech') {
+        errorMessage.value = err.message
+      }
     }
   })
 }

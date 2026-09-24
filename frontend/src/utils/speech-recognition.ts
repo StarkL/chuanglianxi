@@ -33,6 +33,7 @@ export interface SpeechRecognizerOptions {
   maxAlternatives?: number          // 最大候选数
   onVolume?: (level: number) => void // 实时音量回调 (0 ~ 100)
   onInterim?: (text: string) => void // 实时流式文字转写回调 (边说边显字)
+  onError?: (error: { code: string; message: string }) => void // 识别引擎错误回调
 }
 
 export class SpeechRecognizer {
@@ -44,9 +45,10 @@ export class SpeechRecognizer {
   private currentInterimText = ''
   private _offlineResolver?: (res: SpeechRecognitionResult) => void
   private _offlineRejecter?: (err: any) => void
-  private options: Required<Omit<SpeechRecognizerOptions, 'onVolume' | 'onInterim'>> & {
+  private options: Required<Omit<SpeechRecognizerOptions, 'onVolume' | 'onInterim' | 'onError'>> & {
     onVolume?: (level: number) => void
     onInterim?: (text: string) => void
+    onError?: (error: { code: string; message: string }) => void
   }
 
   constructor(options: SpeechRecognizerOptions = {}) {
@@ -58,7 +60,8 @@ export class SpeechRecognizer {
       interimResults: options.interimResults ?? true,
       maxAlternatives: options.maxAlternatives || 1,
       onVolume: options.onVolume,
-      onInterim: options.onInterim
+      onInterim: options.onInterim,
+      onError: options.onError
     }
   }
 
@@ -143,6 +146,9 @@ export class SpeechRecognizer {
   /**
    * 原生 Web Speech API 实时流式录音识别流程
    */
+  private onlineErrorCount = 0 // 在线模式连续错误计数
+  private onlineMaxErrors = 3  // 超过此次数自动降级到离线模式
+
   private async startOnlineRecognition(): Promise<void> {
     const SpeechRecognitionAPI =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -153,6 +159,8 @@ export class SpeechRecognizer {
       return
     }
 
+    this.onlineErrorCount = 0
+
     try {
       this.onlineRecognition = new SpeechRecognitionAPI()
       this.onlineRecognition.lang = this.options.language
@@ -161,6 +169,9 @@ export class SpeechRecognizer {
       this.onlineRecognition.maxAlternatives = this.options.maxAlternatives
 
       this.onlineRecognition.onresult = (event: any) => {
+        // 收到有效结果，重置错误计数
+        this.onlineErrorCount = 0
+
         let interim = ''
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const item = event.results[i]
@@ -179,15 +190,53 @@ export class SpeechRecognizer {
       }
 
       this.onlineRecognition.onerror = (event: any) => {
-        console.warn('Web Speech API 事件异常:', event.error)
+        this.onlineErrorCount++
+        const errorCode = event.error || 'unknown'
+        console.warn(`Web Speech API 错误 (${this.onlineErrorCount}/${this.onlineMaxErrors}):`, errorCode, event)
+
+        // 向页面层传递错误信息
+        if (this.options.onError) {
+          const errorMessages: Record<string, string> = {
+            'network': '网络连接异常，语音识别服务不可达',
+            'not-allowed': '麦克风权限被拒绝',
+            'no-speech': '未检测到语音输入',
+            'audio-capture': '无法捕获音频，请检查麦克风',
+            'service-not-allowed': '语音识别服务被拒绝（可能是隐私设置或网络策略）',
+            'aborted': '识别被中止'
+          }
+          this.options.onError({
+            code: errorCode,
+            message: errorMessages[errorCode] || `语音识别错误: ${errorCode}`
+          })
+        }
+
+        // 权限类错误立即降级（重试无意义），网络类错误累计达到阈值后降级
+        const immediateFatal = ['service-not-allowed', 'not-allowed']
+        if (immediateFatal.includes(errorCode)) {
+          console.warn(`在线模式致命错误 (${errorCode})，立即降级至离线模式`)
+          if (this.onlineRecognition) {
+            try { this.onlineRecognition.abort() } catch {}
+            this.onlineRecognition = null
+          }
+          this.engineMode = 'offline'
+        } else if (this.onlineErrorCount >= this.onlineMaxErrors) {
+          console.warn(`在线模式累计失败 ${this.onlineErrorCount} 次，降级至离线模式`)
+          if (this.onlineRecognition) {
+            try { this.onlineRecognition.abort() } catch {}
+            this.onlineRecognition = null
+          }
+          this.engineMode = 'offline'
+        }
       }
 
       this.onlineRecognition.onend = () => {
-        // 若外部仍在录音状态且发生正常切片结束，自动保持重启
-        if (this.isListening && this.onlineRecognition) {
+        // 若外部仍在录音状态且未发生致命错误，自动保持重启
+        if (this.isListening && this.onlineRecognition && this.onlineErrorCount < this.onlineMaxErrors) {
           try {
             this.onlineRecognition.start()
-          } catch {}
+          } catch (e) {
+            console.warn('重启 Web Speech 识别失败:', e)
+          }
         }
       }
 

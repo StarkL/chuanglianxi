@@ -19,8 +19,8 @@ export interface ModelProgressEvent {
 export type ModelProgressCallback = (event: ModelProgressEvent) => void
 
 const CACHE_NAME = 'clx-asr-models-v1'
-// 统一资源定位，生产环境可指向本地 /crm/models/，或自托管 CDN
-export const DEFAULT_MODEL_URL = '/crm/models/sensevoice_small_int8.onnx'
+// 从后端 API 拉取模型文件（后端服务器预先部署好模型）
+export const DEFAULT_MODEL_URL = '/api/models/asr'
 export const ESTIMATED_MODEL_SIZE = 112 * 1024 * 1024 // ~112MB
 
 class AsrModelManager {

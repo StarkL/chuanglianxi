@@ -1,12 +1,12 @@
 /**
  * 端侧离线语音转文字引擎 (Offline ASR Engine)
  * 采用 Dedicated Web Worker 隔离架构：
- * 1. 主线程与推理工作线程通过 Transferable Objects (Zero-Copy) 通信
- * 2. 线程内完整执行：80维 Mel 频谱提取 ➔ 声学模型前向推理 ➔ CTC 解码 ➔ 标点与排版规整
- * 3. 针对中端移动设备 (如红米 K30) 设置限制并发线程数 (numThreads = 2)，UI 丝滑不卡顿
+ * 1. 主线程加载 ONNX 模型，通过 Transferable 传递给 Worker
+ * 2. Worker 内执行：Fbank 特征提取 ➔ ONNX 推理 ➔ CTC 解码 ➔ 文本后处理
+ * 3. 零网络流量、零隐私泄露、完全端侧运行
  */
 
-import { modelManager, type ModelStatus } from './model-manager'
+import { modelManager } from './model-manager'
 
 export interface TranscribeResult {
   text: string
@@ -16,297 +16,53 @@ export interface TranscribeResult {
   isModelLoaded?: boolean
 }
 
-/**
- * 封装在 Web Worker 内部执行的自包含离线任务脚本代码
- * 采用完全自包含纯函数字符串，杜绝 Rollup / Vite 生产环境函数名混淆 (Mangle) 引起的跨作用域丢失
- */
-const WORKER_SCRIPT = `
-const PUNCTUATION_MAP = {
-  '<|comma|>': '，',
-  '<|period|>': '。',
-  '<|questionmark|>': '？',
-  '<|exclamation|>': '！',
-  '<|pause|>': '、',
-  '<|punc_comma|>': '，',
-  '<|punc_period|>': '。',
-  '<|punc_question|>': '？',
-  '<|punc_exclamation|>': '！',
-  '，': '，',
-  '。': '。',
-  '？': '？',
-  '！': '！',
-};
-
-function hzToMel(hz) {
-  return 1127.0 * Math.log(1.0 + hz / 700.0);
-}
-
-function melToHz(mel) {
-  return 700.0 * (Math.exp(mel / 1127.0) - 1.0);
-}
-
-function createMelFilterbank(sampleRate, fftSize, numMelBins, lowFreq, highFreq) {
-  numMelBins = numMelBins || 80;
-  lowFreq = lowFreq || 20;
-  highFreq = highFreq || 8000;
-  const numFftBins = Math.floor(fftSize / 2) + 1;
-  const lowMel = hzToMel(lowFreq);
-  const highMel = hzToMel(highFreq);
-  const melStep = (highMel - lowMel) / (numMelBins + 1);
-
-  const melPoints = new Float32Array(numMelBins + 2);
-  const binIndices = new Int32Array(numMelBins + 2);
-
-  for (let i = 0; i < numMelBins + 2; i++) {
-    melPoints[i] = lowMel + i * melStep;
-    const hz = melToHz(melPoints[i]);
-    binIndices[i] = Math.floor(((fftSize + 1) * hz) / sampleRate);
-  }
-
-  const filters = [];
-  for (let m = 0; m < numMelBins; m++) {
-    const filter = new Float32Array(numFftBins);
-    const left = binIndices[m];
-    const center = binIndices[m + 1];
-    const right = binIndices[m + 2];
-
-    for (let k = left; k < center; k++) {
-      if (k >= 0 && k < numFftBins && center > left) {
-        filter[k] = (k - left) / (center - left);
-      }
-    }
-    for (let k = center; k < right; k++) {
-      if (k >= 0 && k < numFftBins && right > center) {
-        filter[k] = (right - k) / (right - center);
-      }
-    }
-    filters.push(filter);
-  }
-  return filters;
-}
-
-function rfftPowerSpectrum(signal, fftSize) {
-  const real = new Float32Array(fftSize);
-  const imag = new Float32Array(fftSize);
-  real.set(signal.subarray(0, Math.min(signal.length, fftSize)));
-
-  let j = 0;
-  for (let i = 0; i < fftSize - 1; i++) {
-    if (i < j) {
-      const tempR = real[i];
-      real[i] = real[j];
-      real[j] = tempR;
-    }
-    let k = fftSize >> 1;
-    while (k <= j) {
-      j -= k;
-      k >>= 1;
-    }
-    j += k;
-  }
-
-  for (let len = 2; len <= fftSize; len <<= 1) {
-    const half = len >> 1;
-    const angle = (-2.0 * Math.PI) / len;
-    const wStepR = Math.cos(angle);
-    const wStepI = Math.sin(angle);
-
-    for (let i = 0; i < fftSize; i += len) {
-      let wR = 1.0;
-      let wI = 0.0;
-      for (let k = 0; k < half; k++) {
-        const uR = real[i + k];
-        const uI = imag[i + k];
-        const vR = real[i + k + half] * wR - imag[i + k + half] * wI;
-        const vI = real[i + k + half] * wI + imag[i + k + half] * wR;
-
-        real[i + k] = uR + vR;
-        imag[i + k] = uI + vI;
-        real[i + k + half] = uR - vR;
-        imag[i + k + half] = uI - vI;
-
-        const nextWR = wR * wStepR - wI * wStepI;
-        wI = wR * wStepI + wI * wStepR;
-        wR = nextWR;
-      }
-    }
-  }
-
-  const numBins = Math.floor(fftSize / 2) + 1;
-  const power = new Float32Array(numBins);
-  for (let k = 0; k < numBins; k++) {
-    power[k] = real[k] * real[k] + imag[k] * imag[k];
-  }
-  return power;
-}
-
-function computeFbank(pcm, options) {
-  options = options || {};
-  const sampleRate = options.sampleRate || 16000;
-  const frameLength = Math.round((options.frameLengthMs || 25) * (sampleRate / 1000));
-  const frameShift = Math.round((options.frameShiftMs || 10) * (sampleRate / 1000));
-  const numMelBins = options.numMelBins || 80;
-  const lowFreq = options.lowFreq || 20;
-  const highFreq = options.highFreq || 8000;
-
-  if (!pcm || pcm.length < frameLength) return [];
-
-  let fftSize = 1;
-  while (fftSize < frameLength) fftSize <<= 1;
-
-  const hammingWindow = new Float32Array(frameLength);
-  for (let i = 0; i < frameLength; i++) {
-    hammingWindow[i] = 0.54 - 0.46 * Math.cos((2.0 * Math.PI * i) / (frameLength - 1));
-  }
-
-  const filterbank = createMelFilterbank(sampleRate, fftSize, numMelBins, lowFreq, highFreq);
-
-  const emphasized = new Float32Array(pcm.length);
-  emphasized[0] = pcm[0];
-  for (let i = 1; i < pcm.length; i++) {
-    emphasized[i] = pcm[i] - 0.97 * pcm[i - 1];
-  }
-
-  const numFrames = Math.floor((emphasized.length - frameLength) / frameShift) + 1;
-  const fbankFeatures = [];
-  const frameBuffer = new Float32Array(frameLength);
-
-  for (let f = 0; f < numFrames; f++) {
-    const start = f * frameShift;
-    for (let i = 0; i < frameLength; i++) {
-      frameBuffer[i] = emphasized[start + i] * hammingWindow[i];
-    }
-    const powerSpectrum = rfftPowerSpectrum(frameBuffer, fftSize);
-    const melEnergies = new Float32Array(numMelBins);
-    for (let m = 0; m < numMelBins; m++) {
-      let energy = 0.0;
-      const filter = filterbank[m];
-      for (let k = 0; k < powerSpectrum.length; k++) {
-        energy += powerSpectrum[k] * filter[k];
-      }
-      melEnergies[m] = Math.log(Math.max(energy, 1e-5));
-    }
-    fbankFeatures.push(melEnergies);
-  }
-
-  if (fbankFeatures.length > 0) {
-    const means = new Float32Array(numMelBins);
-    for (let f = 0; f < fbankFeatures.length; f++) {
-      const frame = fbankFeatures[f];
-      for (let m = 0; m < numMelBins; m++) means[m] += frame[m];
-    }
-    for (let m = 0; m < numMelBins; m++) means[m] /= fbankFeatures.length;
-    for (let f = 0; f < fbankFeatures.length; f++) {
-      const frame = fbankFeatures[f];
-      for (let m = 0; m < numMelBins; m++) frame[m] -= means[m];
-    }
-  }
-  return fbankFeatures;
-}
-
-function formatCjkText(rawText) {
-  if (!rawText) return '';
-  let text = rawText.trim();
-  for (const [tag, punc] of Object.entries(PUNCTUATION_MAP)) {
-    text = text.split(tag).join(punc);
-  }
-  text = text.replace(/([\\u4e00-\\u9fa5])\\s+([\\u4e00-\\u9fa5])/g, '$1$2');
-  text = text.replace(/([\\u4e00-\\u9fa5])\\s+([\\u4e00-\\u9fa5])/g, '$1$2');
-  text = text.replace(/([\\u4e00-\\u9fa5])\\s+([，。！？；：、“”‘’])/g, '$1$2');
-  text = text.replace(/([，。！？；：、“”‘’])\\s+([\\u4e00-\\u9fa5])/g, '$1$2');
-  text = text.trim();
-  if (text.length >= 4 && !/[。！？!?.]$/.test(text)) {
-    text += '。';
-  }
-  return text;
-}
-
-self.onmessage = async (e) => {
-  const { id, type, payload } = e.data;
-
-  if (type === 'INIT_MODEL') {
-    self.postMessage({ id, type: 'INIT_SUCCESS' });
-    return;
-  }
-
-  if (type === 'TRANSCRIBE') {
-    try {
-      const { pcmBuffer, sampleRate } = payload;
-      const pcm = new Float32Array(pcmBuffer);
-      const duration = pcm.length / (sampleRate || 16000);
-
-      if (pcm.length < 1600) {
-        self.postMessage({
-          id,
-          type: 'SUCCESS',
-          result: { text: '', duration, emotion: 'neutral', confidence: 0 }
-        });
-        return;
-      }
-
-      // 1. 声学特征提取 (80维 Fbank)
-      const fbank = computeFbank(pcm, { sampleRate: 16000 });
-
-      // 2. 估算音频能量
-      let speechEnergy = 0;
-      const step = Math.max(1, Math.floor(pcm.length / 500));
-      let samplesCount = 0;
-      for (let i = 0; i < pcm.length; i += step) {
-        speechEnergy += Math.abs(pcm[i]);
-        samplesCount++;
-      }
-      const avgEnergy = samplesCount > 0 ? speechEnergy / samplesCount : 0;
-
-      // 若尚未载入真正的 112MB ONNX 声学模型权重，绝不伪造转写结果
-      let recognizedText = '';
-
-      self.postMessage({
-        id,
-        type: 'SUCCESS',
-        result: {
-          text: formatCjkText(recognizedText),
-          duration,
-          fbankFrames: fbank.length,
-          emotion: 'neutral',
-          confidence: 0,
-          isModelLoaded: false
-        }
-      });
-    } catch (err) {
-      self.postMessage({
-        id,
-        type: 'ERROR',
-        error: err && err.message ? err.message : String(err)
-      });
-    }
-  }
-};
-`;
-
 export class OfflineAsrEngine {
   private worker: Worker | null = null
-  private workerBlobUrl: string | null = null
+  private workerUrl: string | null = null
   private messageCounter = 0
   private pendingRequests: Map<number, { resolve: (res: any) => void; reject: (err: any) => void }> = new Map()
   private isInitialized = false
+  private isModelLoaded = false
 
   /**
-   * 初始化引擎与 Web Worker 独立线程
+   * 初始化 Worker 线程
    */
-  public async init(): Promise<void> {
-    if (this.isInitialized && this.worker) return
+  private async initWorker(): Promise<void> {
+    if (this.worker) return
 
     if (typeof window === 'undefined' || typeof Worker === 'undefined') {
       throw new Error('当前运行环境不支持 Web Worker')
     }
 
-    // 通过 Blob URL 创建零网络请求、零路径依赖、零打包混淆的自包含 Worker
-    const blob = new Blob([WORKER_SCRIPT], { type: 'application/javascript' })
-    this.workerBlobUrl = URL.createObjectURL(blob)
-    this.worker = new Worker(this.workerBlobUrl)
+    // Vite Worker 加载：使用 ?worker 让 Vite 打包 Worker 为独立文件
+    console.log('[ASR Engine] 开始加载 Worker...')
+    // @ts-ignore - Vite 特殊导入语法，TypeScript 无法识别
+    const WorkerModule = await import('./asr-worker.ts?worker')
+    const WorkerCtor = WorkerModule.default
+    const w = new WorkerCtor()
+    this.worker = w
+    console.log('[ASR Engine] Worker 实例创建成功')
 
-    this.worker.onmessage = (event: MessageEvent) => {
-      const { id, type, result, error } = event.data
+    w.onmessage = (event: MessageEvent) => {
+      const { id, type, result, error, args } = event.data
+
+      // Worker 日志转发到主线程控制台
+      if (type === 'LOG') {
+        const level = event.data.level || 'log'
+        console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log']('[Worker]', ...(args || []))
+        return
+      }
+
+      // Worker 致命错误
+      if (type === 'FATAL') {
+        console.error('[ASR Engine] Worker 致命错误:', error)
+        for (const [pid, p] of this.pendingRequests.entries()) {
+          p.reject(new Error(error || 'Worker 致命错误'))
+          this.pendingRequests.delete(pid)
+        }
+        return
+      }
+
       const pending = this.pendingRequests.get(id)
       if (!pending) return
 
@@ -319,11 +75,11 @@ export class OfflineAsrEngine {
       }
     }
 
-    this.worker.onerror = (err) => {
-      console.error('ASR Web Worker 发生异常:', err)
-      for (const [id, pending] of this.pendingRequests.entries()) {
-        pending.reject(err)
-        this.pendingRequests.delete(id)
+    w.onerror = (err: ErrorEvent) => {
+      console.error('[ASR Engine] Worker 加载/运行时错误:', err.message, 'at', err.filename + ':' + err.lineno)
+      for (const [pid, p] of this.pendingRequests.entries()) {
+        p.reject(new Error('Worker error: ' + err.message))
+        this.pendingRequests.delete(pid)
       }
     }
 
@@ -331,34 +87,157 @@ export class OfflineAsrEngine {
   }
 
   /**
-   * 将 16kHz Float32Array PCM 音频转写为中文文本 (带自动标点)
+   * 加载词表文件
    */
-  public async transcribe(pcm: Float32Array): Promise<TranscribeResult> {
-    if (!this.worker) {
-      await this.init()
+  private async loadVocab(): Promise<string[]> {
+    try {
+      const response = await fetch('/crm/models/tokens.txt')
+      if (!response.ok) {
+        console.warn('[ASR Engine] 词表文件加载失败，使用空词表')
+        return []
+      }
+      const text = await response.text()
+      // tokens.txt 格式: "<token> <id>" 每行
+      return text.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(line => {
+          const spaceIdx = line.lastIndexOf(' ')
+          return spaceIdx > 0 ? line.substring(0, spaceIdx) : line
+        })
+    } catch (err) {
+      console.warn('[ASR Engine] 词表文件加载异常:', err)
+      return []
+    }
+  }
+
+  /**
+   * 加载 CMVN 参数（从模型元数据提取的归一化参数）
+   */
+  private async loadCmvnParams(): Promise<{ negMean: number[]; invStddev: number[] }> {
+    try {
+      const response = await fetch('/crm/models/model-params.json')
+      if (!response.ok) {
+        console.warn('[ASR Engine] CMVN 参数加载失败，使用默认值')
+        return { negMean: new Array(560).fill(0), invStddev: new Array(560).fill(1) }
+      }
+      const data = await response.json()
+      return { negMean: data.negMean, invStddev: data.invStddev }
+    } catch (err) {
+      console.warn('[ASR Engine] CMVN 参数加载异常:', err)
+      return { negMean: new Array(560).fill(0), invStddev: new Array(560).fill(1) }
+    }
+  }
+
+  /**
+   * 加载模型到 Worker（首次调用时执行）
+   */
+  private async loadModelToWorker(): Promise<void> {
+    if (this.isModelLoaded) return
+
+    await this.initWorker()
+
+    // 从 ModelManager 获取模型 buffer
+    const modelBuffer = await modelManager.loadModel()
+
+    // 加载词表文件
+    const vocab = await this.loadVocab()
+    console.log(`[ASR Engine] 词表加载完成，共 ${vocab.length} 个 token`)
+    if (vocab.length === 0) {
+      console.error('[ASR Engine] 词表为空！检查 /crm/models/tokens.txt 是否可访问')
     }
 
+    // 加载 CMVN 参数
+    const { negMean, invStddev } = await this.loadCmvnParams()
+    console.log(`[ASR Engine] CMVN 参数加载完成, negMean: ${negMean.length}, invStddev: ${invStddev.length}`)
+    if (negMean.length !== 560) {
+      console.error(`[ASR Engine] CMVN 参数维度错误！期望 560，实际 ${negMean.length}`)
+    }
+
+    // 将模型 buffer 通过 Transferable 传递给 Worker
+    const bufferCopy = modelBuffer.slice(0)
+    const initId = ++this.messageCounter
+    console.log(`[ASR Engine] 发送 INIT_MODEL 到 Worker, id=${initId}, 模型大小=${bufferCopy.byteLength} bytes`)
+
+    this.worker!.postMessage(
+      {
+        id: initId,
+        type: 'INIT_MODEL',
+        payload: {
+          modelBuffer: bufferCopy,
+          vocab,
+          negMean,
+          invStddev,
+        }
+      },
+      [bufferCopy]
+    )
+
+    // 等待 Worker 初始化完成（带超时）
+    const initPromise = new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.pendingRequests.delete(initId)
+        reject(new Error('Worker 初始化超时 (30s)'))
+      }, 30000)
+
+      this.pendingRequests.set(initId, {
+        resolve: () => {
+          clearTimeout(timeout)
+          this.isModelLoaded = true
+          console.log('[ASR Engine] ✅ 模型加载成功，可以开始转写')
+          resolve()
+        },
+        reject: (err) => {
+          clearTimeout(timeout)
+          console.error('[ASR Engine] ❌ 模型加载失败:', err)
+          reject(err)
+        },
+      })
+    })
+
+    await initPromise
+  }
+
+  /**
+   * 将 16kHz Float32Array PCM 音频转写为中文文本
+   */
+  public async transcribe(pcm: Float32Array): Promise<TranscribeResult> {
     const duration = pcm.length / 16000
 
     if (pcm.length < 1600) {
-      return { text: '', duration, emotion: 'neutral', confidence: 0 }
+      return { text: '', duration, emotion: 'neutral', confidence: 0, isModelLoaded: this.isModelLoaded }
     }
 
-    // 复制为 ArrayBuffer 用于 Transferable Zero-Copy 转移
+    // 确保模型已加载
+    if (!this.isModelLoaded) {
+      try {
+        await this.loadModelToWorker()
+      } catch (err: any) {
+        console.error('[ASR Engine] 模型加载失败:', err)
+        return {
+          text: '',
+          duration,
+          emotion: 'neutral',
+          confidence: 0,
+          isModelLoaded: false,
+        }
+      }
+    }
+
+    // 复制为 ArrayBuffer 用于 Transferable Zero-Copy
     const buffer = pcm.buffer.slice(pcm.byteOffset, pcm.byteOffset + pcm.byteLength)
     const requestId = ++this.messageCounter
 
     return new Promise((resolve, reject) => {
       this.pendingRequests.set(requestId, { resolve, reject })
 
-      // 以 Transferable Objects 传递 ArrayBuffer，避免主线程到 Worker 的内存深拷贝
       this.worker!.postMessage(
         {
           id: requestId,
           type: 'TRANSCRIBE',
           payload: {
             pcmBuffer: buffer,
-            sampleRate: 16000
+            sampleRate: 16000,
           }
         },
         [buffer]
@@ -374,12 +253,13 @@ export class OfflineAsrEngine {
       this.worker.terminate()
       this.worker = null
     }
-    if (this.workerBlobUrl) {
-      URL.revokeObjectURL(this.workerBlobUrl)
-      this.workerBlobUrl = null
+    if (this.workerUrl) {
+      URL.revokeObjectURL(this.workerUrl)
+      this.workerUrl = null
     }
     this.pendingRequests.clear()
     this.isInitialized = false
+    this.isModelLoaded = false
   }
 }
 

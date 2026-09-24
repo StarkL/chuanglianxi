@@ -46,6 +46,43 @@ function pwaPlugin() {
             return
           }
         }
+        // WASM 文件 MIME 类型
+        if (url.endsWith('.wasm')) {
+          const filePath = resolve(__dirname, `public${url}`)
+          if (fs.existsSync(filePath)) {
+            res.setHeader('Content-Type', 'application/wasm')
+            res.end(fs.readFileSync(filePath))
+            return
+          }
+        }
+        // WASM JS 模块（onnxruntime-web 动态导入的 .mjs 文件）
+        if (url.endsWith('.mjs')) {
+          const filePath = resolve(__dirname, `public${url}`)
+          if (fs.existsSync(filePath)) {
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8')
+            res.setHeader('Access-Control-Allow-Origin', '*')
+            res.end(fs.readFileSync(filePath))
+            return
+          }
+        }
+        // 模型词表文件
+        if (url === '/models/tokens.txt') {
+          const filePath = resolve(__dirname, 'public/models/tokens.txt')
+          if (fs.existsSync(filePath)) {
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+            res.end(fs.readFileSync(filePath))
+            return
+          }
+        }
+        // 模型参数文件 (CMVN 等)
+        if (url === '/models/model-params.json') {
+          const filePath = resolve(__dirname, 'public/models/model-params.json')
+          if (fs.existsSync(filePath)) {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(fs.readFileSync(filePath))
+            return
+          }
+        }
         next()
       })
     }
@@ -61,6 +98,9 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
+  worker: {
+    format: 'es',
+  },
   server: {
     host: '127.0.0.1',
     port: 3000,
@@ -73,6 +113,11 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true
+      },
+      // 模型文件代理（开发环境）
+      '/crm/models/': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
       }
     }
   }

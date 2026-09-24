@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "uni -p h5",
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin",
     "dev:h5": "uni -p h5",
@@ -17,6 +18,7 @@
     "@dcloudio/uni-app": "3.0.0-5000720260410001",
     "@dcloudio/uni-components": "^3.0.0-5000720260410001",
     "@dcloudio/uni-mp-weixin": "^3.0.0-5000720260410001",
+    "onnxruntime-web": "^1.30.0",
     "vue": "^3.4.21",
     "wot-design-uni": "1.14.0"
   },
