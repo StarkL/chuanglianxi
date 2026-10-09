@@ -19,8 +19,14 @@ export interface ModelProgressEvent {
 export type ModelProgressCallback = (event: ModelProgressEvent) => void
 
 const CACHE_NAME = 'clx-asr-models-v1'
-// 从后端 API 拉取模型文件（后端服务器预先部署好模型）
-export const DEFAULT_MODEL_URL = '/api/models/asr'
+// 从后端 API 拉取模型文件（适配 VPS 生产环境 /crm/api 路径与本地开发环境）
+export const getBaseApi = () => {
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/crm')) {
+    return '/crm/api'
+  }
+  return '/api'
+}
+export const DEFAULT_MODEL_URL = `${getBaseApi()}/models/asr`
 export const ESTIMATED_MODEL_SIZE = 112 * 1024 * 1024 // ~112MB
 
 class AsrModelManager {
