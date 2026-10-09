@@ -92,9 +92,9 @@ async function initSession(modelBuffer: ArrayBuffer, vocab: string[], cmvnNegMea
     console.log('[ASR Worker] ✅ ONNX 会话初始化成功!')
     console.log('[ASR Worker] 输入 tensors:', session.inputNames)
     console.log('[ASR Worker] 输出 tensors:', session.outputNames)
-  } catch (err) {
-    console.error('[ASR Worker]  ONNX 会话初始化失败:', err)
-    throw err
+  } catch (err: any) {
+    console.error('[ASR Worker] ❌ ONNX 会话初始化失败:', err)
+    throw new Error(`ONNX会话创建失败: ${err?.message || String(err)}`)
   }
 }
 

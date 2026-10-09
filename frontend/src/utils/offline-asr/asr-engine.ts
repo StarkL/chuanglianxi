@@ -14,6 +14,7 @@ export interface TranscribeResult {
   emotion?: string
   confidence?: number
   isModelLoaded?: boolean
+  error?: string
 }
 
 export class OfflineAsrEngine {
@@ -177,8 +178,8 @@ export class OfflineAsrEngine {
     const initPromise = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(initId)
-        reject(new Error('Worker 初始化超时 (30s)'))
-      }, 30000)
+        reject(new Error('Worker 初始化超时 (60s)'))
+      }, 60000)
 
       this.pendingRequests.set(initId, {
         resolve: () => {
@@ -220,6 +221,7 @@ export class OfflineAsrEngine {
           emotion: 'neutral',
           confidence: 0,
           isModelLoaded: false,
+          error: err?.message || String(err),
         }
       }
     }
@@ -229,19 +231,43 @@ export class OfflineAsrEngine {
     const requestId = ++this.messageCounter
 
     return new Promise((resolve, reject) => {
-      this.pendingRequests.set(requestId, { resolve, reject })
+      this.pendingRequests.set(requestId, {
+        resolve,
+        reject: (err) => {
+          resolve({
+            text: '',
+            duration,
+            emotion: 'neutral',
+            confidence: 0,
+            isModelLoaded: this.isModelLoaded,
+            error: err?.message || String(err),
+          })
+        }
+      })
 
-      this.worker!.postMessage(
-        {
-          id: requestId,
-          type: 'TRANSCRIBE',
-          payload: {
-            pcmBuffer: buffer,
-            sampleRate: 16000,
-          }
-        },
-        [buffer]
-      )
+      try {
+        this.worker!.postMessage(
+          {
+            id: requestId,
+            type: 'TRANSCRIBE',
+            payload: {
+              pcmBuffer: buffer,
+              sampleRate: 16000,
+            }
+          },
+          [buffer]
+        )
+      } catch (postErr: any) {
+        this.pendingRequests.delete(requestId)
+        resolve({
+          text: '',
+          duration,
+          emotion: 'neutral',
+          confidence: 0,
+          isModelLoaded: this.isModelLoaded,
+          error: postErr?.message || String(postErr),
+        })
+      }
     })
   }
 

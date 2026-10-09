@@ -137,27 +137,33 @@ class AsrModelManager {
         const cache = await caches.open(CACHE_NAME)
         const cachedRes = await cache.match(modelUrl)
         if (cachedRes) {
-          this.setStatus('downloading')
-          if (onProgress) {
-            onProgress({
-              stage: 'compiling',
-              loadedBytes: ESTIMATED_MODEL_SIZE,
-              totalBytes: ESTIMATED_MODEL_SIZE,
-              percent: 95
-            })
-          }
           const buf = await cachedRes.arrayBuffer()
-          this.cachedBuffer = buf
-          this.setStatus('ready')
-          if (onProgress) {
-            onProgress({
-              stage: 'ready',
-              loadedBytes: buf.byteLength,
-              totalBytes: buf.byteLength,
-              percent: 100
-            })
+          // 校验缓存的有效性（必须大于 10MB，防止历史 401/404 错误页被当作模型加载）
+          if (buf.byteLength < 10 * 1024 * 1024) {
+            console.warn('[ModelManager] 缓存文件异常(<10MB)，已自动清理旧损坏缓存')
+            await cache.delete(modelUrl)
+          } else {
+            this.setStatus('downloading')
+            if (onProgress) {
+              onProgress({
+                stage: 'compiling',
+                loadedBytes: ESTIMATED_MODEL_SIZE,
+                totalBytes: ESTIMATED_MODEL_SIZE,
+                percent: 95
+              })
+            }
+            this.cachedBuffer = buf
+            this.setStatus('ready')
+            if (onProgress) {
+              onProgress({
+                stage: 'ready',
+                loadedBytes: buf.byteLength,
+                totalBytes: buf.byteLength,
+                percent: 100
+              })
+            }
+            return buf
           }
-          return buf
         }
       } catch (e) {
         console.warn('读取本地缓存模型异常，转为网络拉取:', e)

@@ -200,20 +200,39 @@ async function startRecording() {
   recordSeconds.value = 0
   volumeLevel.value = 0
 
-  // 若处于离线模式但本地无有效权重文件
-  if (engineMode.value === 'offline' && !isModelCached.value) {
-    uni.showModal({
-      title: '离线模型未就绪',
-      content: '端侧纯离线 ASR 需要预先下载 SenseVoice 模型权重 (~112MB)。推荐切换至【原生极速模式】，无需下载且支持边说边实时出字。',
-      confirmText: '切换极速',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          toggleEngineMode()
+  // 若处于离线模式
+  if (engineMode.value === 'offline') {
+    // 检查安全上下文（浏览器规范：SharedArrayBuffer 仅在 HTTPS 或 localhost 可用）
+    if (typeof window !== 'undefined' && !window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      uni.showModal({
+        title: '需要 HTTPS 访问',
+        content: '端侧离线模型依赖多线程 WebAssembly，按浏览器安全规范必须在 HTTPS 环境运行。当前为 HTTP 访问，建议切换至【原生极速模式】体验免下载实时出字。',
+        confirmText: '切换极速',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            setEngineMode('online')
+          }
         }
-      }
-    })
-    return
+      })
+      return
+    }
+
+    // 若本地无有效权重文件
+    if (!isModelCached.value) {
+      uni.showModal({
+        title: '离线模型未就绪',
+        content: '端侧纯离线 ASR 需要预先下载 SenseVoice 模型权重 (~112MB)。推荐切换至【原生极速模式】，无需下载且支持边说边实时出字。',
+        confirmText: '切换极速',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            setEngineMode('online')
+          }
+        }
+      })
+      return
+    }
   }
 
   if (!recognizer) {
@@ -261,7 +280,14 @@ async function stopRecording() {
       
       if (result?.isModelLoaded === false && !finalContent.trim()) {
         hasRecorded.value = true
-        errorMessage.value = '未加载端侧离线模型权重文件（约 112MB），建议切换至【原生极速模式】体验高精度实时转写。'
+        if (result?.error) {
+          errorMessage.value = `端侧离线模型加载或推理失败: ${result.error}`
+        } else {
+          errorMessage.value = '未加载端侧离线模型权重文件（约 112MB），建议切换至【原生极速模式】体验高精度实时转写。'
+        }
+      } else if (result?.error && !finalContent.trim()) {
+        hasRecorded.value = true
+        errorMessage.value = `端侧转写异常: ${result.error}`
       } else if (finalContent.trim()) {
         transcript.value = finalContent.trim()
         hasRecorded.value = true

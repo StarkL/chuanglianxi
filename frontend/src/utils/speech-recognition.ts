@@ -23,6 +23,7 @@ export interface SpeechRecognitionResult {
   isModelLoaded?: boolean
   duration?: number
   emotion?: string
+  error?: string
 }
 
 export interface SpeechRecognizerOptions {
@@ -313,7 +314,8 @@ export class SpeechRecognizer {
           isOffline: true,
           isModelLoaded: asrResult.isModelLoaded !== false,
           duration: asrResult.duration,
-          emotion: asrResult.emotion
+          emotion: asrResult.emotion,
+          error: asrResult.error,
         }
 
         if (this._offlineResolver) {
@@ -323,7 +325,20 @@ export class SpeechRecognizer {
         }
 
         return result
-      } catch (err) {
+      } catch (err: any) {
+        const errResult: SpeechRecognitionResult = {
+          transcript: '',
+          confidence: 0,
+          isOffline: true,
+          isModelLoaded: false,
+          error: err?.message || String(err),
+        }
+        if (this._offlineResolver) {
+          this._offlineResolver(errResult)
+          this._offlineResolver = undefined
+          this._offlineRejecter = undefined
+          return errResult
+        }
         if (this._offlineRejecter) {
           this._offlineRejecter(err)
           this._offlineResolver = undefined

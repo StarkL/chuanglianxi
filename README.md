@@ -97,7 +97,7 @@ pnpm dev
 # 仅启动后端 (http://127.0.0.1:5000)
 pnpm --filter @changlianxi/backend dev
 
-# 仅启动前端 H5 (http://localhost:5173/crm/)
+# 仅启动前端 H5 (http://localhost:3000/crm/)
 pnpm --filter @changlianxi/frontend dev:h5
 
 # 启动微信小程序端开发
