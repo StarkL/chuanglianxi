@@ -263,6 +263,13 @@ class AsrModelManager {
   /**
    * 清除本地已缓存的模型文件，释放存储空间
    */
+  /**
+   * 释放主线程内存中的模型 buffer 副本，避免常驻 240MB 内存
+   */
+  public releaseMemoryBuffer() {
+    this.cachedBuffer = null
+  }
+
   public async clearCache(modelUrl: string = DEFAULT_MODEL_URL): Promise<boolean> {
     this.cachedBuffer = null
     this.setStatus('unloaded')

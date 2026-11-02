@@ -40,6 +40,23 @@ const showContactPicker = ref(false)
 let recognizer: SpeechRecognizer | null = null
 let timerInterval: any = null
 
+const isMemoryError = computed(() => {
+  const msg = (errorMessage.value || '').toLowerCase()
+  return (
+    msg.includes('allocate a buffer') ||
+    msg.includes('out of memory') ||
+    msg.includes('oom') ||
+    msg.includes('239233841') ||
+    msg.includes('设备内存受限')
+  )
+})
+
+function quickSwitchToOnline() {
+  errorMessage.value = ''
+  setEngineMode('online')
+  uni.showToast({ title: '已切换为原生极速模式', icon: 'none' })
+}
+
 const isOfflineSupported = computed(() => SpeechRecognizer.isOfflineSupported())
 const isOnlineSupported = computed(() => SpeechRecognizer.isOnlineSupported())
 
@@ -124,18 +141,11 @@ function initRecognizer() {
       console.log('实时流式转写:', text)
     },
     onError: (err) => {
-      // 在线模式遇到网络/服务错误时，实时展示提示并触发降级
+      // 在线模式遇到网络/服务错误时（国内安卓设备常因 Google 语音服务不可达报错 network）
       if (err.code === 'network' || err.code === 'service-not-allowed') {
-        errorMessage.value = '原生语音服务不可达，已自动切换至端侧离线模式'
-        engineMode.value = 'offline'
-        // 如果正在录音，停止录音并提示用户
+        errorMessage.value = '原生语音服务连接不可达（通常需系统内置语音引擎或网络支持）。建议直接点击下方【手动输入/输入法语音】，或在电脑端使用【端侧离线模式】。'
         if (isRecording.value) {
           stopRecording()
-          uni.showToast({
-            title: '已切换至离线模式，请重新录音',
-            icon: 'none',
-            duration: 3000
-          })
         }
       } else if (err.code !== 'aborted' && err.code !== 'no-speech') {
         errorMessage.value = err.message
@@ -475,7 +485,10 @@ function selectContact(contact: Contact) {
           @click="setEngineMode('online')"
         >
           <text class="tab-icon">⚡</text>
-          <text class="tab-title">原生极速</text>
+          <view class="tab-text-wrap">
+            <text class="tab-title">原生极速</text>
+            <text class="tab-badge-sub">📱 手机推荐</text>
+          </view>
         </view>
         <view
           class="segment-tab"
@@ -483,7 +496,10 @@ function selectContact(contact: Contact) {
           @click="setEngineMode('offline')"
         >
           <text class="tab-icon">🛡️</text>
-          <text class="tab-title">端侧离线</text>
+          <view class="tab-text-wrap">
+            <text class="tab-title">端侧离线</text>
+            <text class="tab-badge-sub">💻 电脑推荐</text>
+          </view>
         </view>
       </view>
 
@@ -664,9 +680,28 @@ function selectContact(contact: Contact) {
 
     <!-- 错误反馈提示 -->
     <view v-if="errorMessage" class="error-section">
-      <view class="error-card">
-        <text class="error-icon">⚠️</text>
-        <text class="error-text">{{ errorMessage }}</text>
+      <view class="error-card" :class="{ 'is-memory-card': isMemoryError }">
+        <view class="error-main-row">
+          <text class="error-icon">⚠️</text>
+          <view class="error-content">
+            <text v-if="isMemoryError" class="error-title">移动设备内存受限</text>
+            <text class="error-text">
+              {{ isMemoryError 
+                ? '当前移动端浏览器无法分配 240MB 连续内存来承载 SenseVoice 离线大模型。推荐切换为【原生极速模式】体验零内存流式出字，或点击下方直接手动输入。' 
+                : errorMessage }}
+            </text>
+          </view>
+        </view>
+
+        <!-- 针对离线报错或内存报错的快捷恢复按钮 -->
+        <view v-if="isMemoryError || engineMode === 'offline'" class="error-actions-row">
+          <button class="err-action-btn primary" @click="quickSwitchToOnline">
+            ⚡ 一键切换为原生极速模式
+          </button>
+          <button class="err-action-btn secondary" @click="handleManualInput">
+            💡 手动输入 / 粘贴
+          </button>
+        </view>
       </view>
     </view>
 
@@ -1369,19 +1404,87 @@ function selectContact(contact: Contact) {
 .error-card {
   background: #FFE5E5;
   border-radius: 16rpx;
-  padding: 20rpx 24rpx;
+  padding: 24rpx;
   display: flex;
-  align-items: center;
-  gap: 12rpx;
+  flex-direction: column;
+  gap: 16rpx;
+  border: 1rpx solid rgba(214, 48, 49, 0.2);
+}
+
+.error-main-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
 }
 
 .error-icon {
+  font-size: 32rpx;
+  line-height: 1.2;
+}
+
+.error-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.error-title {
   font-size: 28rpx;
+  font-weight: 600;
+  color: #D63031;
 }
 
 .error-text {
-  font-size: 26rpx;
-  color: #D63031;
+  font-size: 24rpx;
+  color: #c0392b;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.error-actions-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 6rpx;
+}
+
+.err-action-btn {
+  flex: 1;
+  font-size: 24rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 12rpx;
+  line-height: 1.3;
+  text-align: center;
+  border: none;
+}
+
+.err-action-btn.primary {
+  background: #6c5ce7;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.err-action-btn.secondary {
+  background: #ffffff;
+  color: #6c5ce7;
+  border: 1rpx solid rgba(108, 92, 231, 0.3);
+}
+
+.tab-text-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tab-badge-sub {
+  font-size: 20rpx;
+  color: #7f8c8d;
+  margin-top: 2rpx;
+  transform: scale(0.9);
+}
+
+.segment-tab.active .tab-badge-sub {
+  color: #6c5ce7;
 }
 
 /* ---- 底部固定保存区 ---- */

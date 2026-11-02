@@ -73,17 +73,25 @@ async function initSession(modelBuffer: ArrayBuffer, vocab: string[], cmvnNegMea
 
   // 配置 WASM 后端：使用非 JSEP 版本，避免 Vite 动态 import 问题
   ort.env.wasm.wasmPaths = '/crm/'
-  ort.env.wasm.numThreads = 2
   // 禁用 JSEP（需要动态 import .mjs 文件，Vite 开发环境不支持）
   ;(ort.env.wasm as any).enableJsep = false
 
+  // 移动端环境检测：移动端采用单线程以降低多线程 SharedArrayBuffer 带来的栈内存与碎片开销
+  const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '')
+  ort.env.wasm.numThreads = isMobile ? 1 : 2
+
+  let rawBuffer: Uint8Array | null = new Uint8Array(modelBuffer)
+
   try {
-    session = await ort.InferenceSession.create(new Uint8Array(modelBuffer), {
+    session = await ort.InferenceSession.create(rawBuffer, {
       executionProviders: ['wasm'],
-      graphOptimizationLevel: 'all',
-      enableCpuMemArena: true,
-      enableMemPattern: true,
+      graphOptimizationLevel: isMobile ? 'basic' : 'all',
+      enableCpuMemArena: false, // 禁用 CPU Arena 内存池预分配，显著降低移动端连续大内存申请导致的 OOM 风险
+      enableMemPattern: !isMobile,
     })
+
+    // 创建成功后立刻释放对 JS 端 typed array 的显式引用
+    rawBuffer = null
 
     vocabList = vocab
     negMean = new Float32Array(cmvnNegMean)
@@ -93,8 +101,13 @@ async function initSession(modelBuffer: ArrayBuffer, vocab: string[], cmvnNegMea
     console.log('[ASR Worker] 输入 tensors:', session.inputNames)
     console.log('[ASR Worker] 输出 tensors:', session.outputNames)
   } catch (err: any) {
+    rawBuffer = null
     console.error('[ASR Worker] ❌ ONNX 会话初始化失败:', err)
-    throw new Error(`ONNX会话创建失败: ${err?.message || String(err)}`)
+    const rawMsg = err?.message || String(err)
+    if (rawMsg.includes('allocate a buffer') || rawMsg.includes('out of memory') || rawMsg.includes('239233841')) {
+      throw new Error(`移动端设备内存受限: 浏览器无法分配 240MB 模型连续内存 (OOM)，建议在 PC 端体验离线模式或切换至【原生极速模式】`)
+    }
+    throw new Error(`ONNX会话创建失败: ${rawMsg}`)
   }
 }
 

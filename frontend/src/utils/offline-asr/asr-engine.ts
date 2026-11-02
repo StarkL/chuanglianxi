@@ -157,6 +157,8 @@ export class OfflineAsrEngine {
 
     // 将模型 buffer 通过 Transferable 传递给 Worker
     const bufferCopy = modelBuffer.slice(0)
+    // 立即释放主线程持有的 240MB 缓存引用，避免主线程出现两份 240MB 内存堆叠
+    modelManager.releaseMemoryBuffer()
     const initId = ++this.messageCounter
     console.log(`[ASR Engine] 发送 INIT_MODEL 到 Worker, id=${initId}, 模型大小=${bufferCopy.byteLength} bytes`)
 
